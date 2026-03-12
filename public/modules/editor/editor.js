@@ -1690,7 +1690,28 @@ modules["editor/editor"] = class {
       }
       this.render.runningParentingRender = true;
 
-      while (this.render.fragmentQueue.length > 0) {
+      let render = async () => {
+        let currentQueue = [...this.render.fragmentQueue];
+        this.render.fragmentQueue = [];
+        while (currentQueue.length > 0) {
+          let fragmentID = currentQueue.pop();
+          let [fragment, holder] = this.render.fragmentStorage[fragmentID] ?? [];
+          delete this.render.fragmentStorage[fragmentID];
+          if (holder == null || fragment == null) {
+            continue;
+          }
+          holder.appendChild(fragment);
+        }
+        await sleep(25);
+        if (this.render.fragmentQueue.length > 0) {
+          requestAnimationFrame(render);
+        } else {
+          this.render.runningParentingRender = false;
+        }
+      }
+      requestAnimationFrame(render);
+
+      /*while (this.render.fragmentQueue.length > 0) {
         let currentQueue = [...this.render.fragmentQueue];
         this.render.fragmentQueue = [];
         while (currentQueue.length > 0) {
@@ -1704,7 +1725,8 @@ modules["editor/editor"] = class {
         }
         await sleep(25);
       }
-      this.render.runningParentingRender = false;
+        
+      this.render.runningParentingRender = false;*/
     }
     this.render.addParentToQueue = async (annotation = { render: {} }, holder = annotations) => {
       if ((annotation.component ?? {}).holder != null) {
@@ -3682,10 +3704,11 @@ modules["editor/editor"] = class {
       frame.style.setProperty("--interfacePadding", this.scrollOffset + "px");
     }
     let recenterTimeoutFromSimulatedResize;
-    this.pipeline.subscribe("resizeChange", "resize", (event) => {
+    this.pipeline.subscribe("resizeChange", "resize", async (event) => {
       let centerPosition = this.getCenterPosition();
       
       this.updatePageSize();
+      await this.render.setMarginSize();
 
       if (event.simulated != true) {
         this.goToCenterPosition(centerPosition.x, centerPosition.y);

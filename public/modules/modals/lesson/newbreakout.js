@@ -755,10 +755,14 @@ modules["modals/lesson/newbreakout/options"] = class extends modules["breakout/o
     ".brooCounterSelector div[count]": `min-width: 16px; max-width: 32px; height: 24px; padding: 0 8px; align-content: center; background: var(--theme); border-radius: 6px; outline: unset; color: #fff; font-size: 16px; font-weight: 700; white-space: nowrap; overflow-x: auto; scrollbar-width: none; pointer-events: all !important`,
     ...this.progressFooterStyles
   };
-  js = async (frame, extra) => {
+  js = async (frame, extra = {}) => {
     this.parent = extra.parent;
 
-    this.setupFooter(extra);
+    if (extra.editing != true) {
+      this.setupFooter(extra);
+    } else {
+      frame.querySelector(".brSetupProgress").remove();
+    }
 
     let holder = frame.querySelector(".brooSettingsHolder");
 
@@ -1133,10 +1137,10 @@ modules["modals/lesson/newbreakout/review"] = class extends modules["breakout/ov
     ".brorTitle b": `color: var(--theme); font-weight: 700`,
     ".brorDesc": `width: 325px; max-width: 100%; margin-top: 6px; font-size: 16px`,
     ".brorTiles": `box-sizing: border-box; display: flex; flex-direction: column; width: fit-content; max-width: 100%; padding: 8px; gap: 8px; align-items: center`,
-    ".brorTile": `width: 300px; max-width: 100%; padding: 12px; text-align: left; background: var(--pageColor); box-shadow: var(--lightShadow); border-radius: 12px`,
+    ".brorTile": `width: 300px; max-width: 100%; padding: 12px; text-align: left; background: var(--pageColor); box-shadow: var(--lightShadow); border-radius: 10px`,
     ".brorTile:hover": `box-shadow: var(--darkShadow)`,
-    ".brorTile:first-child": `border-top-left-radius: 24px; border-top-right-radius: 24px`,
-    ".brorTile:last-child": `border-bottom-left-radius: 24px; border-bottom-right-radius: 24px`,
+    ".brorTile:first-child": `border-top-left-radius: 20px; border-top-right-radius: 20px`,
+    ".brorTile:last-child": `border-bottom-left-radius: 20px; border-bottom-right-radius: 20px`,
 
     '.brorTile[type="template"] div[missing]': `display: none; gap: 4px; align-items: center`,
     '.brorTile[type="template"] div[missing] div[image]': `width: 32px; height: 32px; margin: 4px; flex-shrink: 0`,

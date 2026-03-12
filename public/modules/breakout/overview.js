@@ -1,4 +1,8 @@
 modules["breakout/overview"] = class {
+  preload = [
+    "../modules/breakout/template.js",
+    "../modules/modals/lesson/newbreakout.js"
+  ];
   html = `
   <div class="broInterface customScroll">
     <div class="broTopHolder">
@@ -16,9 +20,8 @@ modules["breakout/overview"] = class {
           <div class="broTopDivider"></div>
         </div>
         <div class="broTopSection" right>
-          <button class="broManageDropdown" disabled>Manage</button>
-          <button class="broShare">Share</button>
-          <button class="broMemberOptions" dropdowntitle="Member Options" title="Member Options | Configure various member settings."></button>
+          <button class="broManageDropdown" title="Manage team and member settings for this lesson.">Manage</button>
+          <button class="broShare" title="Share this lesson to bring in members.">Share</button>
           <button class="broSharePin"></button>
           <div class="broTopDivider"></div>
           <button class="broAccount"><img src="../images/profiles/default.svg" accountimage /><div accountuser></div></button>
@@ -91,8 +94,6 @@ modules["breakout/overview"] = class {
     ".broShare": `display: flex; height: 32px; padding: 6px 10px; margin: 0 4px; background: var(--theme); border-radius: 16px; color: #fff; font-size: 16px; font-weight: 600`,
     ".broTopDivider": `width: 4px; height: 32px; margin: 0 4px; background: var(--lightGray); border-radius: 2px`,
 
-    ".broMemberOptions": `display: flex; width: 32px; height: 32px; padding: 0px; margin: 0 4px; background: var(--lightGray); border-radius: 16px; justify-content: center; align-items: center; color: #fff; font-size: 16px; font-weight: 600`,
-    ".broMemberOptions svg": `width: 32px; height: 32px`,
     ".broSharePin": `display: none; height: 32px; padding: 6px 10px; margin: 0 4px; background: var(--lightGray); border-radius: 16px; font-size: 16px; font-weight: 600`,
     ".broAccount": `padding: 0; width: 32px; height: 32px; margin: 0 4px; border-radius: 16px; overflow: hidden`,
     ".broAccount img": `width: 100%; height: 100%; object-fit: cover`,
@@ -295,7 +296,7 @@ modules["breakout/overview"] = class {
       width: tile.editor.pageOffsetWidth,
       height: tile.editor.pageOffsetHeight,
       left: parentRectX + tile.x,
-      right: parentRectX + tile.x + this.layout.columnWidth,
+      right: parentRectX + tile.x + standardWidth,
       top: parentRectY + tile.y,
       bottom: parentRectY + tile.y + tile.height
     };
@@ -321,7 +322,6 @@ modules["breakout/overview"] = class {
     let rightTop = top.querySelector(".broTopSection[right]");
     let manageButton = rightTop.querySelector(".broManageDropdown");
     let shareButton = rightTop.querySelector(".broShare");
-    let optionsButton = rightTop.querySelector(".broMemberOptions");
     let sharePinButton = rightTop.querySelector(".broSharePin");
     let accountButton = rightTop.querySelector(".broAccount");
     let loginButton = rightTop.querySelector(".broLogin");
@@ -472,6 +472,9 @@ modules["breakout/overview"] = class {
     });
     updateStatus();
 
+    manageButton.addEventListener("click", () => {
+      dropdownModule.open(manageButton, "dropdowns/lesson/breakout/overview/manage", { parent: this });
+    });
     shareButton.addEventListener("click", () => {
       dropdownModule.open(shareButton, "dropdowns/lesson/share", { parent: this.parent });
     });
@@ -484,11 +487,6 @@ modules["breakout/overview"] = class {
       sharePinButton.style.display = "unset";
       sharePinButton.textContent = this.parent.parent.lesson.pin;
     }
-    optionsButton.addEventListener("click", () => {
-      if (modules["dropdowns/lesson/share/options"] != null) {
-        dropdownModule.open(optionsButton, "dropdowns/lesson/share/options", { title: "Options", parent: this.parent });
-      }
-    });
 
     if (userID != null) {
       accountButton.querySelector("div").textContent = account.user;
@@ -577,7 +575,7 @@ modules["breakout/overview"] = class {
     this.layout.memberSessions = {};
     this.layout.tileLayout = [];
     this.layout.tileLayoutVersionIndex = 0;
-    this.layout.loadedTiles = [];
+    this.layout.loadedTiles = {};
     this.layout.pendingEditors = [];
     this.layout.loadingAnnotations = {};
     this.layout.longSubscribedGroups = [];
@@ -655,10 +653,9 @@ modules["breakout/overview"] = class {
         if (tile.editor == null || tile.element == null) {
           continue;
         }
-        tile.editor.updatePageSize();
+        await tile.editor.updatePageSize();
         
         if (body != null) {
-          let skipPositioning = tile.editorState != null;
           root = root ?? {};
           await tile.editor.loadAnnotations({
             annotations: body.annotations ?? [],
@@ -666,7 +663,9 @@ modules["breakout/overview"] = class {
             sources: [ ...(body.sources ?? []), ...(root.sources ?? []) ],
             reactions: [ ...(body.reactions ?? []), ...(root.reactions ?? []) ],
             reactedTo: [ ...(body.reactedTo ?? []), ...(root.reactedTo ?? []) ]
-          }, { skipPositioning });
+          }, {
+            skipPositioning: tile.editorState != null
+          });
           if (tile.element != null) {
             let previewHolder = tile.element.querySelector(".broTilePreview");
             if (previewHolder != null) {
@@ -958,12 +957,12 @@ modules["breakout/overview"] = class {
 
         if (tile.editor != null) {
           let centerPosition = tile.editor.getCenterPosition();
-          tile.editor.updatePageSize();
-          if (this.lastResizeWasSimulated != true) {
-            tile.editor.goToCenterPosition(centerPosition.x, centerPosition.y);
+          await tile.editor.updatePageSize();
+          if (this.layout.lastResizeWasSimulated != true) {
+            await tile.editor.goToCenterPosition(centerPosition.x, centerPosition.y);
           } else {
             if (tile.editorState != null) {
-              tile.editorState = null;
+              delete tile.editorState;
             }
             if (tile.editor.annotationPages.length > 0) {
               tile.editor.utils.updateAnnotationScroll(tile.editor.annotationPages[tile.editor.currentPage - 1], false);
@@ -1014,7 +1013,9 @@ modules["breakout/overview"] = class {
         });
         tile.editor.updatePageSize = async () => {
           this.previewEditorPageSizeFunction(tile);
-          //await tile.editor.render.setMarginSize();
+          if (this.layout.resized == true) {
+            await tile.editor.render.setMarginSize();
+          }
           //await tile.editor.updateChunks();
         }
         if (tile.loadedAnnotations != true && this.layout.loadingAnnotations[tile.render._id] == null) {
@@ -1114,11 +1115,6 @@ modules["breakout/overview"] = class {
         })();
       }
 
-      // Configure Editor Viewports:
-      //this.layout.setupEditors();
-      clearTimeout(this.layout.setupEditorsTimeout);
-      this.layout.setupEditorsTimeout = setTimeout(() => { this.layout.setupEditors(); }, 50);
-
       // Unload Tiles:
       let unloadTileKeys = Object.keys(this.layout.loadedTiles);
       for (let i = 0; i < unloadTileKeys.length; i++) {
@@ -1126,6 +1122,11 @@ modules["breakout/overview"] = class {
         let tile = this.layout.tiles[tileID];
         if (tile.editor != null) {
           if (tile.editor.previewLoaded == true) {
+            if (this.layout.lastResizeWasSimulated != true) {
+              let centerPosition = tile.editor.getCenterPosition();
+              await tile.editor.updatePageSize();
+              tile.editor.goToCenterPosition(centerPosition.x, centerPosition.y);
+            }
             let existingState = tile.editor.getState();
             tile.editorState = { zoom: existingState.zoom, centerPosition: existingState.centerPosition };
           }
@@ -1141,7 +1142,13 @@ modules["breakout/overview"] = class {
 
       this.layout.loadedTiles = loadTiles;
 
-      this.lastResizeWasSimulated = false;
+      // Configure Editor Viewports:
+      this.layout.setupEditors();
+      //clearTimeout(this.layout.setupEditorsTimeout);
+      //this.layout.setupEditorsTimeout = setTimeout(() => { this.layout.setupEditors(); }, 50);
+
+      this.layout.resized = false;
+      this.layout.lastResizeWasSimulated = false;
 
       this.layout.runningUpdateCycle = false;
       if (this.layout.reRunUpdateCycle == true) {
@@ -1307,13 +1314,13 @@ modules["breakout/overview"] = class {
       if (previewHeight > 400) {
         previewHeight = 400;
       } else if (previewHeight < 200) {
-        previewWidth *= 200 / previewHeight;
+        previewWidth *= (200 / previewHeight);
         previewHeight = 200;
       }
       this.layout.previewWidth = Math.round(previewWidth);
       this.layout.previewHeight = Math.round(previewHeight);
 
-      this.layout.previewScale = (this.layout.columnWidth * this.layout.tileHeightRatio) / this.containerHeight;
+      this.layout.previewScale = this.layout.previewHeight / this.containerHeight;
       
       clearTimeout(this.layout.refreshTilesTimeout);
       if (force != true) {
@@ -1323,7 +1330,8 @@ modules["breakout/overview"] = class {
       }
     }
     this.pipeline.subscribe("tilesResize", "resize", (event) => {
-      this.lastResizeWasSimulated = event.simulated == true;
+      this.layout.resized = true;
+      this.layout.lastResizeWasSimulated = event.simulated == true;
       this.layout.setupColumns();
     });
     this.pipeline.subscribe("tilesScroll", "scroll", this.layout.runUpdateCycle, { sort: 1 });
@@ -1648,6 +1656,14 @@ modules["breakout/overview"] = class {
       let groupMember = this.layout.members[data._id];
       if (groupMember != null) {
         this.layout.updateMemberTile(data);
+      }
+      let loadedTiles = Object.keys(this.layout.loadedTiles);
+      for (let i = 0; i < loadedTiles.length; i++) {
+        let tile = this.layout.tiles[loadedTiles[i]];
+        if (tile.editor != null) {
+          tile.editor.pipeline.publish("collaborator_update", data);
+          tile.editor.pipeline.publish("collaborator_update_" + data._id, data);
+        }
       }
     }, { sort: 1 });
 
@@ -2055,7 +2071,6 @@ modules["breakout/overview"] = class {
     setSVG(topScrollLeft, "../images/editor/top/leftarrow.svg");
     setSVG(topScrollRight, "../images/editor/top/rightarrow.svg");
     setSVG(icon, "../images/breakout.svg");
-    setSVG(optionsButton, "../images/editor/share/setting.svg", (svg) => { return svg.replace(/"#48A7FF"/g, '"var(--secondary)"'); });
 
     let boardEnabled = false;
     let boardOpen = false;
@@ -2164,6 +2179,134 @@ modules["dropdowns/lesson/breakout/overview/file"] = class {
     setSVG(copyButton.querySelector("div"), "../images/editor/file/copy.svg");
     setSVG(fileButton.querySelector("div"), "../images/editor/file/moveto.svg");
     setSVG(deleteLessonButton.querySelector("div"), "../images/editor/file/delete.svg");
+  }
+}
+
+modules["dropdowns/lesson/breakout/overview/manage"] = class {
+  maxHeight = 450;
+  html = `
+  <div class="broManageTilesHolder">
+    <div class="broManageTiles">
+      <button class="broManageTile" type="template">
+        <div class="broManageTileContent">
+          <div title>Modify Template</div>
+          <div info>Update the template and push changes to teams.</div>
+        </div>
+        <div class="broManageTileImage" style="box-shadow: inset var(--lightShadow)">
+          <img src="../images/dashboard/placeholder.png" style="height: 60px">
+        </div>
+      </button>
+      <button class="broManageTile" type="groupsettings" dropdowntitle="Team Settings">
+        <div class="broManageTileContent">
+          <div title>Team Settings</div>
+          <div info>Configure AutoPair, permissions, and more.</div>
+        </div>
+        <div class="broManageTileImage"></div>
+      </button>
+      <button class="broManageTile" type="membersettings" dropdowntitle="Member Settings">
+        <div class="broManageTileContent">
+          <div title>Member Settings</div>
+          <div info>Configure member settings and tool toggle.</div>
+        </div>
+        <div class="broManageTileImage"></div>
+      </button>
+    </div>
+    <div class="broManageTiles">
+      <button class="broManageTile" type="rotatemembersclockwise" disabled>
+        <div class="broManageTileImage"></div>
+        <div class="broManageTileContent">
+          <div title>Rotate Clockwise</div>
+          <div info>Move each team's members to the next team.</div>
+        </div>
+      </button>
+      <button class="broManageTile" type="rotatememberscounterclockwise" disabled>
+        <div class="broManageTileImage" style="transform: scaleX(-1)"></div>
+        <div class="broManageTileContent">
+          <div title>Rotate Counterclockwise</div>
+          <div info>Move each team's members to the previous team.</div>
+        </div>
+      </button>
+      <button class="broManageTile" type="movemembersrandomly" disabled>
+        <div class="broManageTileImage"></div>
+        <div class="broManageTileContent">
+          <div title>Move Randomly</div>
+          <div info>Randomly reassign members to a different team.</div>
+        </div>
+      </button>
+    </div>
+    <div class="broManageTiles">
+      <button class="broManageTile" type="endsession" dropdowntitle="End Session"><div>End Breakout Session</div></button>
+    </div>
+  </div>
+  `;
+  css = {
+    ".broManageTilesHolder": `position: relative; display: flex; gap: 12px; flex-direction: column; max-width: 100%; padding: 8px`,
+    ".broManageTiles": `box-sizing: border-box; display: flex; flex-direction: column; width: fit-content; max-width: 100%; padding: 8px; gap: 8px; align-items: center`,
+    ".broManageTile": `display: flex; flex-wrap: wrap; gap: 12px; width: 300px; max-width: 100%; padding: 12px; text-align: left; background: var(--pageColor); box-shadow: var(--lightShadow); border-radius: 10px`,
+    ".broManageTile:hover": `box-shadow: var(--darkShadow)`,
+    ".broManageTile:first-child": `border-top-left-radius: 20px; border-top-right-radius: 20px`,
+    ".broManageTile:last-child": `border-bottom-left-radius: 20px; border-bottom-right-radius: 20px`,
+    ".broManageTileContent": `display: flex; flex: 1 1 100px; flex-direction: column; gap: 4px; justify-content: center`,
+    ".broManageTileContent div[title]": `font-size: 18px; font-weight: 700; color: var(--theme)`,
+    ".broManageTileContent div[info]": `font-weight: 500`,
+    ".broManageTileImage": `height: fit-content; padding: 4px; border-radius: 12px`,
+    ".broManageTileImage svg": `display: block; width: 50px`,
+    ".broManageTileImage img": `display: block; width: 80px; object-fit: cover; border-radius: 8px`,
+
+    '.broManageTile[type="endsession"]': `padding: 8px; background: var(--error); color: #fff; font-weight: 700; font-size: 16px; justify-content: center; text-align: center`
+  };
+  js = async function (frame, extra) {
+    this.parent = extra.parent;
+    
+    let sections = frame.querySelector(".broManageTilesHolder");
+
+    let templateSection = sections.querySelector('.broManageTile[type="template"]');
+    let templateImage = templateSection.querySelector(".broManageTileImage img");
+    let groupSettingsSection = sections.querySelector('.broManageTile[type="groupsettings"]');
+    let memberSettingsSection = sections.querySelector('.broManageTile[type="membersettings"]');
+
+    let rotateMembersClockwiseSection = sections.querySelector('.broManageTile[type="rotatemembersclockwise"]');
+    let rotateMembersCounterclockwiseSection = sections.querySelector('.broManageTile[type="rotatememberscounterclockwise"]');
+    let moveMembersRandomlySection = sections.querySelector('.broManageTile[type="movemembersrandomly"]');
+
+    let endSessionSection = sections.querySelector('.broManageTile[type="endsession"]');
+
+    templateSection.addEventListener("click", () => {
+      dropdownModule.close();
+      this.parent.parent.openPage("secondary", "breakout/template", { template: this.parent.template });
+    });
+    groupSettingsSection.addEventListener("click", () => {
+      if (modules["modals/lesson/newbreakout/options"] != null) {
+        dropdownModule.open(groupSettingsSection, "modals/lesson/newbreakout/options", { parent: this.parent, editing: true });
+      }
+    });
+    memberSettingsSection.addEventListener("click", () => {
+      if (modules["dropdowns/lesson/share/options"] != null) {
+        dropdownModule.open(memberSettingsSection, "dropdowns/lesson/share/options", { parent: this.parent.parent });
+      }
+    });
+    
+    let updateDisplayState = async () => {
+      let config = this.parent.parent.parent.lesson.breakout ?? {};
+
+      if (config.template != null) {
+        (async () => {
+          let template = await this.parent.getTemplate();
+          if (template.thumbnail != null) {
+            templateImage.src = assetURL + template.thumbnail;
+          }
+        })();
+      }
+    }
+    this.parent.pipeline.subscribe("overviewManageBreakoutSet", "set", updateDisplayState, { sort: 2 });
+    this.parent.pipeline.subscribe("overviewManageBreakoutSubSet", "subset", updateDisplayState, { sort: 2 });
+    updateDisplayState();
+
+    setSVG(groupSettingsSection.querySelector(".broManageTileImage"), "../images/editor/breakout/groupsettings.svg");
+    setSVG(memberSettingsSection.querySelector(".broManageTileImage"), "../images/editor/breakout/membersettings.svg");
+    setSVG(rotateMembersClockwiseSection.querySelector(".broManageTileImage"), "../images/editor/breakout/rotatemembers.svg");
+    setSVG(rotateMembersCounterclockwiseSection.querySelector(".broManageTileImage"), "../images/editor/breakout/rotatemembers.svg");
+    setSVG(moveMembersRandomlySection.querySelector(".broManageTileImage"), "../images/editor/breakout/movemembersrandomly.svg");
   }
 }
 

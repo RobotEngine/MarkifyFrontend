@@ -826,6 +826,9 @@ modules["editor/realtime"] = class {
     }
     this.removeRealtime = (memberID) => {
       let member = this.members[memberID];
+      if (editor.realtime.observing == memberID) {
+        this.exitObserve();
+      }
       if (member == null || member.elements == null) {
         return;
       }

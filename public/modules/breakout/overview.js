@@ -1360,6 +1360,10 @@ modules["breakout/overview"] = class {
           this.layout.refreshTileSpots(index);
         }
       }
+      if (tile.element != null) {
+        tile.element.remove();
+        tile.element = null;
+      }
       delete this.layout.tiles[tileID];
     }
     this.layout.addTile = (data, members, refresh) => {
@@ -1677,6 +1681,18 @@ modules["breakout/overview"] = class {
       }
       if (tile.editor != null) {
         tile.editor.pipeline.publish("long", event);
+      }
+    });
+
+    this.pipeline.subscribe("previewTemplateChange", "templatechange", (body) => {
+      this.templateRoots[body.rootID] = body.annotations;
+
+      let tiles = Object.keys(this.layout.tiles);
+      for (let i = 0; i < tiles.length; i++) {
+        let tile = this.layout.tiles[tiles[i]];
+        if (tile.editor != null) {
+          tile.editor.applyRootTemplate(body.annotations);
+        }
       }
     });
 
@@ -2215,21 +2231,21 @@ modules["dropdowns/lesson/breakout/overview/manage"] = class {
       <button class="broManageTile" type="rotatemembersclockwise" disabled>
         <div class="broManageTileImage"></div>
         <div class="broManageTileContent">
-          <div title>Rotate Clockwise</div>
+          <div title>Coming Soon</div> <!--Rotate Clockwise-->
           <div info>Move each team's members to the next team.</div>
         </div>
       </button>
       <button class="broManageTile" type="rotatememberscounterclockwise" disabled>
         <div class="broManageTileImage" style="transform: scaleX(-1)"></div>
         <div class="broManageTileContent">
-          <div title>Rotate Counterclockwise</div>
+          <div title>Coming Soon</div> <!--Rotate Counterclockwise-->
           <div info>Move each team's members to the previous team.</div>
         </div>
       </button>
       <button class="broManageTile" type="movemembersrandomly" disabled>
         <div class="broManageTileImage"></div>
         <div class="broManageTileContent">
-          <div title>Move Randomly</div>
+          <div title>Coming Soon</div> <!--Move Randomly-->
           <div info>Randomly reassign members to a different team.</div>
         </div>
       </button>
@@ -2273,7 +2289,7 @@ modules["dropdowns/lesson/breakout/overview/manage"] = class {
 
     templateSection.addEventListener("click", () => {
       dropdownModule.close();
-      this.parent.parent.openPage("secondary", "breakout/template", { template: this.parent.template });
+      this.parent.parent.openPage("secondary", "breakout/template", { template: this.parent.template, updating: true });
     });
     groupSettingsSection.addEventListener("click", () => {
       if (modules["modals/lesson/newbreakout/options"] != null) {

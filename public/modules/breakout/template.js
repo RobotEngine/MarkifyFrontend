@@ -64,7 +64,7 @@ modules["breakout/template"] = class {
     ".brtTopSection[left]": `border-bottom-right-radius: 12px`,
     ".brtTopSection[right]": `border-bottom-left-radius: 12px`,
 
-    ".brtClose": `display: flex; width: 38px; height: 38px; padding: 0; user-select: none; justify-content: center; align-items: center; border-radius: 6px`,
+    ".brtClose": `display: flex; width: 38px; height: 38px; padding: 0; margin-right: 4px; user-select: none; justify-content: center; align-items: center; border-radius: 6px`,
     ".brtClose:hover": `background: var(--hover)`,
     ".brtClose svg": `width: 24px; height: 24px; transition: .2s`,
     ".brtClose:hover svg": `transform: scale(.9)`,
@@ -166,7 +166,7 @@ modules["breakout/template"] = class {
 
     let stringPref = JSON.stringify(this.parent.parent.preferences); // Must be duplicated
 
-    let close = async (skipThumbnail) => {
+    this.close = async (skipThumbnail) => {
       if (this.editor != null) {
         this.editor.pipeline.publish("page_close");
       }
@@ -179,10 +179,17 @@ modules["breakout/template"] = class {
         sendRequest("PUT", "lessons/breakout/templates/refreshthumbnail?template=" + this.template._id, null, { session: this.parent.parent.session });
       }
     }
-    closeButton.addEventListener("click", close);
+    closeButton.addEventListener("click", this.close);
+
+    if (extra.updating == true) {
+      finishButton.textContent = "Push Changes";
+    }
     finishButton.addEventListener("click", () => {
-      // Add code for updating existing template root
-      close();
+      if (extra.updating != true) {
+        this.close();
+      } else {
+        dropdownModule.open(finishButton, "dropdowns/lesson/breakout/template/pushchanges", { parent: this });
+      }
     });
 
     // Load Images:
@@ -528,10 +535,11 @@ modules["breakout/template"] = class {
     this.pipeline.subscribe("pageMaximize", "maximize", updateSplitScreenButton);
     updateSplitScreenButton();
 
-    let updateAct
-    this.pipeline.subscribe("checkPageSwitch", "page_switch", (data) => {
-      this.editor.active = data.pageID == "breakout";
-    });
+    let updateActivePage = () => {
+      this.editor.active = this.parent.parent.activePageID == this.parent.pageID;
+    }
+    this.pipeline.subscribe("checkPageSwitch", "page_switch", updateActivePage, { sort: 1 });
+    updateActivePage();
 
     this.pipeline.subscribe("templateSet", "set", (body) => {
       if (body.id != this.template._id) {
@@ -726,5 +734,50 @@ modules["dropdowns/lesson/breakout/template/file"] = class {
     frame.querySelector('.brtFileLine[option="document"]').remove();
     propertiesButton.remove();
     ocrButton.remove();
+  }
+}
+
+modules["dropdowns/lesson/breakout/template/pushchanges"] = class {
+  html = `
+  <div class="brtPushChangesHolder">
+    <div class="brtPushChangesContent">
+      <div class="brtPushChangesTitle">Push Changes to Teams?</div>
+      <div class="brtPushChangesDesc">This will apply the new template changes to all teams.</div>
+    </div>
+  </div>
+  <div class="brtPushChangesOptions">
+    <button class="brtPushChangesConfirm border">Push</button>
+    <button class="brtPushChangesCancel border" style="color: var(--secondary)">Cancel</button>
+  </div>
+  `;
+  css = {
+    ".brtPushChangesHolder": `display: flex; flex-wrap: wrap; max-width: 100%; padding: 8px 16px; gap: 6px; justify-content: center`,
+    ".brtPushChangesContent": `display: flex; flex-direction: column; max-width: 100%; align-items: center`,
+    ".brtPushChangesTitle": `color: var(--theme); font-size: 20px; font-weight: 700`,
+    ".brtPushChangesDesc": `margin-top: 8px; max-width: 240px; font-size: 14px`,
+    ".brtPushChangesOptions": `display: flex; flex-wrap: wrap; width: 100%; margin-top: 12px; justify-content: space-around`,
+    ".brtPushChangesOptions button": `display: flex; height: fit-content; min-height: 36px; padding: 0 12px; margin: 6px; --borderColor: var(--hover); --borderWidth: 3px; --borderRadius: 18px; color: var(--theme); justify-content: center; align-items: center; font-size: 18px; font-weight: 700`,
+    ".brtPushChangesConfirm:hover": `background: var(--theme); --borderWidth: 0px; transform: scale(1.1); color: #fff !important`,
+    ".brtPushChangesCancel:hover": `background: var(--secondary); --borderWidth: 0px; transform: scale(1.1); color: #fff !important`,
+    ".brtPushChangesOptions button:active": `transform: scale(1)`
+  };
+  js = async (frame, extra) => {
+    let parent = extra.parent;
+    
+    let confirmButton = frame.querySelector(".brtPushChangesConfirm");
+    confirmButton.addEventListener("click", async () => {
+      confirmButton.setAttribute("disabled", "");
+      await parent.editor.save.syncSave(true);
+      let [code] = await sendRequest("PUT", "lessons/breakout/templates/push", null, { session: parent.parent.parent.session });
+      confirmButton.removeAttribute("disabled");
+      if (code == 200) {
+        dropdownModule.close();
+        parent.close(true);
+      }
+    });
+
+    frame.querySelector(".brtPushChangesCancel").addEventListener("click", () => {
+      dropdownModule.close();
+    });
   }
 }

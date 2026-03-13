@@ -226,7 +226,7 @@ modules["dropdowns/account/manage"] = class {
     ".aManageInfo div[email]": `color: var(--secondary); font-size: 16px; font-weight: 600; margin-top: 3px`,
     ".aManageInfoHolder button": `width: fit-content; padding: 6px 10px; --themeColor: var(--theme); --borderRadius: 12px; margin-top: auto; text-align: center; justify-content: center; font-size: 18px`,
     ".aManageSection": `display: flex; flex-direction: column; gap: 8px`, 
-    ".aManageSetting": `display: flex; padding: 6px 6px 6px 10px; background: var(--pageColor); border-radius: 12px 22px 22px 12px; box-shadow: var(--darkShadow); justify-content: center; align-items: center; font-size: 16px; font-weight: 700; text-align: left`,
+    ".aManageSetting": `display: flex; padding: 6px 6px 6px 14px; background: var(--pageColor); border-radius: 12px 22px 22px 12px; box-shadow: var(--darkShadow); justify-content: center; align-items: center; font-size: 16px; font-weight: 700; text-align: left`,
     ".aManageSetting[enabled]": `--themeColor: var(--secondary)`,
     ".aManageSetting:not([enabled])": `--themeColor: var(--gray)`,
     ".aManageSetting div[label]": `flex: 1; margin-right: 8px; white-space: nowrap; text-overflow: ellipsis; overflow: hidden`,

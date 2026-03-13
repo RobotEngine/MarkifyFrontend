@@ -3944,12 +3944,11 @@ modules["editor/editor"] = class {
     });
     this.pipeline.subscribe("editorMemberLeave", "leave", (data) => {
       if (this.realtime.module != null) {
-        this.realtime.module.removeRealtime(data._id);
-        delete this.realtime.module.members[data._id];
         if (this.realtime.observing == data._id) {
-          this.realtime.module.exitObserve();
           alertModule.open("warning", "<b>Member Left</b>The member you were observing left.");
         }
+        this.realtime.module.removeRealtime(data._id);
+        delete this.realtime.module.members[data._id];
         if (data.member != null && data.member.observe == this.sessionID) {
           this.realtime.observed--;
         }
@@ -4188,8 +4187,10 @@ modules["editor/editor"] = class {
 
     this.applyRootTemplate = async (rootAnnotations = []) => {
       let rootAnnotationChanges = {};
+      let validRootAnnotations = { root: true };
       for (let i = 0; i < rootAnnotations.length; i++) {
         let rootAnno = rootAnnotations[i];
+        validRootAnnotations[rootAnno._id] = true;
         let prevAnno = this.currentRootAnnotations[rootAnno._id];
         if (prevAnno == null) {
           rootAnnotationChanges[rootAnno._id] = { new: rootAnno, old: rootAnno, load: true };
@@ -4224,6 +4225,11 @@ modules["editor/editor"] = class {
         }
         let rootAnno = rootAnnotationChanges[render.from];
         if (rootAnno == null) {
+          if ((render.from == "root" && validRootAnnotations[render._id] == null) || validRootAnnotations[render.from] == null) {
+            anno.render.remove = true;
+            delete anno.revert;
+            changedAnnotations.push(anno);
+          }
           continue;
         }
         if (rootAnno.load == true) {

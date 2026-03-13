@@ -7,6 +7,7 @@ modules["breakout/group"] = class {
       <div class="brgTop">
         <div class="brgTopSection" left>
           <a class="brgLogo" href="/app/dashboard" draggable="false"></a>
+          <a class="brgClose"></a>
           <div class="brgGroupNameHolder border"><div class="brgGroupName" spellcheck="false"></div></div>
           <button class="brgFileDropdown">File</button>
           <div class="brgTopDivider"></div>
@@ -71,10 +72,14 @@ modules["breakout/group"] = class {
     ".brgTopSection[left]": `border-bottom-right-radius: 12px`,
     ".brgTopSection[right]": `border-bottom-left-radius: 12px`,
 
-    ".brgLogo": `display: flex; width: 38px; height: 38px; padding: 0; user-select: none; justify-content: center; align-items: center; border-radius: 6px`,
+    ".brgLogo": `display: none; width: 38px; height: 38px; padding: 0; margin-right: 4px; user-select: none; justify-content: center; align-items: center; border-radius: 6px`,
     ".brgLogo:hover": `background: var(--hover)`,
     ".brgLogo svg": `width: 32px; height: 32px; transition: .2s`,
     ".brgLogo:hover svg": `transform: scale(.9)`,
+    ".brgClose": `display: none; width: 38px; height: 38px; padding: 0; margin-right: 4px; user-select: none; justify-content: center; align-items: center; border-radius: 6px`,
+    ".brgClose:hover": `background: var(--hover)`,
+    ".brgClose svg": `width: 24px; height: 24px; transition: .2s`,
+    ".brgClose:hover svg": `transform: scale(.9)`,
     ".brgGroupNameHolder": `margin: 0 4px; --borderRadius: 4px; --borderColor: var(--secondary); --borderWidth: 0px; --transition: .05s`,
     ".brgGroupName": `max-width: 350px; padding: 0px; outline: unset; font-size: 20px; white-space: nowrap; overflow-x: hidden; text-overflow: ellipsis; scrollbar-width: none`,
     ".brgGroupName:focus": `padding: 4px 6px !important; overflow-x: auto !important; text-overflow: unset !important`,
@@ -178,6 +183,7 @@ modules["breakout/group"] = class {
 
     let leftTop = top.querySelector(".brgTopSection[left]");
     let icon = leftTop.querySelector(".brgLogo");
+    let closeButton = leftTop.querySelector(".brgClose");
     let groupName = leftTop.querySelector(".brgGroupName");
     let fileButton = leftTop.querySelector(".brgFileDropdown");
     let undoButton = leftTop.querySelector(".brgUndo");
@@ -210,6 +216,7 @@ modules["breakout/group"] = class {
     setSVG(scrollLeft, "../images/editor/top/leftarrow.svg");
     setSVG(scrollRight, "../images/editor/top/rightarrow.svg");
     setSVG(icon, "../images/breakout.svg");
+    setSVG(closeButton, "../images/tooltips/close.svg");
     setSVG(undoButton, "../images/tooltips/progress/undo.svg", (svg) => { return svg.replace(/"#48A7FF"/g, '"var(--secondary)"'); });
     setSVG(redoButton, "../images/tooltips/progress/redo.svg", (svg) => { return svg.replace(/"#48A7FF"/g, '"var(--secondary)"'); });
     setSVG(status.querySelector('div[strength="3"]'), "../images/editor/status/full.svg");
@@ -355,6 +362,13 @@ modules["breakout/group"] = class {
     });
 
     this.updateInterface = async () => {
+      if (this.parent.parent.self.access < 4) {
+        icon.style.display = "flex";
+        closeButton.style.removeProperty("display");
+      } else {
+        closeButton.style.display = "flex";
+        icon.style.removeProperty("display");
+      }
       let config = this.parent.parent.lesson.breakout ?? {};
       if ((config.options ?? {}).setTeamName == true || this.parent.parent.self.access > 3) {
         groupName.setAttribute("contenteditable", "");
@@ -437,6 +451,11 @@ modules["breakout/group"] = class {
       event.preventDefault();
       this.exit();
     });
+    closeButton.addEventListener("click", (event) => {
+      event.preventDefault();
+      this.exit();
+    });
+
     groupName.textContent = this.group.name ?? "Untitled Team";
     groupName.title = groupName.textContent;
     groupName.addEventListener("keydown", (event) => {
@@ -656,13 +675,18 @@ modules["breakout/group"] = class {
       }
       objectUpdate(body, this.group);
       if (body.hasOwnProperty("name") == true && document.activeElement.closest(".brgGroupName") != groupName) {
-        groupName.textContent = this.group.name ?? "Untitled Template";
+        groupName.textContent = this.group.name ?? "Untitled Team";
         groupName.title = groupName.textContent;
       }
       if (body.hasOwnProperty("background") == true) {
         this.editor.updateBackground(body.background);
       }
       this.updateInterface();
+    });
+
+    this.pipeline.subscribe("templateChange", "templatechange", (body) => {
+      this.editor.applyRootTemplate(body.annotations);
+      alertModule.open("info", "<b>Root Template Updated</b>The lesson owner has updated the base document.");
     });
 
     this.pipeline.subscribe("memberJoin", "join", (data) => {

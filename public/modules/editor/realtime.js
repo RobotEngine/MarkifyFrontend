@@ -50,7 +50,7 @@ modules["editor/realtime"] = class {
       if (editor.lesson.signalStrength < 3 || connected == false) { // If weak don't send!
         return;
       }
-      if (editor.self.access < editor.minimumEditingAccess && editor.realtime.observed < 1) { // Not an editor!
+      if ((editor.self.access < editor.minimumEditingAccess || editor.viewer == true) && editor.realtime.observed < 1) { // Not an editor!
         return;
       }
       let epoch = getEpoch();

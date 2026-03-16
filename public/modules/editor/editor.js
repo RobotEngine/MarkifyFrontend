@@ -1232,9 +1232,9 @@ modules["editor/editor"] = class {
       }
       
       if (annotationVisible == true) {
-        if (annotation.component == null) {
-          await this.render.create(annotation);
-        }
+        //if (annotation.component == null) {
+        await this.render.create(annotation);
+        //}
       } else {
         this.render.remove(annotation);
       }
@@ -1461,6 +1461,9 @@ modules["editor/editor"] = class {
       render = render ?? {};
       member = member ?? this.self ?? {};
       if (member.access < this.minimumEditingAccess || member.modify == null) {
+        return false;
+      }
+      if (member._id == this.self._id && this.viewer == true) {
         return false;
       }
       if (member.access > 3) {
@@ -4257,10 +4260,11 @@ modules["editor/editor"] = class {
         }*/
         addAnno.from = "root";
         let existingAnno = this.annotations[addAnno._id];
-        if (existingAnno == null || existingAnno.render.sync < addAnno.sync) {
-          this.annotations[addAnno._id] = { render: addAnno };
+        if (existingAnno == null) { // || existingAnno.render.sync < addAnno.sync
+          this.annotations[addAnno._id] = {};
           existingAnno = this.annotations[addAnno._id];
         }
+        existingAnno.render = addAnno;
         changedAnnotations.push(existingAnno);
       }
 

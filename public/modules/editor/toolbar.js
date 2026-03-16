@@ -6420,7 +6420,7 @@ modules["editor/toolbar/comment"] = class {
     });
 
     let replyTx;
-    if (this.editor.self.access > 0 && this.toolbar.checkToolEnabled("comment") == true) {
+    if (this.editor.self.access >= this.editor.minimumEditingAccess && this.editor.viewer != true && this.toolbar.checkToolEnabled("comment") == true) {
       scrollHolder.insertAdjacentHTML("beforeend", `<div class="eCommentReply">
         <div profileholder>
           <div cursor></div>

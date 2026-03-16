@@ -60,7 +60,7 @@ modules["breakout/overview"] = class {
     ".brPage[dragging] *": `user-select: none; webkit-user-select: none; cursor: grabbing !important`,
 
     ".broInterface": `position: absolute; display: flex; flex-direction: column; width: 100%; height: 100%; left: 0px; top: 0px; visibility: hidden; pointer-events: none; user-select: none; contain: strict; overflow-y: scroll; z-index: 2`,
-    ".broGroupHolder": `--interfacePadding: 58px; --tilePadding: 16px; --totalWidth: calc((var(--columnWidth) * var(--columnCount)) + (var(--tilePadding) * (var(--columnCount) - 1))); position: relative; display: flex; box-sizing: border-box; width: 100%; height: 100%; padding-top: calc(var(--interfacePadding) + 8px); background: var(--pageColor); contain: strict; overflow-x: hidden; overflow-y: scroll; overflow-anchor: none; z-index: 1; justify-content: center; transition: .5s`,
+    ".broGroupHolder": `--interfacePadding: 58px; --tilePadding: 16px; --totalWidth: calc((var(--columnWidth) * var(--columnCount)) + (var(--tilePadding) * (var(--columnCount) - 1))); position: relative; box-sizing: border-box; display: flex; width: 100%; height: 100%; padding-top: calc(var(--interfacePadding) + 8px); background: var(--pageColor); contain: strict; overflow-x: hidden; overflow-y: scroll; overflow-anchor: none; z-index: 1; justify-content: center; transition: .5s`,
     ".broGroups": `position: absolute; box-sizing: border-box; width: var(--totalWidth); height: calc(var(--totalHeight) + var(--interfacePadding) + 8px); z-index: 2; transition: width .3s`,
     //".broBackground": `position: absolute; width: 100%; height: 100%; min-height: calc(var(--totalHeight) + (var(--interfacePadding) * 2) + 16px); left: 0px; top: 0px; opacity: .075; background-image: url("../images/editor/backdropblack.svg"); background-size: 25px 25px; background-position: center 50px; z-index: 1; pointer-events: none; contain: strict`,
     ".broCreateBreakoutHolder": `position: absolute; width: 100%; height: 100%; top: 0px; left: 0px; overflow: hidden; z-index: 3; pointer-events: none`,
@@ -156,10 +156,10 @@ modules["breakout/overview"] = class {
     ".broTileHeaderOptionsButton > svg": `flex-shrink: 0; width: 24px; height: 24px`,
     ".broTileHeaderOptionsButton:hover": `background: var(--hover)`,
     ".broTileMembers": `position: relative; flex: 1; width: 100%; padding-bottom: 6px; background: var(--pageColor); z-index: 2`,
-    ".broTileMembers:has(> .broTileMember):before": `content: ""; position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; border-radius: inherit; contain: strict; box-shadow: var(--shadow)`,
+    ".broTileMembers:has(> .broTileMember):before": `content: ""; position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; border-radius: inherit; contain: strict; box-shadow: var(--shadow); transition: .2s`,
     ".broTileMember": `--shadow: var(--lightShadow); position: relative; width: calc(100% - 12px); padding: 0; margin: 6px 6px 0; background: var(--pageColor); border-radius: 10px; cursor: grab`,
     ".broTileMember:hover, .broTileMember:active, .broTileMember[dragging]": `--shadow: var(--darkShadow)`,
-    ".broTileMember:before": `content: ""; position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; border-radius: inherit; contain: strict; pointer-events: none; box-shadow: var(--shadow)`,
+    ".broTileMember:before": `content: ""; position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; border-radius: inherit; contain: strict; pointer-events: none; box-shadow: var(--shadow); transition: .2s`,
     ".broTileMemberContent": `display: flex; box-sizing: border-box; width: 100%; gap: 6px; padding: 6px; overflow: hidden; justify-content: space-between`,
     ".broTileMemberNameHolder": `display: flex; min-width: 0; align-items: center`,
     ".broTileMember:not([active]) .broTileMemberNameHolder > div:not(.broTileMemberNameDragHolder)": `opacity: .5 !important`,
@@ -168,10 +168,10 @@ modules["breakout/overview"] = class {
     ".broTileMemberNameDragHandle": `display: flex; flex-direction: column; box-sizing: border-box; width: 16px; height: 28px; padding: 4px 0; justify-content: space-between; align-items: center; transform: var(--transformTranslate); transition: .2s`,
     ".broTileMemberNameDragHandleDot": `width: 100%; height: 4px; border-radius: 2px; background: var(--gray)`,
     ".broTileMemberNameCursor": `flex-shrink: 0; position: relative; box-sizing: border-box; width: 28px; height: 28px; margin-right: 6px; background: var(--pageColor); border: solid 4px var(--themeColor); border-radius: 8px 14px 14px; transition: .2s`,
-    //".broTileMemberNameCursor:before": `content: ""; position: absolute; width: calc(100% + 6px); height: calc(100% + 6px); left: -3px; top: -3px; border-radius: inherit; contain: strict; box-shadow: 0 0 6px rgb(0 0 0 / 25%)`,
+    //".broTileMemberNameCursor:before": `content: ""; position: absolute; width: calc(100% + 6px); height: calc(100% + 6px); left: -3px; top: -3px; border-radius: inherit; contain: strict; box-shadow: 0 0 6px rgb(0 0 0 / 25%); transition: .2s`,
     ".broTileMemberNameText": `font-size: 16px; font-weight: 500; white-space: nowrap; overflow-x: hidden; text-overflow: ellipsis; transition: .2s`,
     ".broTileMemberPercent": `--percent: 0; --invert: 0; --themeColor: var(--theme); flex-shrink: 0; position: relative; width: 36px; height: 16px; margin: 4px; border: solid 2px var(--themeColor); border-radius: 12px; transition: .2s`,
-    //".broTileMemberPercent:before": `content: ""; position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; border-radius: inherit; contain: strict; box-shadow: inset 0px 0px 8px 0px rgba(var(--themeRGB), .3)`,
+    //".broTileMemberPercent:before": `content: ""; position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; border-radius: inherit; contain: strict; box-shadow: inset 0px 0px 8px 0px rgba(var(--themeRGB), .3); transition: .2s`,
     ".broTileMemberPercentBarHolder": `position: absolute; width: calc(100% - 4px); height: calc(100% - 4px); left: 2px; top: 2px; border-radius: 8px; overflow: hidden`,
     ".broTileMemberPercentBar": `--width: calc((var(--percent) * ((32px / 2) - 6px))); position: absolute; width: calc(12px + var(--width)); height: 100%; left: calc((100% / 2) - 6px); transform: translateX(calc(var(--invert) * var(--width) * -1)); background: var(--themeColor); border-radius: 6px; transition: .2s`,
 
@@ -179,7 +179,7 @@ modules["breakout/overview"] = class {
     ".broTileAddGroup .broTileContent": `--opacity: .3; --pageColor: rgba(var(--background), 0); box-sizing: border-box; padding: 12px; background: rgba(var(--themeRGB), var(--opacity)); justify-content: center; align-items: center`,
     ".broTileAddGroup:hover .broTileContent": `--opacity: 1; --pageColor: rgba(var(--background), 1); transform: scale(1.05); border-radius: 20px`,
     ".broTileAddGroup:active .broTileContent": `transform: scale(.98)`,
-    ".broTileAddGroup .broTileContent svg": `width: 100%; height: 100%`,
+    ".broTileAddGroup .broTileContent svg": `width: 100%; height: 100%`
   };
 
   pipeline = { // PIPELINE : Distributes events across various modules and services:
@@ -525,9 +525,9 @@ modules["breakout/overview"] = class {
       } else {
         sharePinButton.style.removeProperty("display");
       }
-      if (body.hasOwnProperty("tool") == true) {
-        //updateSplitScreenButton();
-      }
+      /*if (body.hasOwnProperty("tool") == true) {
+        updateSplitScreenButton();
+      }*/
       updateTopBar();
     }, { sort: 1 });
     this.pipeline.subscribe("overviewLessonSubSet", "subset", (body) => {
@@ -548,11 +548,11 @@ modules["breakout/overview"] = class {
         groupHolder.style.setProperty("--secondaryBackgroundColor", "#848d96");
       }
     }*/
-    this.pipeline.subscribe("accountUpdate", "account_settings", (event) => {
-      /*if (event.settings.hasOwnProperty("theme") == true) {
+    /*this.pipeline.subscribe("accountUpdate", "account_settings", (event) => {
+      if (event.settings.hasOwnProperty("theme") == true) {
         this.updateBackground();
-      }*/
-    });
+      }
+    });*/
     //this.updateBackground();
 
     // Handle Tile Masonry Layout:
@@ -561,20 +561,21 @@ modules["breakout/overview"] = class {
     this.layout.maxTileWidth = 450;
     this.layout.tilePadding = 16;
     this.layout.maxContainerWidth = 2000; //(this.layout.minTileWidth * 6) + (this.layout.tilePadding * 5) - 1;
-    this.layout.columnCount = 0;
-    this.layout.columnWidth = 0;
     this.layout.previewScale = 1;
     this.layout.tileBaseHeight = 12; // Base padding around tile
     //this.layout.tileHeightRatio = 3/4; // Ratio for getting height from width of thumbnail
     //this.layout.previewHeight // Height of preview
     this.layout.tileMemberHeight = 40; // Height of each member list item
     this.layout.tileMemberGap = 6; // Gap between each member list item
+    this.layout.columnCount = 0;
+    this.layout.columnWidth = 0;
     this.layout.columns = {};
     this.layout.tiles = {};
     this.layout.members = {};
     this.layout.memberSessions = {};
     this.layout.tileLayout = [];
     this.layout.tileLayoutVersionIndex = 0;
+    this.layout.scrollTopOffset = 0;
     this.layout.loadedTiles = {};
     this.layout.pendingEditors = [];
     this.layout.loadingAnnotations = {};
@@ -657,13 +658,13 @@ modules["breakout/overview"] = class {
         
         if (body != null) {
           root = root ?? {};
-          await tile.editor.loadAnnotations({
+          await tile.editor.loadAnnotations(copyObject({
             annotations: body.annotations ?? [],
             rootAnnotations: root.annotations ?? [],
             sources: [ ...(body.sources ?? []), ...(root.sources ?? []) ],
             reactions: [ ...(body.reactions ?? []), ...(root.reactions ?? []) ],
             reactedTo: [ ...(body.reactedTo ?? []), ...(root.reactedTo ?? []) ]
-          }, {
+          }), {
             skipPositioning: tile.editorState != null
           });
           if (tile.element != null) {
@@ -686,12 +687,17 @@ modules["breakout/overview"] = class {
 
       this.layout.runningEditorSetup = false;
     }
-    this.layout.updateTile = (tile) => {
+    this.layout.updateTile = (tile = {}) => {
+      if (tile.element == null) {
+        return;
+      }
       let tileNameHeader = tile.element.querySelector(".broTileHeaderName");
+      let tileNameImage = tileNameHeader.querySelector(".broTileHeaderNameImage");
       if (tile.render.image != null) {
-        let tileNameImage = tileNameHeader.querySelector(".broTileHeaderNameImage");
         tileNameImage.src = assetURL + tile.render.image;
         tileNameImage.style.display = "block";
+      } else {
+        tileNameImage.style.removeProperty("display");
       }
       let tileNameText = tileNameHeader.querySelector(".broTileHeaderNameHolderText");
       let setName = tile.render.name ?? "Untitled Team";
@@ -794,7 +800,7 @@ modules["breakout/overview"] = class {
       this.layout.runningEditorSetup = false;
 
       this.layout.scrollTop = groupHolder.scrollTop;
-      let centerScroll = this.layout.scrollTop + (this.containerHeight / 2);
+      let centerScroll = this.layout.scrollTop + (this.containerHeight / 2) - this.layout.scrollTopOffset;
       let renderDistance = this.containerHeight;
       let minLoadBound = centerScroll - renderDistance;
       let maxLoadBound = centerScroll + renderDistance;
@@ -1684,14 +1690,19 @@ modules["breakout/overview"] = class {
       }
     });
 
-    this.pipeline.subscribe("previewTemplateChange", "templatechange", (body) => {
-      this.templateRoots[body.rootID] = body.annotations;
+    this.pipeline.subscribe("previewTemplateChange", "templatechange", async (body) => {
+      let templateRootStore = this.templateRoots[body.rootID];
+      if (templateRootStore == null) {
+        this.templateRoots[body.rootID] = {};
+        templateRootStore = this.templateRoots[body.rootID];
+      }
+      templateRootStore.annotations = body.annotations;
 
       let tiles = Object.keys(this.layout.tiles);
       for (let i = 0; i < tiles.length; i++) {
-        let tile = this.layout.tiles[tiles[i]];
+        let tile = this.layout.tiles[tiles[i]] ?? {};
         if (tile.editor != null) {
-          tile.editor.applyRootTemplate(body.annotations);
+          tile.editor.applyRootTemplate(copyObject(templateRootStore.annotations));
         }
       }
     });
@@ -1733,12 +1744,13 @@ modules["breakout/overview"] = class {
       if (tileData.editor != null && tileData.loadedAnnotations == true) {
         editor = tileData.editor;
       }
-      this.parent.openPage("secondary", "breakout/group", { group: tileData.render, members: tileData.members, memberSessions: this.layout.memberSessions, editor });
+      this.parent.parent.self.group = groupID;
+      this.parent.openPage("secondary", "breakout/group", { group: tileData.render, members: tileData.members, editor }); //, memberSessions: this.layout.memberSessions
     }
     
     this.onOpen = () => {
       if (this.parent.parent.self.group != null) {
-        sendRequest("DELETE", "lessons/breakout/groups/leave", null, { session: this.parent.parent.session });
+        sendRequest("DELETE", "lessons/breakout/groups/leavepreview", null, { session: this.parent.parent.session });
       }
       modifyParams("team");
     }
@@ -2250,7 +2262,7 @@ modules["dropdowns/lesson/breakout/overview/manage"] = class {
         </div>
       </button>
     </div>
-    <div class="broManageTiles">
+    <div class="broManageTiles" style="display: none">
       <button class="broManageTile" type="endsession" dropdowntitle="End Session"><div>End Breakout Session</div></button>
     </div>
   </div>
@@ -2285,7 +2297,7 @@ modules["dropdowns/lesson/breakout/overview/manage"] = class {
     let rotateMembersCounterclockwiseSection = sections.querySelector('.broManageTile[type="rotatememberscounterclockwise"]');
     let moveMembersRandomlySection = sections.querySelector('.broManageTile[type="movemembersrandomly"]');
 
-    let endSessionSection = sections.querySelector('.broManageTile[type="endsession"]');
+    //let endSessionSection = sections.querySelector('.broManageTile[type="endsession"]');
 
     templateSection.addEventListener("click", () => {
       dropdownModule.close();

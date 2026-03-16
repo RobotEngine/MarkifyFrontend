@@ -456,6 +456,7 @@ modules["pages/app/lesson"] = class extends page {
                 objectUpdate(data.data, this.preferences);
             }
         }
+        this.pushToPipelines(null, "self", data);
       }
       socket.remotes["lesson_" + this.id] = async (data) => {
         let events = [];

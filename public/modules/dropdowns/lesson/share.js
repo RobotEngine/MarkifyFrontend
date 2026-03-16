@@ -163,7 +163,7 @@ modules["dropdowns/lesson/share/pin"] = class {
       dropdownModule.open(optionsButton, "dropdowns/lesson/share/options", { parent: parent });
     });
 
-    if (editor.self != null && editor.self.access < 2) {
+    if (lesson.self != null && lesson.self.access < 4) {
       createButton.setAttribute("disabled", "");
       optionHolder.remove();
     }

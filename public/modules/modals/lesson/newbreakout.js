@@ -533,10 +533,10 @@ modules["modals/lesson/newbreakout/setuptype"] = class extends modules["breakout
           <div info>Automatically distribute members into solo boards or teams of same size.</div>
         </div>
       </button>
-      <button class="brosOption" type="teamup" disabled>
+      <button class="brosOption" type="teamup">
         <div image style="--image: url('../images/editor/breakout/teamup.png')"></div>
         <div content>
-          <div title>Coming Soon</div><!--Team Up-->
+          <div title>Team Up</div>
           <div info>Allow members to create or join a team of their choosing.</div>
         </div>
       </button>
@@ -663,10 +663,10 @@ modules["modals/lesson/newbreakout/options"] = class extends modules["breakout/o
           </div>
         </button>-->
       </div>
-      <div class="brooSetting" section="pickteam" disabled>
+      <div class="brooSetting" section="pickteam">
         <button class="brooSettingButton" option="pickteam">
           <div class="brooSettingDetails">
-            <div title>Coming Soon</div><!--Pick Team-->
+            <div title>Pick Team</div>
             <div info>Let members choose their team.</div>
           </div>
           <div class="brooSettingToggleHolder">
@@ -701,9 +701,9 @@ modules["modals/lesson/newbreakout/options"] = class extends modules["breakout/o
         </div>
       </div>
       <div class="brooSetting">
-        <button class="brooSettingButton" option="gallerywalk" disabled>
+        <button class="brooSettingButton" option="gallerywalk">
           <div class="brooSettingDetails">
-            <div title>Coming Soon</div><!--Gallery Walk-->
+            <div title>Gallery Walk</div>
             <div info>Allow members to see other team's work for ideas and inspiration.</div>
           </div>
           <div class="brooSettingToggleHolder">

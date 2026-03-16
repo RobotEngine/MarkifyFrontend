@@ -227,16 +227,21 @@ modules["lesson/breakout"] = class {
         this.closePage("primary");
         if (this.parent.self.group != null) {
           this.openPage("primary", "breakout/group");
-          if (this.currentGroupID != null) {
-            alertModule.open("info", "<b>You've Been Moved</b>The lesson owner has moved you to a new team.");
-          }
         } else {
           this.openPage("primary", "breakout/groups");
-          if (this.currentGroupID != null) {
-            alertModule.open("info", "<b>You've Been Removed</b>The lesson owner has removed you from the team.");
-          }
         }
         this.currentGroupID = this.parent.self.group;
+      }
+    }, { sort: 1 });
+
+    this.pipeline.subscribe("selfMemberUpdate", "self", (data) => {
+      switch (data.task) {
+        case "movegroup":
+          if (data.group != null) {
+            alertModule.open("info", "<b>You've Been Moved</b>The lesson owner has moved you to a team.");
+          } else {
+            alertModule.open("warning", "<b>You've Been Removed</b>The lesson owner has removed you from the team.");
+          }
       }
     }, { sort: 1 });
 
@@ -247,7 +252,7 @@ modules["lesson/breakout"] = class {
         this.currentGroupID = this.parent.self.group;
         await this.openPage("primary", "breakout/group");
       } else {
-        await this.openPage("primary", "breakout/groups");
+        await this.openPage("secondary", "breakout/groups");
       }
       /*} else if (((this.parent.lesson.breakout ?? {}).options ?? {}).pickTeam == true) { // Open to the Select Group:
         await this.openPage("primary", "breakout/groups");

@@ -4244,7 +4244,7 @@ modules["editor/editor"] = class {
           for (let f = 0; f < fields.length; f++) {
             let field = fields[f];
             if (objectEqual(render[field], rootAnno.old[field]) == true) {
-              render[field] = setField;
+              render[field] = rootAnno[field];
               delete rootAnnotationChanges[render.from];
               changedAnnotations.push(anno);
             }

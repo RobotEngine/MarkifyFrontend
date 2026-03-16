@@ -103,23 +103,24 @@ modules["breakout/groups"] = class {
     
     ".brgsTile": `position: absolute; width: var(--columnWidth); height: fit-content; left: 0px; top: 0px; z-index: 1; transition: .3s`, // will-change: transform;
     ".brgsTileContent": `--shadow: var(--lightShadow); position: relative; display: flex; flex-direction: column; width: 100%; height: 100%; background: var(--pageColor); box-shadow: var(--shadow); border-radius: 16px; contain: strict; overflow: hidden; transition: .2s, transform .1s`,
+    ".brgsTile[selected] .brgsTileContent": `background: var(--theme) !important`,
     ".brgsTile:hover .brgsTileContent": `--shadow: var(--darkShadow) !important`,
     ".brgsTile:active .brgsTileContent": `transform: scale(.95)`,
     ".brgsTileHeader": `box-sizing: border-box; display: flex; flex-direction: column; width: 100%; padding: 4px 16px 16px; align-items: center`,
-    ".brgsTileHeaderImageHolder": `position: relative; display: none; width: fit-content; max-width: 100%; height: fit-content; padding: 6px; margin-top: 12px; border-radius: 26px`,
+    ".brgsTileHeaderImageHolder": `position: relative; display: none; width: fit-content; max-width: 100%; height: fit-content; padding: 6px; margin-top: 12px; background: var(--pageColor); border-radius: 26px`,
     ".brgsTileHeaderImageHolder:before": `content: ""; position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; border-radius: inherit; contain: strict; pointer-events: none; box-shadow: var(--shadow); transition: .2s`,
     ".brgsTileHeaderImage": `max-width: 100%; width: 60px; height: 60px; border-radius: 20px; object-fit: cover`,
-    ".brgsTileHeaderNameHolder": `position: relative; box-sizing: border-box; width: fit-content; max-width: 100%; height: fit-content; padding: 8px 12px; margin-top: 12px; border-radius: 20px`,
+    ".brgsTileHeaderNameHolder": `position: relative; box-sizing: border-box; width: fit-content; max-width: 100%; height: fit-content; padding: 8px 12px; margin-top: 12px; background: var(--pageColor); border-radius: 20px`,
     ".brgsTileHeaderNameHolder:before": `content: ""; position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; border-radius: inherit; contain: strict; pointer-events: none; box-shadow: var(--shadow); transition: .2s`,
     ".brgsTileHeaderNameText": `max-width: 100%; font-size: 18px; font-weight: 600; white-space: nowrap; overflow-x: hidden; text-overflow: ellipsis`,
-    ".brgsTileHeaderMaxSizeHolder": `position: relative; box-sizing: border-box; display: none; width: fit-content; max-width: 100%; height: fit-content; padding: 4px 8px; margin-top: 6px; border-radius: 14px`,
+    ".brgsTileHeaderMaxSizeHolder": `position: relative; box-sizing: border-box; display: none; width: fit-content; max-width: 100%; height: fit-content; padding: 4px 8px; margin-top: 6px; background: var(--pageColor); border-radius: 14px`,
     ".brgsTileHeaderMaxSizeHolder:before": `content: ""; position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; border-radius: inherit; contain: strict; pointer-events: none; box-shadow: var(--shadow); transition: .2s`,
     ".brgsTileHeaderMaxSize": `max-width: 100%; font-size: 14px; font-weight: 600; white-space: nowrap`,
     ".brgsTileHeaderMaxSize b": `color: var(--theme)`,
-    ".brgsTileMembersContainer": `position: relative; display: none; flex-direction: column; flex: 1; width: 100%; padding-bottom: 6px; background: var(--pageColor); align-items: center`,
+    ".brgsTileMembersContainer": `position: relative; display: none; flex-direction: column; flex: 1; width: calc(100% - 12px); padding-bottom: 4px; margin: 0 6px 6px; background: var(--pageColor); border-radius: 10px; align-items: center`,
     ".brgsTileMembersContainer:before": `content: ""; position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; border-radius: inherit; contain: strict; box-shadow: var(--shadow); transition: .2s`,
     ".brgsTileMembers": `position: relative; width: 100%`,
-    ".brgsTileMember": `--shadow: var(--lightShadow); position: relative; width: calc(100% - 12px); padding: 0; margin: 6px 6px 0; background: var(--pageColor); border-radius: 10px`,
+    ".brgsTileMember": `--shadow: var(--lightShadow); position: relative; width: calc(100% - 8px); padding: 0; margin: 4px 4px 0; background: var(--pageColor); border-radius: 6px`,
     ".brgsTileMember:before": `content: ""; position: absolute; box-sizing: border-box; width: 100%; height: 100%; left: 0px; top: 0px; border-radius: inherit; contain: strict; pointer-events: none; border: solid 2px var(--hover)`, //box-shadow: var(--shadow)
     ".brgsTileMemberContent": `display: flex; box-sizing: border-box; width: 100%; gap: 6px; padding: 6px; overflow: hidden; justify-content: space-between`,
     ".brgsTileMemberNameHolder": `display: flex; min-width: 0; align-items: center`,
@@ -337,12 +338,12 @@ modules["breakout/groups"] = class {
     this.layout.maxTileWidth = 450;
     this.layout.tilePadding = 16;
     this.layout.maxContainerWidth = 2000; //(this.layout.minTileWidth * 6) + (this.layout.tilePadding * 5) - 1;
-    this.layout.tileBaseHeight = 70; // Base tile height
+    this.layout.tileBaseHeight = 76; // Base tile height
     this.layout.tileImageHeight = 84; // Added tile height with an image
-    this.layout.tileMaxMembersHeight = 30; // Added tile height for max member counter
+    this.layout.tileMaxMembersHeight = 31; // Added tile height for max member counter
     this.layout.tileMemberHeight = 40; // Height of each member list item
-    this.layout.tileMemberGap = 6; // Gap between each member list item
-    this.layout.joinButtonHeight = 64; // Height of the space used by the join group button
+    this.layout.tileMemberGap = 4; // Gap between each member list item
+    this.layout.joinButtonHeight = 65; // Height of the space used by the join group button
     this.layout.columnCount = 0;
     this.layout.columnWidth = 0;
     this.layout.columns = {};
@@ -426,6 +427,11 @@ modules["breakout/groups"] = class {
     this.layout.updateTile = (tile = {}) => {
       if (tile.element == null) {
         return;
+      }
+      if (this.parent.parent.self.group != tile.render._id) {
+        tile.element.removeAttribute("selected");
+      } else {
+        tile.element.setAttribute("selected", "");
       }
       let tileHeader = tile.element.querySelector(".brgsTileHeader");
       let tileNameImageHolder = tileHeader.querySelector(".brgsTileHeaderImageHolder");

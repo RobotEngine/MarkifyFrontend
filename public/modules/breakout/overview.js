@@ -1441,6 +1441,29 @@ modules["breakout/overview"] = class {
     }
     updateUnassignedMemberCount();
 
+    this.updateSubscribe = () => {
+      let filter = { type: "lesson", id: this.parent.parent.id, group: this.layout.tileLayout };
+      if (this.layout.groupUpdateSub != null) {
+        this.layout.groupUpdateSub.edit(filter);
+      } else {
+        this.layout.groupUpdateSub = subscribe(filter, (data) => {
+          if ((data.data ?? {}).id == null) {
+            return;
+          }
+          let tile = this.layout.tiles[data.data.id];
+          if (tile == null) {
+            return;
+          }
+          objectUpdate(data.data, tile.render);
+          this.layout.updateTile(tile);
+          if (tile.editor != null) {
+            tile.editor.pipeline.publish("set", data.data);
+          }
+          this.parent.pipeline.publish("set", data.data);
+        });
+      }
+    }
+
     let loadingGroups = false;
     let allGroupsLoaded = false;
     let lastGroupTime;
@@ -1481,26 +1504,7 @@ modules["breakout/overview"] = class {
       this.layout.refreshTileSpots(beforeTileLength);
       lastGroupTime = (body.groups[bodyItems - 1] ?? {}).created;
 
-      let filter = { type: "lesson", id: this.parent.parent.id, group: this.layout.tileLayout };
-      if (this.layout.groupUpdateSub != null) {
-        this.layout.groupUpdateSub.edit(filter);
-      } else {
-        this.layout.groupUpdateSub = subscribe(filter, (data) => {
-          if ((data.data ?? {}).id == null) {
-            return;
-          }
-          let tile = this.layout.tiles[data.data.id];
-          if (tile == null) {
-            return;
-          }
-          objectUpdate(data.data, tile.render);
-          this.layout.updateTile(tile);
-          if (tile.editor != null) {
-            tile.editor.pipeline.publish("set", data.data);
-          }
-          this.parent.pipeline.publish("set", data.data);
-        });
-      }
+      this.updateSubscribe();
 
       loadingGroups = false;
     }
@@ -1522,6 +1526,7 @@ modules["breakout/overview"] = class {
     this.pipeline.subscribe("createGroup", "creategroup", async (data) => {
       await this.layout.addTile(data, pendingMemberAssignment[data._id] ?? [], true);
       delete pendingMemberAssignment[data._id];
+      this.updateSubscribe();
     });
 
     this.pipeline.subscribe("removeGroup", "removegroup", async (data) => {

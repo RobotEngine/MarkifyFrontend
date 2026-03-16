@@ -1360,9 +1360,12 @@ modules["breakout/groups"] = class {
           let [code] = await sendRequest("PUT", "lessons/breakout/groups/join?group=" + groupID, null, { session: this.parent.parent.session });
           joinButton.removeAttribute("disabled");
           if (code == 200) {
-            this.parent.parent.self.group = groupID;
-            let tileData = this.layout.tiles[groupID];
-            this.parent.openPage("primary", "breakout/group", { group: tileData.render, members: tileData.members }); //, memberSessions: this.layout.memberSessions
+            if (this.parent.currentGroupID != groupID) {
+              this.parent.currentGroupID = groupID;
+              this.parent.parent.self.group = groupID;
+              let tileData = this.layout.tiles[groupID];
+              this.parent.openPage("primary", "breakout/group", { group: tileData.render, members: tileData.members }); //, memberSessions: this.layout.memberSessions
+            }
           }
           return;
         }
@@ -1371,8 +1374,11 @@ modules["breakout/groups"] = class {
           let [code, body] = await sendRequest("POST", "lessons/breakout/groups/new", null, { session: this.parent.parent.session });
           tile.removeAttribute("disabled");
           if (code == 200) {
-            this.parent.parent.self.group = body._id;
-            this.parent.openPage("primary", "breakout/group", { groupID: body._id });
+            if (this.parent.currentGroupID != body._id) {
+              this.parent.currentGroupID = body._id;
+              this.parent.parent.self.group = body._id;
+              this.parent.openPage("primary", "breakout/group", { groupID: body._id });
+            }
           }
           return;
         }

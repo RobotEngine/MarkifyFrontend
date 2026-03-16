@@ -439,6 +439,7 @@ modules["breakout/overview"] = class {
     });
 
     let updateStatus = () => {
+      return;
       let breakout = this.parent.parent.lesson.breakout ?? {};
 
       startButton.style.removeProperty("display");

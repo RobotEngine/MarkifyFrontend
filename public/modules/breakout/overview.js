@@ -439,7 +439,6 @@ modules["breakout/overview"] = class {
     });
 
     let updateStatus = () => {
-      return;
       let breakout = this.parent.parent.lesson.breakout ?? {};
 
       startButton.style.removeProperty("display");
@@ -452,7 +451,7 @@ modules["breakout/overview"] = class {
           manageButton.style.display = "unset";
           break;
         case "enabled":
-          pauseButton.style.display = "unset";
+          //pauseButton.style.display = "unset";
           manageButton.style.display = "unset";
           break;
         case "paused":

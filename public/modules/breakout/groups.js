@@ -1095,17 +1095,18 @@ modules["breakout/groups"] = class {
     let updateConfiguration = async () => {
       this.configuration = this.parent.parent.lesson.breakout ?? {};
       this.options = this.configuration.options ?? {};
-      if (
-        this.options.pickTeam == true
-        && this.options.createTeam == true
-        && (this.parent.parent.self.group == null || this.options.changeTeam == true)
-      ) {
-        groups.setAttribute("cancreategroup", "");
-      } else {
-        groups.removeAttribute("cancreategroup");
-      }
       
       if (this.parent.parent.self.group == null) {
+        if (
+          this.options.pickTeam == true
+          && this.options.createTeam == true
+          && (this.parent.parent.self.group == null || this.options.changeTeam == true)
+        ) {
+          groups.setAttribute("cancreategroup", "");
+        } else {
+          groups.removeAttribute("cancreategroup");
+        }
+        
         if (this.options.pickTeam == true) {
           headerTitle.innerHTML = "<b>Choose</b> your <b>Team!</b>";
           headerDesc.textContent = "Find and select the team you want to be a member of:";
@@ -1128,6 +1129,7 @@ modules["breakout/groups"] = class {
           }
         }
       } else {
+        groups.removeAttribute("cancreategroup");
         if (this.options.galleryWalk == true) {
           headerTitle.innerHTML = "<b>Gallery Walk</b>";
           headerDesc.textContent = "Explore other team's work and get inspired!";

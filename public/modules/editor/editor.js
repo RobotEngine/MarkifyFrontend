@@ -4324,6 +4324,8 @@ modules["editor/editor"] = class {
         return this.updateChunks();
       }
 
+      clearTimeout(recenterTimeoutFromSimulatedResize);
+
       let jumpAnnotation = null;
       if (extra.jumpID != null && extra.jumpID != "") {
         if (this.annotations[extra.jumpID] != null) {

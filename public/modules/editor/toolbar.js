@@ -4077,7 +4077,7 @@ modules["editor/toolbar"] = class {
       if (event.buttons > 1) {
         return;
       }
-      if (["pen", "mouse"].includes(event.pointerType) == true && (editor.localOptions ?? {}).stylusmode == null) {
+      if (["pen"].includes(event.pointerType) == true && (editor.localOptions ?? {}).stylusmode == null) { //, "mouse"
         editor.options.stylusmode = true;
         editor.pipeline.publish("stylusmodechange", { stylusmode: true });
       }

@@ -227,8 +227,7 @@ modules["lesson/board"] = class {
         preferences: JSON.parse(stringPref),
         lastSavePreferences: JSON.parse(stringPref),
         backgroundColor: this.lesson.background ?? "FFFFFF",
-        minimumEditingAccess: 1,
-        defaultLocks: ["c"]
+        minimumEditingAccess: 1
       }
     });
     this.pipeline = this.editor.pipeline;

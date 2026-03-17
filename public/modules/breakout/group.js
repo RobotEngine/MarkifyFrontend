@@ -1086,6 +1086,25 @@ modules["dropdowns/lesson/breakout/group/file"] = class {
       dropdownModule.open(deleteAnnotationsButton, "dropdowns/remove", { type: "deleteannotations", lessonID: parent.parent.id, session: editor.session, parameters: editor.parameters });
     });
 
+    let updateButtons = () => {
+      if (editor.settings.allowExport == false && editor.self.access < 4) {
+        exportButton.setAttribute("disabled", "");
+        printButton.setAttribute("disabled", "");
+        //copyButton.setAttribute("disabled", "");
+      } else {
+        exportButton.removeAttribute("disabled");
+        printButton.removeAttribute("disabled");
+        //copyButton.removeAttribute("disabled");
+      }
+      if (editor.settings.allowHistory == false && editor.self.access < 4) {
+        historyButton.setAttribute("disabled", "");
+      } else {
+        historyButton.removeAttribute("disabled");
+      }
+    }
+    updateButtons();
+    parent.pipeline.subscribe("fileDropdownSet", "set", updateButtons);
+
     setSVG(overviewButton.querySelector("div"), "../images/tooltips/back.svg");
     setSVG(exportButton.querySelector("div"), "../images/editor/file/export.svg");
     setSVG(printButton.querySelector("div"), "../images/editor/file/print.svg");

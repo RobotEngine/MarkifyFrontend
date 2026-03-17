@@ -1842,6 +1842,7 @@ modules["breakout/overview"] = class {
       if (tile == null) {
         return;
       }
+      event.preventDefault();
       let tileData = this.layout.members[tile.getAttribute("collaborator")];
       if (dragContext.tileData != null) {
         return;

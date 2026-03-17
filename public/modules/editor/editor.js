@@ -544,7 +544,7 @@ modules["editor/editor"] = class {
   realtimeSelect = {};
 
   minimumEditingAccess = 0;
-  defaultLocks = [];
+  defaultLocks = ["c"];
 
   visibleChunks = [];
   loadedChunks = {};

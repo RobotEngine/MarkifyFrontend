@@ -1130,6 +1130,7 @@ modules["breakout/groups"] = class {
         }
       } else {
         groups.removeAttribute("cancreategroup");
+        
         if (this.options.galleryWalk == true) {
           headerTitle.innerHTML = "<b>Gallery Walk</b>";
           headerDesc.textContent = "Explore other team's work and get inspired!";

@@ -919,6 +919,7 @@ modules["breakout/overview"] = class {
               <div class="broTileMembers"></div>
             </div>`;
             this.layout.updateTile(tile);
+            tile.element.href = "/app/lesson?lesson=" + this.parent.parent.id + "&team=" + tileID;
             setSVG(tile.element.querySelector(".broTileHeaderOptions button"), "../images/editor/actions/more.svg");
             if (tile.loadedAnnotations != true) {
               tile.element.querySelector(".broTilePreview").setAttribute("disabled", "");
@@ -1767,6 +1768,9 @@ modules["breakout/overview"] = class {
       }
       let target = event.target;
       let tile = target.closest(".broTile:not([disabled])");
+      if (tile != null) {
+        event.preventDefault();
+      }
       if (target.closest("button") != null) {
         let memberTile = target.closest(".broTileMember");
         if (memberTile != null) {

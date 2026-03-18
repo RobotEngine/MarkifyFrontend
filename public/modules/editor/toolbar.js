@@ -9372,7 +9372,7 @@ modules["editor/toolbar/uploadpage"] = class {
 
   FULL_CLICK = true;
 
-  maxFileSize = (500 * 10 * 1024 * 1024) + 1; // 5 GB File Limit // Will be 10 MB per page
+  maxFileSize = 500 * 10 * 1024 * 1024; // 5 GB File Limit // Will be 10 MB per page
   js = async () => {
     let preference = this.parent.getPreferenceTool();
 
@@ -9418,8 +9418,8 @@ modules["editor/toolbar/uploadpage"] = class {
         if (file.kind != "string") {
           if (file.type == "application/pdf") {
             fileSize += file.size;
-            if (fileSize > this.maxFileSize) {
-              return alertModule.open("error", "<b>Exceeded Size Limit</b><div>Lessons are limited to a max size of <u>3 GB</u> total</div>", { time: 10 });
+            if (fileSize >= this.maxFileSize) {
+              return alertModule.open("error", "<b>Exceeded Size Limit</b><div>Uploads are limited to a max size of <u>5 GB</u> total</div>", { time: 10 });
             }
             sendFormData.append("file" + i, file);
             passedFiles++;

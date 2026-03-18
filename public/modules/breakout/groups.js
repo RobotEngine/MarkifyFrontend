@@ -1130,7 +1130,7 @@ modules["breakout/groups"] = class {
         }
       } else {
         groups.removeAttribute("cancreategroup");
-        
+
         if (this.options.galleryWalk == true) {
           headerTitle.innerHTML = "<b>Gallery Walk</b>";
           headerDesc.textContent = "Explore other team's work and get inspired!";
@@ -1201,7 +1201,8 @@ modules["breakout/groups"] = class {
           this.layout.removeMemberTile(data.modify, true);
           this.layout.updateTile(groupTile);
         }
-        if (data._id != null && this.parent.parent.self._id == data._id) {
+        if (this.parent.parent.self.modify == data.modify) {
+          this.parent.parent.self.group = data.group;
           updateConfiguration();
         }
       }
@@ -1265,7 +1266,8 @@ modules["breakout/groups"] = class {
         } else if ((this.layout.memberSessions[modify] ?? []).length > 0) {
           this.layout.addMemberTile(modify, true);
         }
-        if (data._id != null && this.parent.parent.self._id == data._id) {
+        if (this.parent.parent.self.modify == modify) {
+          this.parent.parent.self.group = data.group;
           updateConfiguration();
           this.layout.refreshTileSpots();
         }

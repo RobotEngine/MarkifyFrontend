@@ -157,7 +157,7 @@ modules["breakout/overview"] = class {
     ".broTileHeaderOptionsButton:hover": `background: var(--hover)`,
     ".broTileMembers": `position: relative; flex: 1; width: 100%; padding-bottom: 6px; background: var(--pageColor); z-index: 2`,
     ".broTileMembers:has(> .broTileMember):before": `content: ""; position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; border-radius: inherit; contain: strict; box-shadow: var(--shadow); transition: .2s`,
-    ".broTileMember": `--shadow: var(--lightShadow); position: relative; width: calc(100% - 12px); padding: 0; margin: 6px 6px 0; background: var(--pageColor); border-radius: 10px; cursor: grab`,
+    ".broTileMember": `--shadow: var(--lightShadow); --workPercent: 0; --workInvert: 0; --workThemeColor: var(--theme); position: relative; width: calc(100% - 12px); padding: 0; margin: 6px 6px 0; background: var(--pageColor); border-radius: 10px; cursor: grab`,
     ".broTileMember:hover, .broTileMember:active, .broTileMember[dragging]": `--shadow: var(--darkShadow)`,
     ".broTileMember:before": `content: ""; position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; border-radius: inherit; contain: strict; pointer-events: none; box-shadow: var(--shadow); transition: .2s`,
     ".broTileMemberContent": `display: flex; box-sizing: border-box; width: 100%; gap: 6px; padding: 6px; overflow: hidden; justify-content: space-between`,
@@ -170,10 +170,10 @@ modules["breakout/overview"] = class {
     ".broTileMemberNameCursor": `flex-shrink: 0; position: relative; box-sizing: border-box; width: 28px; height: 28px; margin-right: 6px; background: var(--pageColor); border: solid 4px var(--themeColor); border-radius: 8px 14px 14px; transition: .2s`,
     //".broTileMemberNameCursor:before": `content: ""; position: absolute; width: calc(100% + 6px); height: calc(100% + 6px); left: -3px; top: -3px; border-radius: inherit; contain: strict; box-shadow: 0 0 6px rgb(0 0 0 / 25%); transition: .2s`,
     ".broTileMemberNameText": `font-size: 16px; font-weight: 500; white-space: nowrap; overflow-x: hidden; text-overflow: ellipsis; transition: .2s`,
-    ".broTileMemberPercent": `--percent: 0; --invert: 0; --themeColor: var(--theme); flex-shrink: 0; position: relative; width: 36px; height: 16px; margin: 4px; border: solid 2px var(--themeColor); border-radius: 12px; transition: .2s`,
+    ".broTileMemberPercent": `flex-shrink: 0; position: relative; display: var(--workDisplay); width: 36px; height: 16px; margin: 4px; border: solid 2px var(--workThemeColor); border-radius: 12px; transition: .2s`,
     //".broTileMemberPercent:before": `content: ""; position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; border-radius: inherit; contain: strict; box-shadow: inset 0px 0px 8px 0px rgba(var(--themeRGB), .3); transition: .2s`,
     ".broTileMemberPercentBarHolder": `position: absolute; width: calc(100% - 4px); height: calc(100% - 4px); left: 2px; top: 2px; border-radius: 8px; overflow: hidden`,
-    ".broTileMemberPercentBar": `--width: calc((var(--percent) * ((32px / 2) - 6px))); position: absolute; width: calc(12px + var(--width)); height: 100%; left: calc((100% / 2) - 6px); transform: translateX(calc(var(--invert) * var(--width) * -1)); background: var(--themeColor); border-radius: 6px; transition: .2s`,
+    ".broTileMemberPercentBar": `--width: calc((var(--workPercent) * ((32px / 2) - 2px))); position: absolute; width: calc(4px + var(--width)); height: 100%; left: calc((100% / 2) - 2px); transform: translateX(calc(var(--workInvert) * var(--width) * -1)); background: var(--workThemeColor); border-radius: 2px; transition: .2s`,
 
     ".broTileAddGroup": `padding: 0; z-index: 2 !important`,
     ".broTileAddGroup .broTileContent": `--opacity: .3; --pageColor: rgba(var(--background), 0); box-sizing: border-box; padding: 12px; background: rgba(var(--themeRGB), var(--opacity)); justify-content: center; align-items: center`,
@@ -687,6 +687,51 @@ modules["breakout/overview"] = class {
 
       this.layout.runningEditorSetup = false;
     }
+    this.layout.updatePercentageOfWork = (tile) => {
+      if (tile == null) {
+        return;
+      }
+      let groupMembers = tile.members.map((value) => {
+        let groupMember = this.layout.members[value];
+        if (groupMember != null) {
+          return groupMember;
+        }
+      });
+      let totalContribution = 0;
+      let groupMemberCount = groupMembers.length;
+      for (let i = 0; i < groupMemberCount; i++) {
+        totalContribution += groupMembers[i].contribution ?? 0;
+      }
+      let equalContribution = totalContribution / groupMemberCount;
+      for (let i = 0; i < groupMemberCount; i++) {
+        let member = groupMembers[i];
+        if (member.tile == null) {
+          continue;
+        }
+        if (groupMemberCount == 1 || equalContribution == 0) {
+          member.tile.style.setProperty("--workDisplay", "none");
+          continue;
+        } else {
+          member.tile.style.setProperty("--workDisplay", "unset");
+        }
+        let contribution = member.contribution ?? 0;
+        let percent = (contribution - equalContribution) / equalContribution;
+        let absPercent = Math.min(Math.abs(percent), 1);
+        member.tile.style.setProperty("--workPercent", absPercent);
+        if (percent > 0) {
+          member.tile.style.setProperty("--workInvert", 0);
+        } else {
+          member.tile.style.setProperty("--workInvert", 1);
+        }
+        if (absPercent <= .2) {
+          member.tile.style.setProperty("--workThemeColor", "var(--theme)");
+        } else if (absPercent > .5) {
+          member.tile.style.setProperty("--workThemeColor", "var(--error)");
+        } else if (absPercent > .2) {
+          member.tile.style.setProperty("--workThemeColor", "var(--yellow)");
+        }
+      }
+    }
     this.layout.updateTile = (tile = {}) => {
       if (tile.element == null) {
         return;
@@ -764,7 +809,7 @@ modules["breakout/overview"] = class {
       </div>
       `;
       if (member.group != null) {
-        memberTile.querySelector(".broTileMemberContent").insertAdjacentHTML("beforeend", `<div class="broTileMemberPercent">
+        memberTile.querySelector(".broTileMemberContent").insertAdjacentHTML("beforeend", `<div class="broTileMemberPercent" title="Percentage of Work Indicator">
           <div class="broTileMemberPercentBarHolder">
             <div class="broTileMemberPercentBar"></div>
           </div>
@@ -928,6 +973,7 @@ modules["breakout/overview"] = class {
             for (let i = 0; i < members.length; i++) {
               this.layout.addMemberTile(members[i], false);
             }
+            this.layout.updatePercentageOfWork(tile);
             newTilesPendingEditors.push(tile);
             newTilesFragment.appendChild(tile.element);
           } else {
@@ -1554,12 +1600,14 @@ modules["breakout/overview"] = class {
       }
 
       if (existingMember != null && existingMember.group != data.group) {
+        delete existingMember.contribution;
         if (existingMember.group != null) {
           let groupTile = this.layout.tiles[existingMember.group] ?? {};
           if (groupTile.members != null) {
             let index = groupTile.members.indexOf(data.modify);
             if (index > -1) {
               groupTile.members.splice(index, 1);
+              this.layout.updatePercentageOfWork(groupTile);
             }
           }
           this.layout.removeMemberTile(data.modify, true);
@@ -1580,6 +1628,7 @@ modules["breakout/overview"] = class {
         } else if (groupTile.members != null && groupTile.members.includes(data.modify) == false) {
           groupTile.members.push(data.modify);
           this.layout.addMemberTile(data.modify);
+          //this.layout.updatePercentageOfWork(groupTile);
         } else {
           this.layout.updateMemberTile(this.parent.parent.collaborators[data.modify]);
         }
@@ -1593,12 +1642,14 @@ modules["breakout/overview"] = class {
         return;
       }
       if (data.hasOwnProperty("group") == true && data.group != groupMember.group) {
+        delete groupMember.contribution;
         if (groupMember.group != null) {
           let oldGroupTile = this.layout.tiles[groupMember.group] ?? {};
           if (oldGroupTile.members != null) {
             let index = oldGroupTile.members.indexOf(modify);
             if (index > -1) {
               oldGroupTile.members.splice(index, 1);
+              this.layout.updatePercentageOfWork(oldGroupTile);
             }
           }
         } else if (data.group != null) {
@@ -1620,6 +1671,7 @@ modules["breakout/overview"] = class {
           } else if (groupTile.members != null && groupTile.members.includes(modify) == false) {
             groupTile.members.push(modify);
             this.layout.addMemberTile(modify, true);
+            this.layout.updatePercentageOfWork(groupTile);
           }
         } else if ((this.layout.memberSessions[modify] ?? []).length > 0) {
           this.layout.addMemberTile(modify, true);
@@ -1637,12 +1689,14 @@ modules["breakout/overview"] = class {
     this.pipeline.subscribe("groupMemberMove", "move", (data) => {
       let existingMember = this.layout.members[data.modify];
       if (existingMember != null) {
-        existingMember = {
+        /*existingMember = {
           ...data,
           group: existingMember.group,
           tile: existingMember.tile
-        };
-        updateMember(data.modify, { group: data.group });
+        };*/
+        updateMember(data.modify, data);
+        existingMember.contribution = data.contribution;
+        this.layout.updatePercentageOfWork(this.layout.tiles[data.group]);
       }
     });
     this.pipeline.subscribe("memberLeave", "leave", (data) => {
@@ -1682,6 +1736,18 @@ modules["breakout/overview"] = class {
         }
       }
     }, { sort: 1 });
+
+    this.pipeline.subscribe("contributionChange", "contributionchange", (data) => {
+      let groupMember = this.layout.members[data.modify];
+      if (groupMember == null) {
+        return;
+      }
+      if (groupMember.contribution == null) {
+        groupMember.contribution = 0;
+      }
+      groupMember.contribution += data.change;
+      this.layout.updatePercentageOfWork(this.layout.tiles[groupMember.group]);
+    });
 
     this.pipeline.subscribe("previewLongAnnotationUpdate", "long", async (event) => {
       if (event.id == null) {

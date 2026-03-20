@@ -384,7 +384,7 @@ modules["breakout/group"] = class {
       }*/
       let config = this.parent.parent.lesson.breakout ?? {};
       let options = config.options ?? {};
-      if (this.parent.parent.self.group == this.group._id) {
+      if (this.parent.parent.self.group == this.group._id || this.parent.parent.self.access > 3) {
         this.editor.viewer = false;
 
         contentHolder.removeAttribute("viewer");

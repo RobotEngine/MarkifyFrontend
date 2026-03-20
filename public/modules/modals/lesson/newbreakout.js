@@ -1126,7 +1126,7 @@ modules["modals/lesson/newbreakout/review"] = class extends modules["breakout/ov
           <div option="setTeamName"><div check></div><div>Members can change the team name.</div></div>
         </button>
       </div>
-      <button class="brorCreateTeams largeButton" disabled>Create Breakouts</button>
+      <button class="brorCreateTeams largeButton" disabled>Finish Setup</button>
     </div>
     ${this.progressFooter}
   `;

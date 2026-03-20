@@ -1739,7 +1739,7 @@ modules["breakout/overview"] = class {
 
     this.pipeline.subscribe("contributionChange", "contributionchange", (data) => {
       let groupMember = this.layout.members[data.modify];
-      if (groupMember == null) {
+      if (groupMember == null || groupMember.group != data.group) {
         return;
       }
       if (groupMember.contribution == null) {

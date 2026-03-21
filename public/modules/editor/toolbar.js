@@ -6619,15 +6619,18 @@ modules["editor/toolbar/comment"] = class {
     await this.editor.render.create(annotation);
     let commentElement = annotation.component.getElement();
     let commentHead = commentElement.querySelector("div[commentholder] > div[comment]");
-    commentElement.setAttribute("selected", "");
+    commentHead.style.transition = "0s";
     commentHead.style.transform = "scale(0)";
     commentHead.offsetHeight;
-    commentHead.style.transform = "scale(1)";
 
     this.editor.selecting = {};
     this.toolbar.selection.updateBox();
 
     this.openCommentFrame(annotation);
+
+    commentElement.setAttribute("selected", "");
+    commentHead.style.removeProperty("transition");
+    commentHead.style.transform = "scale(1)";
   }
   scroll = this.updateCommentFrame;
   enable = () => {

@@ -164,8 +164,6 @@ modules["breakout/template"] = class {
     let increasePageButton = currentPageHolder.querySelector(".brtPageNav[down]");
     let decreasePageButton = currentPageHolder.querySelector(".brtPageNav[up]");
 
-    let stringPref = JSON.stringify(this.parent.parent.preferences); // Must be duplicated
-
     this.close = async (skipThumbnail) => {
       if (this.editor != null) {
         this.editor.pipeline.publish("page_close");
@@ -237,8 +235,8 @@ modules["breakout/template"] = class {
         collaborators: this.parent.parent.collaborators,
         settings: this.parent.parent.lesson.settings,
         resync: this.parent.parent.resync,
-        preferences: JSON.parse(stringPref),
-        lastSavePreferences: JSON.parse(stringPref),
+        preferences: this.parent.preferences,
+        lastSavePreferences: this.parent.lastSavePreferences,
         backgroundColor: this.template.background ?? "FFFFFF",
 
         id: this.template._id,

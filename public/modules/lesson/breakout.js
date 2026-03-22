@@ -181,6 +181,10 @@ modules["lesson/breakout"] = class {
     page.style.setProperty("--boardLightShadow", bodyStyle.getPropertyValue("--lightShadow"));
     page.style.setProperty("--boardDarkShadow", bodyStyle.getPropertyValue("--darkShadow"));
 
+    let stringPref = JSON.stringify(this.parent.preferences); // Must be duplicated
+    this.preferences = JSON.parse(stringPref);
+    this.lastSavePreferences = JSON.parse(stringPref);
+
     this.pipeline.subscribe("checkActivePage", "click_start", () => {
       if (this.parent.activePageID != this.pageID) {
         this.parent.activePageID = this.pageID;

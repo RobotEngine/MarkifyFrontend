@@ -223,8 +223,6 @@ modules["breakout/group"] = class {
     let increasePageButton = currentPageHolder.querySelector(".brgPageNav[down]");
     let decreasePageButton = currentPageHolder.querySelector(".brgPageNav[up]");
 
-    let stringPref = JSON.stringify(this.parent.parent.preferences); // Must be duplicated
-
     // Load Images:
     setSVG(scrollLeft, "../images/editor/top/leftarrow.svg");
     setSVG(scrollRight, "../images/editor/top/rightarrow.svg");
@@ -318,8 +316,8 @@ modules["breakout/group"] = class {
         collaborators: this.parent.parent.collaborators,
         settings: this.parent.parent.lesson.settings,
         resync: this.parent.parent.resync,
-        preferences: JSON.parse(stringPref),
-        lastSavePreferences: JSON.parse(stringPref),
+        preferences: this.parent.preferences,
+        lastSavePreferences: this.parent.lastSavePreferences,
         backgroundColor: this.group.background ?? "FFFFFF",
 
         id: this.group._id,

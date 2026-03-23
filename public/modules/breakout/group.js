@@ -321,7 +321,8 @@ modules["breakout/group"] = class {
         backgroundColor: this.group.background ?? "FFFFFF",
 
         id: this.group._id,
-        parameters: [("group=" + this.group._id)]
+        parameters: [("group=" + this.group._id)],
+        includeIdInShortPublish: true
       },
       showLoading: extra.editor == null
     });

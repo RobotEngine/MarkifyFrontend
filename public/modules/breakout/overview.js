@@ -581,6 +581,7 @@ modules["breakout/overview"] = class {
     this.layout.loadingAnnotations = {};
     this.layout.longSubscribedGroups = [];
     this.layout.maxLongSubscribedGroups = 100;
+    this.layout.shortSubVisibleChunks = {};
     this.layout.getTileHeight = (tile) => {
       let memberCount = (tile.members ?? []).length;
       return (this.layout.tileBaseHeight * Math.min(memberCount, 1))
@@ -640,6 +641,33 @@ modules["breakout/overview"] = class {
 
       return [column, section];
     }
+    this.layout.updateShortSubscribe = () => {
+      clearTimeout(this.layout.shortSubUpdateTimeout);
+      this.layout.shortSubUpdateTimeout = setTimeout(() => {
+        let groups = [];
+        if (this.parent.parent.signalStrength > 2) {
+          groups = Object.keys(this.layout.loadedTiles).filter((groupID) => {
+            if (groupID != "NEW_GROUP_CREATE") {
+              return true;
+            }
+          }).map((groupID) => { return "short_" + groupID });
+        }
+        let filter = { c: groups, p: Object.keys(this.layout.shortSubVisibleChunks) };
+        if (this.layout.shortSub != null) {
+          this.layout.shortSub.edit(filter);
+        } else if (groups.length > 0) {
+          this.layout.shortSub = subscribe(filter, async (data) => {
+            let tile = this.layout.tiles[data[0]];
+            if (tile == null) {
+              return;
+            }
+            if (tile.editor != null) {
+              tile.editor.pipeline.publish("short", data);
+            }
+          });
+        }
+      }, 750);
+    }
     this.layout.setupEditors = async (append) => {
       if (append != null) {
         this.layout.pendingEditors.push(append);
@@ -681,9 +709,15 @@ modules["breakout/overview"] = class {
           await tile.editor.updateChunks();
           await tile.editor.loadAnnotations();
         }
+
+        for (let i = 0; i < tile.editor.visibleChunks.length; i++) {
+          this.layout.shortSubVisibleChunks[tile.editor.visibleChunks[i]] = true;
+        }
         
         tile.editor.previewLoaded = true;
       }
+
+      this.layout.updateShortSubscribe();
 
       this.layout.runningEditorSetup = false;
     }
@@ -938,6 +972,7 @@ modules["breakout/overview"] = class {
       // Load New Tiles:
       let newTilesFragment = document.createDocumentFragment();
       let newTilesPendingEditors = [];
+      let visibleChunks = [];
       let loadTileKeys = Object.keys(loadTiles);
       for (let i = 0; i < loadTileKeys.length; i++) {
         let tileID = loadTileKeys[i];
@@ -1023,6 +1058,9 @@ modules["breakout/overview"] = class {
               tile.editor.utils.centerWindowWithPage();
             }
           }
+          for (let i = 0; i < tile.editor.visibleChunks.length; i++) {
+            visibleChunks[tile.editor.visibleChunks[i]] = true;
+          }
         }
 
         delete this.layout.loadedTiles[tileID];
@@ -1061,9 +1099,15 @@ modules["breakout/overview"] = class {
             //scrollOffset: 50, //* (1 / this.layout.previewScale),
             //sideScrollOffset: 8, //* (1 / this.layout.previewScale),
             skipPDFTextAnnotationLayer: true,
+            includeIdInShortPublish: true,
+            subscribeShortEvents: false,
             ...existingState
           }
         });
+        (async () => {
+          await (await this.newModule("editor/realtime")).js(tile.editor);
+          await (await this.newModule("editor/toolbar")).js(tile.editor);
+        })();
         tile.editor.updatePageSize = async () => {
           this.previewEditorPageSizeFunction(tile);
           if (this.layout.resized == true) {
@@ -1071,6 +1115,12 @@ modules["breakout/overview"] = class {
           }
           //await tile.editor.updateChunks();
         }
+        tile.editor.pipeline.subscribe("overviewZoomChange" , "zoom_change", () => {
+          for (let i = 0; i < tile.editor.visibleChunks.length; i++) {
+            this.layout.shortSubVisibleChunks[tile.editor.visibleChunks[i]] = true;
+          }
+          this.layout.updateShortSubscribe();
+        });
         if (tile.loadedAnnotations != true && this.layout.loadingAnnotations[tile.render._id] == null) {
           this.layout.loadingAnnotations[tile.render._id] = [];
           getGroupAnnotations.push(tile.render._id);
@@ -1199,6 +1249,9 @@ modules["breakout/overview"] = class {
       this.layout.setupEditors();
       //clearTimeout(this.layout.setupEditorsTimeout);
       //this.layout.setupEditorsTimeout = setTimeout(() => { this.layout.setupEditors(); }, 50);
+
+      this.layout.shortSubVisibleChunks = visibleChunks;
+      this.layout.updateShortSubscribe();
 
       this.layout.resized = false;
       this.layout.lastResizeWasSimulated = false;
@@ -1580,6 +1633,16 @@ modules["breakout/overview"] = class {
       this.layout.removeTile(data._id, true);
     });
 
+    let pipeEventToGroupEditors = (event, data) => {
+      let loadedTiles = Object.keys(this.layout.loadedTiles);
+      for (let i = 0; i < loadedTiles.length; i++) {
+        let tile = this.layout.tiles[loadedTiles[i]];
+        if (tile.editor != null) {
+          tile.editor.pipeline.publish(event, data);
+        }
+      }
+    }
+
     this.pipeline.subscribe("memberJoin", "join", (data) => {
       let session = this.layout.memberSessions[data.modify];
       let existingMember = this.layout.members[data.modify];
@@ -1609,6 +1672,9 @@ modules["breakout/overview"] = class {
               groupTile.members.splice(index, 1);
               this.layout.updatePercentageOfWork(groupTile);
             }
+          }
+          if (groupTile.editor != null) {
+            groupTile.editor.pipeline.publish("leave", { _id: data._id });
           }
           this.layout.removeMemberTile(data.modify, true);
         }
@@ -1652,6 +1718,9 @@ modules["breakout/overview"] = class {
               this.layout.updatePercentageOfWork(oldGroupTile);
             }
           }
+          if (oldGroupTile.editor != null && data._id != null) {
+            oldGroupTile.editor.pipeline.publish("leave", { _id: data._id });
+          }
         } else if (data.group != null) {
           updateUnassignedMemberCount(-1);
         }
@@ -1685,6 +1754,7 @@ modules["breakout/overview"] = class {
         return;
       }
       updateMember(member.modify, data);
+      pipeEventToGroupEditors("update", data);
     }, { sort: 1 });
     this.pipeline.subscribe("groupMemberMove", "move", (data) => {
       let existingMember = this.layout.members[data.modify];
@@ -1719,6 +1789,7 @@ modules["breakout/overview"] = class {
             }
           }
         }
+        pipeEventToGroupEditors("leave", data);
       }
     }, { sort: 1 });
 
@@ -1727,14 +1798,8 @@ modules["breakout/overview"] = class {
       if (groupMember != null) {
         this.layout.updateMemberTile(data);
       }
-      let loadedTiles = Object.keys(this.layout.loadedTiles);
-      for (let i = 0; i < loadedTiles.length; i++) {
-        let tile = this.layout.tiles[loadedTiles[i]];
-        if (tile.editor != null) {
-          tile.editor.pipeline.publish("collaborator_update", data);
-          tile.editor.pipeline.publish("collaborator_update_" + data._id, data);
-        }
-      }
+      pipeEventToGroupEditors("collaborator_update", data);
+      pipeEventToGroupEditors("collaborator_update_" + data._id, data);
     }, { sort: 1 });
 
     this.pipeline.subscribe("contributionChange", "contributionchange", (data) => {
@@ -1783,6 +1848,14 @@ modules["breakout/overview"] = class {
       if (this.layout.groupUpdateSub != null) {
         this.layout.groupUpdateSub.close();
       }
+      if (this.layout.shortSub != null) {
+        this.layout.shortSub.close();
+        this.layout.shortSub = null;
+      }
+    });
+
+    this.pipeline.subscribe("overviewSignalUpdate", "signal_strength", () => {
+      this.layout.updateShortSubscribe();
     });
     
     groupHolder.addEventListener("scroll", (event) => {
@@ -1830,7 +1903,7 @@ modules["breakout/overview"] = class {
     frame.addEventListener("click", async (event) => {
       if (dragContext.enabled == true || wasDragging == true) {
         wasDragging = false;
-        return;
+        return event.preventDefault();
       }
       let target = event.target;
       let tile = target.closest(".broTile:not([disabled])");

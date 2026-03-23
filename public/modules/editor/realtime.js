@@ -79,7 +79,11 @@ modules["editor/realtime"] = class {
           filter.p = editor.utils.pointInChunk(sendX, sendY);
 
           if (filter.p != (lastCursorChunk ?? filter.p)) {
-            socket.publish({ ...standardFilter, p: lastCursorChunk }, [ editor.sessionID, filter.p ]); // When leaving a chunk, tell those looking!
+            let pubData = [ editor.sessionID, filter.p ];
+            if (editor.includeIdInShortPublish == true) {
+              pubData.unshift(editor.id);
+            }
+            socket.publish({ ...standardFilter, p: lastCursorChunk }, pubData); // When leaving a chunk, tell those looking!
           }
 
           let scaleZoom = 1 / editor.zoom;
@@ -149,6 +153,10 @@ modules["editor/realtime"] = class {
           }
           pubData[2] = epoch;
   
+          if (editor.includeIdInShortPublish == true) {
+            pubData.unshift(editor.id);
+          }
+
           // PUBLISH the event:
           socket.publish(filter, pubData);
           lastCursorPublish = epoch;
@@ -174,6 +182,10 @@ modules["editor/realtime"] = class {
             return;
           }
           pubData[5] = epoch;
+
+          if (editor.includeIdInShortPublish == true) {
+            pubData.unshift(editor.id);
+          }
 
           // PUBLISH the event:
           socket.publish(filter, pubData);
@@ -232,7 +244,7 @@ modules["editor/realtime"] = class {
     }, { sort: 2 });
 
     this.setShortSub = (chunks) => {
-      if (editor.lesson.signalStrength < 3 || editor.options.cursors == false) {
+      if (editor.lesson.signalStrength < 3 || editor.options.cursors == false || editor.subscribeShortEvents == false) {
         chunks = null;
       }
       let filter = { c: "short_" + editor.id, p: chunks };
@@ -265,9 +277,11 @@ modules["editor/realtime"] = class {
     this.closeShortSub = () => {
       if (this.shortSub != null) {
         this.shortSub.close();
+        this.shortSub = null;
       }
       if (this.observeSub != null) {
         this.observeSub.close();
+        this.observeSub = null;
       }
     }
     editor.pipeline.subscribe("realtimePubishPageClose", "page_close", this.closeShortSub);
@@ -371,6 +385,9 @@ modules["editor/realtime"] = class {
 
     editor.pipeline.subscribe("realtimeShortSub", "short", async (event) => {
       let data = copyObject(event);
+      if (editor.includeIdInShortPublish == true) {
+        data.splice(0, 1);
+      }
       let memberID = data[0];
       let memberData = editor.lesson.members[memberID];
       if (memberData == null || memberID == editor.self._id) {

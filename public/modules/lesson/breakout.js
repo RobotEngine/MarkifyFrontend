@@ -266,7 +266,11 @@ modules["lesson/breakout"] = class {
     } else { // Open to Overview:
       let team = getParam("team") ?? "";
       if (team == "") {
-        await this.openPage("primary", "breakout/overview");
+        //if (account.breakoutOnboard != null) {
+          await this.openPage("primary", "breakout/overview");
+        //} else {
+        //  await this.openPage("primary", "breakout/tutorial");
+        //}
       } else {
         await this.openPage("secondary", "breakout/group", { groupID: team });
       }

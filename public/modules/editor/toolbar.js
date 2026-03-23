@@ -219,7 +219,7 @@ modules["editor/toolbar"] = class {
   js = async (editor) => {
     let page = editor.page;
 
-    let toolbarHolder = page.querySelector("div[toolbarholder]");
+    let toolbarHolder = page.querySelector("div[toolbarholder]") ?? page;
     let toolbar = toolbarHolder.querySelector("div[editor]");
     let toolbarContent;
 

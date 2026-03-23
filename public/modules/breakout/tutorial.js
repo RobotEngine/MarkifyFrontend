@@ -55,32 +55,32 @@ modules["modals/breakout/tutorial"] = class {
         description: "Markify Breakout allows for lessons to be “broken out” into individual or team work. Setup is effortless and everything can be monitored in real-time."
       },
       {
-        image: "../images/launch/usecases/study.png",
+        image: "../images/editor/breakout/tutorial/step2.png",
         title: "Start With the Template",
         description: "The template is the base document teams will get assigned. This can be an uploaded PDF worksheet or reuse a Markify Board to assign individual copies."
       },
       {
-        image: "../images/launch/usecases/socratic.png",
+        image: "../images/editor/breakout/tutorial/step3.png",
         title: "Decide on a Pairing Strategy",
         description: "Use AutoPair to put members into teams randomly (or groups of one), Team Up to allow members to pick their team, or manual to setup teams yourself."
       },
       {
-        image: "../images/launch/usecases/shared.png",
+        image: "../images/editor/breakout/tutorial/step4.png",
         title: "Share the Lesson",
         description: "Once you finish the setup, share the lesson with a pin code or link to bring on members and begin the Breaking Out!"
       },
       {
-        image: "../images/launch/usecases/activity.png",
+        image: "../images/editor/breakout/tutorial/step5.png",
         title: "Monitor Everything Real-Time",
         description: "Simply click on a team to enter their document and give feedback as members work. Click on a team member to open a timeline of their contributions."
       },
       {
-        image: "../images/launch/usecases/group.png",
+        image: "../images/editor/breakout/tutorial/step6.png",
         title: "Group Work With Integrity",
         description: "Each tam member has a POW (Percentage of Work Indicator), which shows how much of the work this member did relative to everyone else."
       },
       {
-        image: "../images/launch/usecases/group.png",
+        image: "../images/editor/breakout/tutorial/step7.png",
         title: "Please, Submit Your Feedback!",
         description: "If you run into any issues, need help, or have a cool idea, simply click your profile at the top right corner and Send Feedback!"
       }
@@ -88,6 +88,7 @@ modules["modals/breakout/tutorial"] = class {
   };
   js = async (frame, extra) => {
     let resource = this.resource;
+    let parent = extra.parent;
 
     let holder = frame.querySelector(".brtmHolder");
     let imageHolder = holder.querySelector(".brtmImageHolder");
@@ -98,6 +99,16 @@ modules["modals/breakout/tutorial"] = class {
     let backButton = buttonHolder.querySelector(".brtmNavButton[back]");
     let navDots = buttonHolder.querySelector(".brtmNavDots");
     //let nextButton = buttonHolder.querySelector(".brtmNavButton[next]");
+
+    let updateSeenTutorial = () => {
+      sendRequest("POST", "me/read?seen=breakouttutorial");
+      parent.parent.openPage("primary", "breakout/overview");
+    }
+    let closeButton = frame.closest(".modal").querySelector(".modalClose");
+    if (closeButton != null && closeButton.hasAttribute("listen") == false) {
+      closeButton.setAttribute("listen", "");
+      closeButton.addEventListener("click", updateSeenTutorial);
+    }
 
     holder.style.setProperty("--theme", resource.theme);
     gradient.style.background = resource.background;
@@ -114,7 +125,8 @@ modules["modals/breakout/tutorial"] = class {
       let info = resource.pages[currentPage];
 
       if (info == null) {
-        return; // Close the modal and finish tutorial
+        modalModule.close();
+        return updateSeenTutorial();
       }
 
       let prevImage = imageContent.querySelector("img:not([old])");

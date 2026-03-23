@@ -127,6 +127,7 @@ modules["modals/lesson/newbreakout/template"] = class extends modules["breakout/
     <div class="brtInstructions">
       <div class="brtTitle">Create the <b>Template</b></div>
       <div class="brtDesc">The template document is what members will get assigned.</div>
+      <button class="brtHelp">View Tutorial?</button>
     </div>
     <div class="brtOptions">
       <button selected class="brtButton largeButton" type="blank">
@@ -178,6 +179,7 @@ modules["modals/lesson/newbreakout/template"] = class extends modules["breakout/
     ".brtTitle": `max-width: 100%; font-size: 24px; font-weight: 500`,
     ".brtTitle b": `color: var(--theme); font-weight: 700`,
     ".brtDesc": `width: 325px; max-width: 100%; margin-top: 6px; font-size: 16px`,
+    ".brtHelp": `margin: 8px 0 0; font-size: 14px; font-weight: 700; color: var(--theme)`,
     ".brtOptions": `box-sizing: border-box; display: none; flex-direction: column; width: fit-content; max-width: 100%; padding: 8px; gap: 6px; align-items: center`,
     ".brtButton": `--themeColor: var(--theme); --borderRadius: 26px; width: 100%; padding: 8px; justify-content: center; text-align: left`,
     ".brtButton div[image]": `width: 32px; height: 32px`,
@@ -216,6 +218,10 @@ modules["modals/lesson/newbreakout/template"] = class extends modules["breakout/
         this.parent.parent.parent.removePage(this.parent.parent.pageID, this.parent.parent.pageType, { animate: true });
       });
     }
+
+    modal.querySelector(".brtHelp").addEventListener("click", () => {
+      this.parent.parent.openPage("primary", "breakout/tutorial");
+    });
 
     let newOptions = modal.querySelector(".brtOptions");
     let currentTemplate = modal.querySelector(".brtTemplate");

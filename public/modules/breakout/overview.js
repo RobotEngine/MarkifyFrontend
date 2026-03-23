@@ -1633,16 +1633,6 @@ modules["breakout/overview"] = class {
       this.layout.removeTile(data._id, true);
     });
 
-    let pipeEventToGroupEditors = (event, data) => {
-      let loadedTiles = Object.keys(this.layout.loadedTiles);
-      for (let i = 0; i < loadedTiles.length; i++) {
-        let tile = this.layout.tiles[loadedTiles[i]];
-        if (tile.editor != null) {
-          tile.editor.pipeline.publish(event, data);
-        }
-      }
-    }
-
     this.pipeline.subscribe("memberJoin", "join", (data) => {
       let session = this.layout.memberSessions[data.modify];
       let existingMember = this.layout.members[data.modify];
@@ -1691,12 +1681,17 @@ modules["breakout/overview"] = class {
           if (pending.includes(data.modify) == false) {
             pending.push(data.modify);
           }
-        } else if (groupTile.members != null && groupTile.members.includes(data.modify) == false) {
-          groupTile.members.push(data.modify);
-          this.layout.addMemberTile(data.modify);
-          //this.layout.updatePercentageOfWork(groupTile);
         } else {
-          this.layout.updateMemberTile(this.parent.parent.collaborators[data.modify]);
+          if (groupTile.members != null && groupTile.members.includes(data.modify) == false) {
+            groupTile.members.push(data.modify);
+            this.layout.addMemberTile(data.modify);
+            //this.layout.updatePercentageOfWork(groupTile);
+          } else {
+            this.layout.updateMemberTile(this.parent.parent.collaborators[data.modify]);
+          }
+          if (groupTile.editor != null) {
+            groupTile.editor.pipeline.publish("join", data);
+          }
         }
       } else {
         this.layout.updateMemberTile(this.parent.parent.collaborators[data.modify]);
@@ -1754,7 +1749,12 @@ modules["breakout/overview"] = class {
         return;
       }
       updateMember(member.modify, data);
-      pipeEventToGroupEditors("update", data);
+      if (member.group != null) {
+        let groupTile = this.layout.tiles[member.group] ?? {};
+        if (groupTile.editor != null) {
+          groupTile.editor.pipeline.publish("update", data);
+        }
+      }
     }, { sort: 1 });
     this.pipeline.subscribe("groupMemberMove", "move", (data) => {
       let existingMember = this.layout.members[data.modify];
@@ -1789,7 +1789,12 @@ modules["breakout/overview"] = class {
             }
           }
         }
-        pipeEventToGroupEditors("leave", data);
+        if (data.member.group != null) {
+          let groupTile = this.layout.tiles[data.member.group] ?? {};
+          if (groupTile.editor != null) {
+            groupTile.editor.pipeline.publish("leave", data);
+          }
+        }
       }
     }, { sort: 1 });
 
@@ -1798,8 +1803,14 @@ modules["breakout/overview"] = class {
       if (groupMember != null) {
         this.layout.updateMemberTile(data);
       }
-      pipeEventToGroupEditors("collaborator_update", data);
-      pipeEventToGroupEditors("collaborator_update_" + data._id, data);
+      let loadedTiles = Object.keys(this.layout.loadedTiles);
+      for (let i = 0; i < loadedTiles.length; i++) {
+        let tile = this.layout.tiles[loadedTiles[i]];
+        if (tile.editor != null) {
+          tile.editor.pipeline.publish("collaborator_update", data);
+          tile.editor.pipeline.publish("collaborator_update_" + data._id, data);
+        }
+      }
     }, { sort: 1 });
 
     this.pipeline.subscribe("contributionChange", "contributionchange", (data) => {

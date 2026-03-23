@@ -765,7 +765,6 @@ modules["breakout/group"] = class {
 
     this.pipeline.subscribe("memberJoin", "join", (data) => {
       let groupMember = this.members[data.modify];
-        console.log("THE FUCK", data)
       if (data.group == this.group._id || data.previewGroup == this.group._id) {
         if (groupMember == null) {
           this.members[data.modify] = [];

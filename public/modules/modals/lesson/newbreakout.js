@@ -155,7 +155,7 @@ modules["modals/lesson/newbreakout/template"] = class extends modules["breakout/
     <div class="brtTemplate">
       <a class="brtTemplateTile" draggable="false">
         <div class="brtTemplateTileThumbnailHolder">
-          <img class="brtTemplateTileThumbnail" src="../images/dashboard/placeholder.png" />
+          <img class="brtTemplateTileThumbnail" load src="../images/dashboard/placeholder.png" />
           <img class="brtTemplateTileThumbnail" main />
         </div>
         <div class="brtTemplateTileInfoHolder">
@@ -235,7 +235,7 @@ modules["modals/lesson/newbreakout/template"] = class extends modules["breakout/
       if (this.parent.template == null) {
         return;
       }
-      let placeholderThumbnail = currentTemplateTile.querySelector(".brtTemplateTileThumbnail[src]");
+      let placeholderThumbnail = currentTemplateTile.querySelector(".brtTemplateTileThumbnail[load]");
       let thumbnail = currentTemplateTile.querySelector(".brtTemplateTileThumbnail[main]");
       if (this.parent.template.thumbnail != null) {
         let setThumbnail = assetURL + this.parent.template.thumbnail;
@@ -252,8 +252,8 @@ modules["modals/lesson/newbreakout/template"] = class extends modules["breakout/
             clearTimeout(loadingTimeout);
             thumbnail.style.opacity = 1;
             placeholderThumbnail.style.opacity = 0;
-            await sleep(400);
-            placeholderThumbnail.remove();
+            //await sleep(400);
+            //placeholderThumbnail.remove();
           }
           let errorListener = () => {
             clearTimeout(loadingTimeout);

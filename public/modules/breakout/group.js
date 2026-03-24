@@ -144,6 +144,9 @@ modules["breakout/group"] = class {
   };
   
   exit = () => {
+    if (this.editor != null) {
+      this.editor.save.syncSave(true);
+    }
     if (this.parent.parent.self.access < 4) { // Open to Group View:
       this.parent.openPage("secondary", "breakout/groups");
       this.parent.closePage("primary");

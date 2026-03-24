@@ -1745,10 +1745,20 @@ modules["breakout/overview"] = class {
     }
     this.pipeline.subscribe("memberUpdate", "update", (data) => {
       let member = this.parent.parent.members[data._id];
-      if (member == null || member.access > 3) {
+      if (member == null) {
         return;
       }
-      updateMember(member.modify, data);
+      if (member.access < 4) {
+        updateMember(member.modify, data);
+      } else {
+        let loadedTiles = Object.keys(this.layout.loadedTiles);
+        for (let i = 0; i < loadedTiles.length; i++) {
+          let tile = this.layout.tiles[loadedTiles[i]];
+          if (tile.editor != null) {
+            tile.editor.pipeline.publish("leave", { _id: data._id });
+          }
+        }
+      }
       if (member.group != null) {
         let groupTile = this.layout.tiles[member.group] ?? {};
         if (groupTile.editor != null) {

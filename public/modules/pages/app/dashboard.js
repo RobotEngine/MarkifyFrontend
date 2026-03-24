@@ -1316,6 +1316,7 @@ modules["pages/app/dashboard"] = class extends page {
           dragContext.element.style.position = "absolute";
           dragContext.element.style.width = dragContext.width + "px";
           dragContext.element.style.height = dragContext.height + "px";
+          dragContext.element.style.setProperty("--themeColor", "var(--theme)");
           dragContext.element.style.background = "var(--pageColor)";
           dragContext.element.style.boxShadow = "var(--shadow)";
           dragContext.element.style.borderRadius = 8 + "px";
@@ -1478,8 +1479,8 @@ modules["pages/app/dashboard/lessons"] = class {
   `;
   css = {
     ".dTiles": `position: relative; display: grid; width: 100%; grid-gap: 20px; grid-template-columns: repeat(auto-fill, minmax(min(300px, 100%), 1fr)); transition: .4s`, // min-height: 100%;
-    ".dTile": `position: relative; background: var(--pageColor); --themeColor: rgb(var(--themeColorRGB)); --shadow: 0px 0px 8px 0px rgba(var(--themeColorRGB), .3); box-shadow: var(--shadow); border-radius: 16px; overflow: hidden`,
-    ".dTile:hover": `--shadow: 0px 0px 8px 0px rgba(var(--themeColorRGB), .5)`,
+    ".dTile": `position: relative; background: var(--pageColor); --themeColor: rgb(var(--themeColorRGB)); --shadowOpacity: .3; --shadow: 0px 0px 8px 0px rgba(var(--themeColorRGB), var(--shadowOpacity)); box-shadow: var(--shadow); border-radius: 16px; overflow: hidden; transition: .2s`,
+    ".dTile:hover": `--shadowOpacity: .5`,
     ".dTileThumbnailHolder": `position: relative; width: 100%; aspect-ratio: 4/3`,
     ".dTileThumbnail": `position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; object-fit: cover; border-radius: 12px; opacity: 0; pointer-events: none`,
     'html[theme="dark"] .dTileThumbnail': `filter: brightness(50%)`,

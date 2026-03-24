@@ -77,7 +77,7 @@ modules["modals/breakout/tutorial"] = class {
       {
         image: "../images/editor/breakout/tutorial/step6.png",
         title: "Group Work With Integrity",
-        description: "Each tam member has a POW (Percentage of Work Indicator), which shows how much of the work this member did relative to everyone else."
+        description: "Each team member has a POW (Percentage of Work Indicator), which shows how much of the work this member did relative to everyone else."
       },
       {
         image: "../images/editor/breakout/tutorial/step7.png",

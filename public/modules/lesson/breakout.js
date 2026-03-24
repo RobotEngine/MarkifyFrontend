@@ -1,7 +1,10 @@
 modules["lesson/breakout"] = class {
   preload = [
+    "../modules/breakout/group.js",
     "../modules/breakout/groups.js",
-    "../modules/breakout/group.js"
+    "../modules/breakout/overview.js",
+    "../modules/breakout/template.js",
+    "../modules/breakout/tutorial.js"
   ];
   html = ``;
   css = {

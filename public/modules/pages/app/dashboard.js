@@ -638,7 +638,7 @@ modules["pages/app/dashboard"] = class extends page {
                 tile = tileHolder.querySelector('.dTile[lesson="' + body.lesson + '"]');
                 if (tile != null) {
                   let memberTx = tile.querySelector(".dTileMemberCount");
-                  memberTx.querySelector("div").textContent = memberCount;
+                  memberTx.querySelector("div[count]").textContent = memberCount;
                   memberTx.style.opacity = 1;
                 }
               }
@@ -653,7 +653,7 @@ modules["pages/app/dashboard"] = class extends page {
                 if (tile != null) {
                   let memberTx = tile.querySelector(".dTileMemberCount");
                   if (memberCount > 0) {
-                    memberTx.querySelector("div").textContent = memberCount;
+                    memberTx.querySelector("div[count]").textContent = memberCount;
                   } else {
                     memberTx.style.removeProperty("opacity");
                   }
@@ -710,6 +710,12 @@ modules["pages/app/dashboard"] = class extends page {
               }
               if (body.record != null && body.record._id != null) {
                 lesson.record = body.record;
+              }
+              if (body.hasOwnProperty("tool") == true) {
+                lesson.tool = body.tool;
+                if (tile != null) {
+                  tile.setAttribute("tool", (body.tool ?? ["board"]).join(";"));
+                }
               }
               if (body.hasOwnProperty("name") == true) {
                 lesson.name = body.name;
@@ -1472,8 +1478,8 @@ modules["pages/app/dashboard/lessons"] = class {
   `;
   css = {
     ".dTiles": `position: relative; display: grid; width: 100%; grid-gap: 20px; grid-template-columns: repeat(auto-fill, minmax(min(300px, 100%), 1fr)); transition: .4s`, // min-height: 100%;
-    ".dTile": `position: relative; background: var(--pageColor); --shadow: var(--lightShadow); box-shadow: var(--shadow); border-radius: 12px; overflow: hidden`,
-    ".dTile:hover": `--shadow: var(--darkShadow)`,
+    ".dTile": `position: relative; background: var(--pageColor); --themeColor: rgb(var(--themeColorRGB)); --shadow: 0px 0px 8px 0px rgba(var(--themeColorRGB), .3); box-shadow: var(--shadow); border-radius: 16px; overflow: hidden`,
+    ".dTile:hover": `--shadow: 0px 0px 8px 0px rgba(var(--themeColorRGB), .5)`,
     ".dTileThumbnailHolder": `position: relative; width: 100%; aspect-ratio: 4/3`,
     ".dTileThumbnail": `position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; object-fit: cover; border-radius: 12px; opacity: 0; pointer-events: none`,
     'html[theme="dark"] .dTileThumbnail': `filter: brightness(50%)`,
@@ -1481,14 +1487,19 @@ modules["pages/app/dashboard/lessons"] = class {
     ".dTileInfoHolder": `position: absolute; display: flex; box-sizing: border-box; width: 100%; padding: 10px; left: 0px; bottom: 0px; align-items: flex-end; background: var(--pageColor); box-shadow: var(--shadow)`,
     ".dTileInfo": `width: 100%`,
     ".dTileTitle": `box-sizing: border-box; width: 100%; font-size: 18px; font-weight: 600; text-align: left`,
-    ".dTileTitle[contenteditable]": `padding: 2px 4px; margin-bottom: 4px; max-height: 100px; outline: solid 2px var(--theme); border-radius: 4px; overflow: auto; cursor: text`,
-    ".dTileLastOpened": `width: 100%; color: var(--theme); margin-top: 2px; font-size: 14px; font-weight: 600; text-align: left`,
+    ".dTileTitle[contenteditable]": `padding: 2px 4px; margin-bottom: 4px; max-height: 100px; outline: solid 2px var(--themeColor); border-radius: 4px; overflow: auto; cursor: text`,
+    ".dTileLastOpened": `width: 100%; color: var(--themeColor); margin-top: 2px; font-size: 14px; font-weight: 600; text-align: left`,
     ".dTileOptions": `display: flex; width: 34px; height: 34px; margin: 4px; flex-shrink: 0; justify-content: center; align-items: center; border-radius: 18px`,
-    ".dTileOptions img": `width: 32px; height: 32px`,
-    ".dTileOptions:hover": `background: var(--hover)`,
+    ".dTileOptions svg": `flex-shrink: 0; width: 32px; height: 32px`,
+    ".dTileOptions:hover": `background: var(--hoverColor)`,
     ".dTileMemberCount": `position: absolute; display: flex; box-sizing: border-box; padding: 6px; right: 0px; top: 0px; align-items: center; background: var(--pageColor); box-shadow: var(--shadow); border-radius: 0 0 0 12px; opacity: 0; transition: .4s`,
-    ".dTileMemberCount img": `width: 22px; height: 22px`,
-    ".dTileMemberCount div": `color: var(--theme); margin-left: 4px; font-size: 16px; font-weight: 600`,
+    ".dTileMemberCount div[icon]": `width: 22px; height: 22px`,
+    ".dTileMemberCount div[icon] svg": `width: 100%; height: 100%`,
+    ".dTileMemberCount div[count]": `color: var(--themeColor); margin-left: 4px; font-size: 16px; font-weight: 600`,
+
+    '.dTile[tool="board"]': `--themeColorRGB: var(--themeRGB); --hoverColor: var(--hover)`,
+    '.dTile[tool="breakout"]': `--themeColorRGB: var(--breakoutThemeRGB); --hoverColor: var(--breakoutHover)`,
+    '.dTile[tool="board;breakout"]': `--themeColorRGB: var(--themeRGB); --hoverColor: var(--hover)`,
 
     ".dNoLessons": `display: flex; flex-direction: column; width: 100%; height: fit-content; align-items: center`,
     ".dNoLessonsImage": `width: 100%; max-width: 500px; margin-top: 32px`,
@@ -1598,17 +1609,20 @@ modules["pages/app/dashboard/lessons"] = class {
             <div class="dTileTitle"></div>
             <div class="dTileLastOpened"></div>
           </div>
-          <button class="dTileOptions" dropdowntitle="Options"><img src="../images/dashboard/more.svg" /></button>
+          <button class="dTileOptions" dropdowntitle="Options"></button>
         </div>
         <div class="dTileMemberCount" title="Active Members">
-          <img src="../images/profiles/default.svg" />
-          <div></div>
+          <div icon></div>
+          <div count></div>
         </div>
       </a>`);
       let tile = tileHolder.querySelector(".dTile[new]");
       tile.removeAttribute("new");
       tile.setAttribute("lesson", record.lesson);
       tile.setAttribute("time", time);
+      tile.setAttribute("tool", (lesson.tool ?? ["board"]).join(";"));
+      setSVG(tile.querySelector(".dTileOptions"), "../images/dashboard/more.svg");
+      setSVG(tile.querySelector(".dTileMemberCount div[icon]"), "../images/dashboard/membercount.svg");
       let placeholderThumbnail = tile.querySelector(".dTileThumbnail[src]");
       let thumbnail = tile.querySelector(".dTileThumbnail[main]");
       if (lesson.thumbnail != null) {
@@ -1634,6 +1648,8 @@ modules["pages/app/dashboard/lessons"] = class {
         thumbnail.addEventListener("load", completeListener);
         thumbnail.src = assetURL + lesson.thumbnail;
         thumbnail.style.transition = ".4s";
+      } else {
+        placeholderThumbnail.style.opacity = 1;
       }
       let title = tile.querySelector(".dTileTitle");
       let titleText = lesson.name ?? "Untitled Lesson";
@@ -1647,7 +1663,7 @@ modules["pages/app/dashboard/lessons"] = class {
       }
       if (lesson.members > 0) {
         let memberCount = tile.querySelector(".dTileMemberCount");
-        memberCount.querySelector("div").textContent = lesson.members;
+        memberCount.querySelector("div[count]").textContent = lesson.members;
         memberCount.style.opacity = 1;
       }
       let join = record.join ?? "owner";

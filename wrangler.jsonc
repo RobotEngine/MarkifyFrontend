@@ -1,0 +1,14 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "markify",
+  "compatibility_date": "2025-09-27",
+  "observability": {
+    "enabled": true
+  },
+  "assets": {
+    "directory": "SORT_OF_OLD_MARKIFY"
+  },
+  "compatibility_flags": [
+    "nodejs_compat"
+  ]
+}

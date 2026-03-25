@@ -20,7 +20,7 @@
       }
     ],
     "rewrites": [
-     {
+      {
         "source": "/join",
         "destination": "/join.html"
       },

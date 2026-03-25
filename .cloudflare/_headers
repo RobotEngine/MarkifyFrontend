@@ -1,0 +1,26 @@
+/*
+  X-Frame-Options: ALLOWALL
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+  Content-Security-Policy: script-src 'self' 'sha256-nRcgRt3XNN0aZXdzMDUhXYSzvNDbxXeNTBXS8ajcR38=' https://*.simplesocket.net https://*.exotek.co https://*.googleapis.com https://*.cloudflare.com; frame-src * blob:
+
+/join
+  Content-Security-Policy: script-src 'self' 'sha256-viSWilXB5sYlQ+Ga8T8LdsqOzYVlVgZkRO7wmjuwVko=' https://*.simplesocket.net https://*.exotek.co https://*.googleapis.com https://*.cloudflare.com; frame-src * blob:
+
+/export
+  Content-Security-Policy: script-src 'self' 'sha256-X6mmDHcwJEHs0FGxvR3d1QFcl1gwxvsBwsAZleep9LU=' https://*.simplesocket.net https://*.exotek.co https://*.googleapis.com https://*.cloudflare.com; frame-src * blob:
+
+/embed
+  ! Content-Security-Policy
+  ! X-Frame-Options
+  ! X-Content-Type-Options
+  ! Referrer-Policy
+
+**/*.eot
+  Cache-Control: max-age=1800
+**/*.otf
+  Cache-Control: max-age=1800
+**/*.ttf
+  Cache-Control: max-age=1800
+**/*.woff
+  Cache-Control: max-age=1800

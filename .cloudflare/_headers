@@ -5,9 +5,11 @@
   Content-Security-Policy: script-src 'self' 'sha256-nRcgRt3XNN0aZXdzMDUhXYSzvNDbxXeNTBXS8ajcR38=' https://*.simplesocket.net https://*.exotek.co https://*.googleapis.com https://*.cloudflare.com; frame-src * blob:
 
 /join
+  ! Content-Security-Policy
   Content-Security-Policy: script-src 'self' 'sha256-viSWilXB5sYlQ+Ga8T8LdsqOzYVlVgZkRO7wmjuwVko=' https://*.simplesocket.net https://*.exotek.co https://*.googleapis.com https://*.cloudflare.com; frame-src * blob:
 
 /export
+  ! Content-Security-Policy
   Content-Security-Policy: script-src 'self' 'sha256-X6mmDHcwJEHs0FGxvR3d1QFcl1gwxvsBwsAZleep9LU=' https://*.simplesocket.net https://*.exotek.co https://*.googleapis.com https://*.cloudflare.com; frame-src * blob:
 
 /embed

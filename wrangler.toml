@@ -2,4 +2,4 @@ name = "markify"
 compatibility_date = "2026-03-25"
 
 [assets]
-pages_build_output_dir = "public"
+directory = "public"

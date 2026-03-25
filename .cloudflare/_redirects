@@ -2,14 +2,14 @@
 /tos       https://exotek.co   303
 /privacy   https://exotek.co   303
 
-# Internal Rewrites (200 status makes them stay on the current URL):
+# Internal Rewrites (200 status makes them stay on the current URL): (DISABLED)
 # /join      /join.html    200
 # /export    /export.html   200
 # /tos       /tos.html      200
 # /privacy   /privacy.html  200
 # /embed     /embed.html    200
 
-# SPA Catch-all (Must be last):
+# SPA Catch-all (Must be last): (DISABLED)
 # This handles /join, /export, /embed, AND React/Vue routing.
 # Cloudflare will check if /join.html exists first; if not, it hits this.
-/*         /index.html    200
+# /*         /index.html    200

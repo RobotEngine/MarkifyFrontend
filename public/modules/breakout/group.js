@@ -2076,12 +2076,12 @@ modules["modals/lesson/breakout/group/welcome"] = class {
     }
 
     parent.pipeline.subscribe("groupWelcomeJoin", "join", (body) => {
-      if (parent.members[body.modify] != null) {
+      if (body.group == parent.group._id && body.access < 4) {
         updateTile({ ...body, _id: body.modify });
       }
     }, { sort: 2 });
     parent.pipeline.subscribe("groupWelcomeLeave", "leave", (body) => {
-      if (body.member != null) {
+      if (body.member != null && body.member.group == parent.group._id) {
         updateTile({ ...body.member, _id: body.member.modify });
       }
     }, { sort: 2 });
@@ -2090,7 +2090,7 @@ modules["modals/lesson/breakout/group/welcome"] = class {
       if (member == null) {
         return;
       }
-      if (parent.members[member.modify] != null) {
+      if (member.group == parent.group._id && member.access < 4) {
         updateTile({ ...body, _id: member.modify });
       } else {
         removeTile(member.modify);

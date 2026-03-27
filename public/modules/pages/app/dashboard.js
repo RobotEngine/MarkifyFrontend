@@ -1485,7 +1485,7 @@ modules["pages/app/dashboard/lessons"] = class {
     ".dTileThumbnail": `position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; object-fit: cover; border-radius: 12px; opacity: 0; pointer-events: none`,
     'html[theme="dark"] .dTileThumbnail': `filter: brightness(50%)`,
     ".dTile:hover .dTileThumbnail": `filter: brightness(100%)`,
-    ".dTileInfoHolder": `position: absolute; display: flex; box-sizing: border-box; width: 100%; padding: 10px; left: 0px; bottom: 0px; align-items: flex-end; background: var(--pageColor); box-shadow: var(--shadow)`,
+    ".dTileInfoHolder": `position: absolute; display: flex; box-sizing: border-box; width: 100%; padding: 10px; left: 0px; bottom: 0px; align-items: flex-end; background: var(--pageColor); box-shadow: var(--shadow); transition: .2s`,
     ".dTileInfo": `width: 100%`,
     ".dTileTitle": `box-sizing: border-box; width: 100%; font-size: 18px; font-weight: 600; text-align: left`,
     ".dTileTitle[contenteditable]": `padding: 2px 4px; margin-bottom: 4px; max-height: 100px; outline: solid 2px var(--themeColor); border-radius: 4px; overflow: auto; cursor: text`,

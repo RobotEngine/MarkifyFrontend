@@ -2316,7 +2316,8 @@ modules["breakout/overview"] = class {
     this.pipeline.subscribe("pageMaximize", "maximize", updateSplitScreenButton);
     updateSplitScreenButton();
 
-    if (this.parent.parent.lesson.tool.includes("breakout") == false && (this.parent.parent.lesson.breakout ?? {}).status == null) { // Create New Lesson
+    //if (this.parent.parent.lesson.tool.includes("breakout") == false && (this.parent.parent.lesson.breakout ?? {}).status == null) { // Create New Lesson
+    if ((this.parent.parent.lesson.breakout ?? {}).status == null) {
       frame.insertAdjacentHTML("beforeend", `<div class="boCreateBreakoutHolder"></div>`);
       this.setupModal = await modalModule.open("modals/lesson/newbreakout", frame.querySelector(".boCreateBreakoutHolder"), null, "Start a Breakout", null, { parent: this });
     }

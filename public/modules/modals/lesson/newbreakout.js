@@ -653,7 +653,7 @@ modules["modals/lesson/newbreakout/options"] = class extends modules["breakout/o
         </div>
         <div class="brooSettingButton" option="autopairgroups">
           <div class="brooSettingDetails">
-            <div title>Number of Groups</div>
+            <div title>Number of Teams</div>
           </div>
           <div class="brooSettingToggleHolder">
             <div class="brooCounterSelector"><button minus>-</button><div count max="100" contenteditable></div><button plus>+</button></div>

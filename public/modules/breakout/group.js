@@ -861,7 +861,9 @@ modules["breakout/group"] = class {
       if (options.pickTeam == true || extra.members != null) {
         return;
       }
-      if (Object.keys(this.members).length < 1) {
+      //if (Object.keys(this.members).length < 1) {
+      let auto = configuration.auto ?? {};
+      if ((auto.size ?? 1) < 2 || auto.enabled == false) {
         return;
       }
       this.welcomeRead = true;

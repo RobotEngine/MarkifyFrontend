@@ -66,14 +66,14 @@ modules["pages/app/dashboard"] = class extends page {
       </div>
       <div class="dLessonsHolder customScroll">
         <div class="dBannerHolder">
-          <div class="dBanner">
-            <img class="dBannerIcon" src="../images/dashboard/banner/version1release.svg" />
+          <div class="dBanner" style="--theme: var(--breakoutTheme); --secondary: var(--breakoutSecondary); --hover: var(--breakoutHover); --darkShadow: var(--breakoutDarkShadow)">
+            <img class="dBannerIcon" src="../images/breakoutbluricon.png" />
             <div class="dBannerContent">
-              <div class="dBannerTitle">Welcome to Markify 1.0</div>
-              <div class="dBannerText">Introducing the newly released Markify! We hope you enjoy the new touch-ups.</div>
+              <div class="dBannerTitle">Introducing Markify Breakout (ALPHA)</div>
+              <div class="dBannerText">Markify Breakout allows for lessons to be “broken out” into individual or team work.</div>
             </div>
             <div class="dBannerButtons">
-              <button class="dBannerFeedback buttonAnim border">Feedback</button>
+              <button class="dBannerAction buttonAnim border"></button>
               <button class="dBannerClose buttonAnim border"></button>
             </div>
           </div>
@@ -183,7 +183,7 @@ modules["pages/app/dashboard"] = class extends page {
     ".dBannerButtons button svg": `position: absolute; width: calc(100% - 10px); height: calc(100% - 10px); left: 5px; top: 5px`,
     ".dBannerButtons button img": `position: absolute; width: calc(100% - 10px); height: calc(100% - 10px); left: 5px; top: 5px`,
     ".dBannerClose": `width: 22px; height: 22px; margin: 3px`,
-    ".dBannerFeedback": `--themeColor: var(--theme); padding: 0 8px; font-size: 16px; font-weight: 600; color: var(--theme); height: 28px; margin: 3px`,
+    ".dBannerAction": `--themeColor: var(--theme); padding: 0 10px; font-size: 16px; font-weight: 600; color: var(--theme); height: 28px; margin: 3px`,
 
     ".dTilesHolder": `position: relative; width: calc(100% - 40px); min-height: fit-content; height: 100%; margin: 0px 20px 20px 20px; z-index: 1`,
 
@@ -283,7 +283,7 @@ modules["pages/app/dashboard"] = class extends page {
     }
 
     // Handle Banner:
-    const CURRENT_BANNER = null; // "1.0-release";
+    const CURRENT_BANNER = "breakout-alpha-release"; // "1.0-release";
     if (CURRENT_BANNER != null) {
       let bannerHolder = lessonsHolder.querySelector(".dBannerHolder");
       let banner = bannerHolder.querySelector(".dBanner");
@@ -303,13 +303,23 @@ modules["pages/app/dashboard"] = class extends page {
         bannerHolder.style.height = "0px";
       });
       setSVG(bannerCloseButton, "../images/tooltips/close.svg");
-      let bannerFeedbackButton = banner.querySelector(".dBannerFeedback");
-      bannerFeedbackButton.addEventListener("click", async () => {
-        bannerFeedbackButton.setAttribute("disabled", "");
-        await loadScript("./modules/dropdowns/account.js");
-        await dropdownModule.open(bannerFeedbackButton, "dropdowns/account/report");
-        bannerFeedbackButton.removeAttribute("disabled");
+      let bannerActionButton = banner.querySelector(".dBannerAction");
+      bannerActionButton.addEventListener("click", async () => {
+        bannerActionButton.setAttribute("disabled", "");
+        //await loadScript("./modules/dropdowns/account.js");
+        //await dropdownModule.open(bannerFeedbackButton, "dropdowns/account/report");
+        if (hasFeatureEnabled("breakout") == false) {
+          setFrame("pages/breakout");
+        } else {
+          setFrame("pages/app/lesson", null, { params: { type: "breakout" } });
+        }
+        bannerActionButton.removeAttribute("disabled");
       });
+      if (hasFeatureEnabled("breakout") == false) {
+        bannerActionButton.textContent = "Join Waitlist";
+      } else {
+        bannerActionButton.textContent = "Try It!";
+      }
     }
     
     logoButton.addEventListener("click", (event) => {

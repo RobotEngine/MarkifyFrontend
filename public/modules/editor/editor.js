@@ -6491,7 +6491,8 @@ modules["editor/render/annotation/embed"] = class extends modules["editor/render
     ".eAnnotation[embed] div[details] div[info] div[title]": `display: none; width: 100%; font-size: 18px; font-weight: 700; text-wrap: nowrap; text-overflow: ellipsis; overflow: hidden; color: var(--textColor)`,
     ".eAnnotation[embed] div[details] div[info] div[description]": `display: none; width: 100%; margin: 4px 0 2px 0; font-size: 14px; font-weight: 500; color: var(--darkGray); text-wrap: nowrap; text-overflow: ellipsis; overflow: hidden`,
     ".eAnnotation[embed] div[details] div[info] a[link]": `display: flex; width: fit-content; max-width: 100%; align-items: center; font-size: 16px; font-weight: 600; text-decoration: underline; color: var(--theme); text-wrap: nowrap; overflow: hidden; pointer-events: all`,
-    ".eAnnotation[embed] div[details] div[info] a[link] img": `width: 32px; height: 32px; margin-right: 2px`
+    ".eAnnotation[embed] div[details] div[info] a[link] div[icon]": `width: 32px; height: 32px; margin-right: 2px`,
+    ".eAnnotation[embed] div[details] div[info] a[link] div[icon] svg": `width: 100%; height: 100%`
   };
   render = () => {
     if (this.element == null) {
@@ -6510,10 +6511,11 @@ modules["editor/render/annotation/embed"] = class extends modules["editor/render
           <div info>
             <div title></div>
             <div description></div>
-            <a link target="_blank"><img src="../images/editor/actions/link.svg"><div></div></a>
+            <a link target="_blank"><div icon></div><div text></div></a>
           </div>
         </div>
       </div>`;
+      setSVG(this.element.querySelector("div[details] > div[info] > a > div[icon]"), "../images/editor/actions/link.svg");
       this.holder.appendChild(this.element);
     }
     this.element.style.width = this.properties.s[0] + "px";
@@ -6594,7 +6596,7 @@ modules["editor/render/annotation/embed"] = class extends modules["editor/render
       linkInput.value = this.properties.d ?? "";
     }
     if (this.properties.d != null) {
-      embedLink.querySelector("div").textContent = (new URL(this.properties.d)).hostname;
+      embedLink.querySelector("div[text]").textContent = (new URL(this.properties.d)).hostname;
       embedLink.title = this.properties.d;
       embedLink.href = this.properties.d;
     }

@@ -284,7 +284,7 @@ modules["pages/app/dashboard"] = class extends page {
 
     // Handle Banner:
     const CURRENT_BANNER = "breakout-alpha-release"; // "1.0-release";
-    if (CURRENT_BANNER != null) {
+    if (CURRENT_BANNER != null && (account.tenant ?? {}).role != "student") {
       let bannerHolder = lessonsHolder.querySelector(".dBannerHolder");
       let banner = bannerHolder.querySelector(".dBanner");
       let bannerCloseButton = banner.querySelector(".dBannerClose");

@@ -6046,6 +6046,7 @@ modules["editor/toolbar/comment"] = class {
     ".eCommentFrame": `position: absolute; width: 300px; min-height: 48px; left: 0px; top: 0px; opacity: 0; transform: scale(0); z-index: 101; border-radius: 24px; transition: transform .2s, opacity .2s; background: var(--pageColor); user-select: text`,
     ".eCommentFrame:after": `content: ""; position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; border-radius: inherit; box-shadow: 0px 0px 6px var(--theme); opacity: .6; pointer-events: none`,
     ".eCommentFrame .ql-editor": `padding: 0 !important; overflow-y: unset !important; font-family: var(--font); font-size: inherit; line-height: inherit`,
+    ".eCommentFrame .ql-editor.ql-blank::before": `color: var(--textColor) !important; opacity: .6 !important`,
     ".eCommentScrollContainer": `width: 100%; height: fit-content; overflow: hidden; border-radius: inherit`,
     ".eCommentScroll": `width: 100%; height: fit-content; max-height: min(var(--maxToolbarHeight), 500px); overflow-y: auto`,
     ".eCommentHolder": `display: flex; flex-direction: column; box-sizing: border-box; width: 100%; height: fit-content; padding: 0 8px; gap: 16px`,

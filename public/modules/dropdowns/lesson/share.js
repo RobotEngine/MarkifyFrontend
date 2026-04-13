@@ -43,7 +43,7 @@ modules["dropdowns/lesson/share/pin"] = class {
   <div class="eSharePinCreate">
     <button class="largeButton border">Generate Pin</button>
   </div>
-  <div class="eSharePinLink">Join with this pin at <a href="https://markify.link" target="_blank">markify.link</a></div>
+  <div class="eSharePinLink">Join with this pin at <a href="https://markify.app" target="_blank">markify.app</a></div>
   <div class="eSharePinDisplay"><span section left></span><div></div><span section right></span></div>
   <div class="eSharePinOptions">
     <button class="eSharePinCopy largeButton border" title="Copy the pin code."></button>
@@ -260,9 +260,9 @@ modules["dropdowns/lesson/share/link"] = class {
         accessDesc.textContent = "Anyone with this link will be able to view the document and create annotations.";
       }
       if (lesson.lesson.settings == null || lesson.lesson.settings.forceLogin != true || account.tenant == null || account.tenant.flags == null || account.tenant.flags.require_login_link_auth_classlink != true) {
-        linkTx.value = "markify.link/join?lesson=" + lesson.id;
+        linkTx.value = "markify.app/join?lesson=" + lesson.id;
       } else {
-        linkTx.value = "markify.link/join?lesson=" + lesson.id + "&auth=classlink";
+        linkTx.value = "markify.app/join?lesson=" + lesson.id + "&auth=classlink";
       }
     }
     parent.pipeline.subscribe("shareLessonSet", "set", (body) => {

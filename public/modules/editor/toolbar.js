@@ -6745,7 +6745,7 @@ modules["dropdowns/editor/toolbar/comment/more"] = class {
       if (commentID.startsWith("pending_") == true) {
         return;
       }
-      copyClipboardText("https://markify.link/join?lesson=" + parent.editor.lesson.id + "&annotation=" + commentID, "link");
+      copyClipboardText("https://markify.app/join?lesson=" + parent.editor.lesson.id + "&annotation=" + commentID, "link");
     });
     setSVG(copyButton.querySelector("div"), "../images/tooltips/copy.svg");
     if (root == false) {
@@ -8550,7 +8550,7 @@ modules["editor/toolbar/more"] = class {
     if (id == null || id.startsWith("pending_") == true) {
       return;
     }
-    copyClipboardText("https://markify.link/join?lesson=" + this.editor.lesson.id + "&annotation=" + id, "link");
+    copyClipboardText("https://markify.app/join?lesson=" + this.editor.lesson.id + "&annotation=" + id, "link");
   }
   js = async () => {
     dropdownModule.open(this.button, "dropdowns/editor/toolbar/more", { parent: this });

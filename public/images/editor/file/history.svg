@@ -1,0 +1,13 @@
+<svg viewBox="0 0 256 256" fill="none" xmlns="http://www.w3.org/2000/svg">
+<mask id="mask0_4064_2" style="mask-type:alpha" maskUnits="userSpaceOnUse" x="0" y="0" width="256" height="256">
+<rect width="256" height="256" fill="var(--gray)"/>
+</mask>
+<g mask="url(#mask0_4064_2)">
+<path d="M40 128C40 107.641 47.0593 87.9114 59.9751 72.1735C72.8909 56.4356 90.864 45.6629 110.832 41.691C130.8 37.7191 151.528 40.7938 169.483 50.3911C187.438 59.9884 201.51 75.5145 209.301 94.324C217.093 113.133 218.121 134.063 212.211 153.545C206.301 173.028 193.818 189.858 176.89 201.169C159.962 212.48 139.636 217.572 119.375 215.576C99.1133 213.581 80.1708 204.622 65.7746 190.226" stroke="var(--theme)" stroke-width="30" stroke-linecap="round"/>
+<path d="M40 158L16 134" stroke="var(--theme)" stroke-width="30" stroke-linecap="round"/>
+<path d="M40 158L64 134" stroke="var(--theme)" stroke-width="30" stroke-linecap="round"/>
+<path d="M40 158C40 137.545 40 129.477 40 128" stroke="var(--theme)" stroke-width="30" stroke-linecap="round"/>
+<path d="M128 128C128 95.2727 128 87.3636 128 85" stroke="var(--theme)" stroke-width="30" stroke-linecap="round"/>
+<path d="M128 128C150.968 150.968 155.028 155.028 156.687 156.687" stroke="var(--theme)" stroke-width="30" stroke-linecap="round"/>
+</g>
+</svg>

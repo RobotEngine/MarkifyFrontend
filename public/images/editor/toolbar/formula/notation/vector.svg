@@ -1,0 +1,17 @@
+<svg viewBox="0 0 256 256" fill="none" xmlns="http://www.w3.org/2000/svg">
+<mask id="mask0_71_309" style="mask-type:alpha" maskUnits="userSpaceOnUse" x="0" y="0" width="256" height="256">
+<rect width="256" height="256" fill="var(--gray)"/>
+</mask>
+<g mask="url(#mask0_71_309)">
+<mask id="path-2-inside-1_71_309" fill="var(--pageColor)">
+<rect x="108" y="123" width="40" height="80" rx="4"/>
+</mask>
+<rect x="108" y="123" width="40" height="80" rx="4" stroke="var(--pageColor)" stroke-width="24" mask="url(#path-2-inside-1_71_309)"/>
+<rect x="92" y="107" width="72" height="112" rx="20" stroke="var(--pageColor)" stroke-width="32"/>
+<path d="M83 63H173" stroke="var(--pageColor)" stroke-width="44" stroke-linecap="round"/>
+<path d="M152 42L171.586 61.5858C172.367 62.3668 172.367 63.6332 171.586 64.4142L152 84" stroke="var(--pageColor)" stroke-width="44" stroke-linecap="round"/>
+<rect x="98" y="113" width="60" height="100" rx="14" stroke="var(--darkGray)" stroke-width="20"/>
+<path d="M83 63H173" stroke="var(--darkGray)" stroke-width="20" stroke-linecap="round"/>
+<path d="M152 42L171.586 61.5858C172.367 62.3668 172.367 63.6332 171.586 64.4142L152 84" stroke="var(--darkGray)" stroke-width="20" stroke-linecap="round"/>
+</g>
+</svg>

@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+
+  <title>Markify</title>
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="Markify | Collaboration across the Classroom" />
+  <meta property="og:site_name" content="Markify" />
+  <meta property="og:url" content="https://markifyapp.com" />
+  <meta property="og:description" content="Share and collaborate on documents across the classroom with Markify!" />
+  <meta property="og:image" content="https://markifyapp.com/images/favicon.png" />
+
+  <meta name="description" content="Share and collaborate on documents across the classroom with Markify!" />
+  <meta name="keywords" content="edtech, whiteboard, education, classroom, realtime, collaboration" />
+  <meta name="author" content="Exotek, LLC (https://exotek.co)" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no, viewport-fit=contain">
+
+  <meta name="theme-color" content="#0084FF" />
+
+  <link rel="icon" href="https://markifyapp.com/images/favicon.png" />
+  <link rel="apple-touch-icon" href="https://markifyapp.com/images/appicon.png" />
+
+  <link rel="manifest" href="../manifest.json" />
+
+  <meta http-equiv="Cache-control" content="public, max-age=1800" />
+  <meta http-equiv="Content-Type" content="text/html; charset= ISO-8859-1" />
+</head>
+<style>
+  @import url("https://fonts.googleapis.com/css?family=Montserrat:400,500,600,700,800&display=swap");
+
+  :root {
+    --themeRGB: 0, 132, 255;
+    --theme: rgb(var(--themeRGB));
+    --secondaryRGB: 72, 167, 255;
+    --secondary: rgb(var(--secondaryRGB));
+    --hover: rgb(var(--hoverRGB));
+    --purpleRGB: 223, 132, 255;
+    --purple: rgb(var(--purpleRGB));
+    --yellowRGB: 255, 185, 56;
+    --yellow: rgb(var(--yellowRGB));
+    --greenRGB: 52, 193, 114;
+    --green: rgb(var(--greenRGB));
+    --redRGB: 220, 20, 60;
+    --red: rgb(var(--redRGB));
+    --error: rgb(var(--redRGB));
+    --pageColor: rgb(var(--background));
+    --activeGray: rgb(var(--activeGrayRGB));
+    --gray: rgb(var(--grayRGB));
+    --lightShadow: 0px 0px 8px 0px rgba(var(--themeRGB), .3);
+    --darkShadow: 0px 0px 8px 0px rgba(var(--themeRGB), .5);
+    --shadow: 0px 0px 8px 0px var(--gray);
+    --bounce: cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    --font: "Montserrat", sans-serif;
+  }
+  html[theme="light"] {
+    --hoverRGB: 180, 218, 253;
+    --lightGray: #E7E7E7;
+    --scrollGray: #F6F6F6;
+    --activeGrayRGB: 124, 124, 124;
+    --grayRGB: 204, 204, 204;
+    --darkGray: #2F2F2F;
+    --textColor: #000;
+    --background: 255, 255, 255;
+  }
+  html[theme="dark"] {
+    --hoverRGB: 12, 63, 111;
+    --lightGray: #00355E;
+    --scrollGray: #001D34;
+    --activeGrayRGB: 0, 92, 167;
+    --grayRGB: 0, 57, 104;
+    --darkGray: #E7E7E7;
+    --textColor: #fff;
+    --background: 10, 28, 45;
+  }
+
+  html, body {
+    overscroll-behavior-x: none;
+  }
+
+  body {
+    margin: 0px;
+    padding: 0px;
+    background: var(--pageColor);
+    touch-action: pan-x pan-y;
+
+    color: var(--textColor);
+    font-family: var(--font);
+    font-size: 18px;
+    text-align: center;
+    overflow-wrap: anywhere;
+  }
+
+  .app {
+    min-height: 100vh;
+    z-index: 0;
+    background: var(--pageColor);
+    transition: background-color .3s;
+  }
+
+  .fixed {
+    position: fixed;
+    width: 100%;
+    height: 100%;
+    top: 0px;
+    left: 0px;
+    overflow: auto;
+    z-index: 999;
+    pointer-events: none;
+  }
+
+  .loading {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    left: 0px;
+    top: 0px;
+    /* background: var(--pageColor); */
+    transition: opacity .4s;
+    z-index: 999;
+    overflow: hidden;
+    will-change: opacity;
+  }
+
+  .loadingSvgHolder {
+    display: flex;
+    width: 100%;
+    height: 100%;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .loadsvg {
+    --spacing: 276px;
+    width: min(100%, 120px);
+    height: min(100%, 120px);
+    margin: 64px;
+  }
+
+  .loadsvg path {
+    transform-box: fill-box;
+    transform-origin: center;
+    animation: var(--anim) 3s cubic-bezier(0.46, 0.03, 0.52, 0.96) infinite;
+  }
+  @keyframes loadinga {
+    0% { transform: translate(0) rotate(0) }
+    25% { transform: translate(var(--spacing), 0) rotate(90deg) }
+    50% { transform: translate(var(--spacing), var(--spacing)) rotate(180deg) }
+    75% { transform: translate(0, var(--spacing)) rotate(270deg) }
+    100% { transform: translate(0) rotate(360deg) }
+  }
+  @keyframes loadingb {
+    0% { transform: translate(0) }
+    25% { transform: translate(0, var(--spacing)) }
+    50% { transform: translate(calc(var(--spacing) * -1), var(--spacing)) }
+    75% { transform: translate(calc(var(--spacing) * -1), 0) }
+    100% { transform: translate(0) }
+  }
+  @keyframes loadingc {
+    0% { transform: translate(0) }
+    25% { transform: translate(0, calc(var(--spacing) * -1)) }
+    50% { transform: translate(var(--spacing), calc(var(--spacing) * -1)) }
+    75% { transform: translate(var(--spacing), 0) }
+    100% { transform: translate(0) }
+  }
+  @keyframes loadingd {
+    0% { transform: translate(0) rotate(0) }
+    25% { transform: translate(calc(var(--spacing) * -1), 0) rotate(90deg) }
+    50% { transform: translate(calc(var(--spacing) * -1), calc(var(--spacing) * -1)) rotate(180deg) }
+    75% { transform: translate(0, calc(var(--spacing) * -1)) rotate(270deg) }
+    100% { transform: translate(0) rotate(360deg) }
+  }
+</style>
+<body>
+  <noscript>Please enable JavaScript to use this app.</noscript>
+  <div class="app">
+    <div class="loading" new>
+      <div class="loadingSvgHolder">
+        <svg class="loadsvg" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path style="--anim: loadinga" d="M118 28C167.706 28 208 68.2944 208 118V172C208 191.882 191.882 208 172 208H118C68.2944 208 28 167.706 28 118C28 68.2944 68.2944 28 118 28Z" stroke="var(--theme)" stroke-width="56"/>
+          <path style="--anim: loadingb" d="M394 28C443.706 28 484 68.2944 484 118C484 167.706 443.706 208 394 208C344.294 208 304 167.706 304 118C304 68.2944 344.294 28 394 28Z" stroke="var(--theme)" stroke-width="56"/>
+          <path style="--anim: loadingc" d="M118 304C167.706 304 208 344.294 208 394C208 443.706 167.706 484 118 484C68.2944 484 28 443.706 28 394C28 344.294 68.2944 304 118 304Z" stroke="var(--theme)" stroke-width="56"/>
+          <path style="--anim: loadingd" d="M394 304C443.706 304 484 344.294 484 394C484 443.706 443.706 484 394 484C344.294 484 304 443.706 304 394V340C304 320.118 320.118 304 340 304H394Z" stroke="var(--theme)" stroke-width="56"/>
+        </svg>
+      </div>
+    </div>
+  </div>
+  <div class="fixed"></div>
+
+  <script>
+    let lightTheme = window.matchMedia == null || window.matchMedia("(prefers-color-scheme: dark)").matches != true;
+    try {
+      let localTheme = localStorage.getItem("theme") ?? "auto";
+      if (localTheme != "auto") {
+        lightTheme = localTheme == "light";
+      }
+    } catch { }
+    if (lightTheme == true) {
+      document.documentElement.setAttribute("theme", "light");
+    } else {
+      document.documentElement.setAttribute("theme", "dark");
+    }
+  </script>
+  <script src="https://static.simplesocket.net/library/js/2.1/simplesocket.js"></script>
+  <script src="../crucial.js"></script>
+</body>
+</html>

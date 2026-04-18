@@ -1,10 +1,10 @@
 import {
-  userID,
   account,
   setPage,
-  sleep,
   getParam,
-  modifyParams,
+  getLocalStore,
+  removeLocalStore,
+  promptLogin,
   sendRequest
 } from "@/crucial";
 
@@ -12,24 +12,28 @@ import { version } from "@/configuration";
 
 import modalModule from "@modules/utility/modal";
 
-import logout from "@assets/account/logout.svg?raw";
-import settings from "@assets/account/settings.svg?raw";
-import app from "@assets/account/app.svg?raw";
-import report from "@assets/account/report.svg?raw";
-import exclamation from "@assets/account/exclamation.svg?raw";
-import question from "@assets/account/question.svg?raw";
-import send from "@assets/editor/actions/send.svg?raw";
+import settings from "./settings";
+import gift from "./gift";
+import report from "./report";
+
+import logoutIcon from "@assets/account/logout.svg?raw";
+import settingsIcon from "@assets/account/settings.svg?raw";
+import appIcon from "@assets/account/app.svg?raw";
+import reportIcon from "@assets/account/report.svg?raw";
+import exclamationIcon from "@assets/account/exclamation.svg?raw";
+import questionIcon from "@assets/account/question.svg?raw";
+import sendIcon from "@assets/editor/actions/send.svg?raw";
 
 export default class {
   html = `
-  <button class="accountDrop accountLogout" style="--themeColor: var(--error)" close><div>Logout</div>${logout}</button>
-  <button class="accountDrop accountManage" dropdowntitle="Settings" noscrollclose><div>Settings</div>${settings}</button>
+  <button class="accountDrop accountLogout" style="--themeColor: var(--error)" close><div>Logout</div>${logoutIcon}</button>
+  <button class="accountDrop accountManage" dropdowntitle="Settings" noscrollclose><div>Settings</div>${settingsIcon}</button>
   <div class="accountDropLine"></div>
-  <button class="accountDrop" close pwa dropdowntitle="Add Markify as an app on your device!"><div>Get the App</div>${app}</button>
-  <button class="accountDrop" report dropdowntitle="Send Feedback" noscrollclose><div>Send Feedback</div>${report}</button>
-  <button class="accountDrop" close whatsnew><div>What's New</div>${exclamation}</button>
-  <button class="accountDrop" tutorial close modaltitle="Resources"><div>Resources</div>${question}</button>
-  <button class="accountDrop" share dropdowntitle="Share Markify" style="--themeColor: var(--purple)"><div>Share Markify</div>${send}</button>
+  <button class="accountDrop" close pwa dropdowntitle="Add Markify as an app on your device!"><div>Get the App</div>${appIcon}</button>
+  <button class="accountDrop" report dropdowntitle="Send Feedback" noscrollclose><div>Send Feedback</div>${reportIcon}</button>
+  <button class="accountDrop" close whatsnew><div>What's New</div>${exclamationIcon}</button>
+  <button class="accountDrop" tutorial close modaltitle="Resources"><div>Resources</div>${questionIcon}</button>
+  <button class="accountDrop" share dropdowntitle="Share Markify" style="--themeColor: var(--purple)"><div>Share Markify</div>${sendIcon}</button>
   <div class="accountDropLine"></div>
   <div class="accountSocialHolder">
     <a href="https://x.com/markifytool" target="_blank"><img src="../images/launch/socials/twitter.svg"></a>
@@ -95,7 +99,7 @@ export default class {
     //setSVG(logoutButton.querySelector("div[image]"), "../images/tooltips/account/logout.svg");
     let settingsButton = frame.querySelector(".accountManage");
     settingsButton.addEventListener("click", () => {
-      dropdownModule.open(settingsButton, "dropdowns/account/manage");
+      this.open(settingsButton, settings);
     });
     //setSVG(settingsButton.querySelector("div[image]"), "../images/tooltips/account/settings.svg");
     let tutorialButton = frame.querySelector(".accountDrop[tutorial]");
@@ -142,7 +146,7 @@ export default class {
     //setSVG(installpwa.querySelector("div[image]"), "../images/tooltips/account/app.svg");
     let whatsNew = frame.querySelector(".accountDrop[whatsnew]");
     whatsNew.addEventListener("click", () => {
-      setFrame("pages/app/lesson", null, { params: { lesson: account.currentWhatsNew } });
+      setPage("pages/app/lesson", { params: { lesson: account.currentWhatsNew } });
     });
     if (account.currentWhatsNew == null) {
       whatsNew.remove();
@@ -150,12 +154,12 @@ export default class {
     //setSVG(whatsNew.querySelector("div[image]"), "../images/tooltips/account/exclamation.svg");
     let shareButton = frame.querySelector(".accountDrop[share]");
     shareButton.addEventListener("click", () => {
-      dropdownModule.open(shareButton, "dropdowns/gift");
+      this.open(shareButton, gift);
     });
     //setSVG(shareButton.querySelector("div[image]"), "../images/editor/actions/send.svg");
     let reportButton = frame.querySelector(".accountDrop[report]");
     reportButton.addEventListener("click", () => {
-      dropdownModule.open(reportButton, "dropdowns/account/report");
+      this.open(reportButton, report);
     });
     //setSVG(reportButton.querySelector("div[image]"), "../images/tooltips/account/report.svg");
 

@@ -3,25 +3,31 @@ import {
   sendRequest
 } from "@/crucial";
 
-import dropdownModule from "../utility/dropdown";
-import alertModule from "../utility/alert";
+import dropdownModule from "@modules/utility/dropdown";
+import alertModule from "@modules/utility/alert";
+
+import open from "@assets/open.svg?raw";
+import moveto from "@assets/dashboard/moveto.svg?raw";
+import rename from "@assets/rename.svg?raw";
+import copy from "@assets/copy.svg?raw";
+import { trash } from "@modules/utility/coreicons";
 
 export default class {
   html = `
-  <button class="dTileDropAction" option="open" title="Open this lesson."><img src="../images/dashboard/open.svg">Open</button>
-  <button class="dTileDropAction" option="opennewtab" title="Open this lesson in a new tab."><img src="../images/dashboard/open.svg">Open in New Tab</button>
+  <button class="dTileDropAction" option="open" title="Open this lesson.">${open}Open</button>
+  <button class="dTileDropAction" option="opennewtab" title="Open this lesson in a new tab.">${open}Open in New Tab</button>
   <div class="dTileDropLine"></div>
-  <button class="dTileDropAction" option="moveto" title="Move this lesson into a folder." dropdown="dropdowns/dashboard/moveto" dropdowntitle="<img class='dTileDropActionImage' src='../images/dashboard/moveto.svg'>Move To"><img class="dTileDropActionImage" src="../images/dashboard/moveto.svg">Move To Folder</button>
-  <button class="dTileDropAction" option="movefrom" style="display: none" title="Remove this lesson from the folder."><img class="dTileDropActionImage" src="../images/dashboard/moveto.svg">Remove From Folder</button>
+  <button class="dTileDropAction" option="moveto" title="Move this lesson into a folder." dropdown="dropdowns/dashboard/moveto" dropdowntitle="Move To">${moveto}Move To Folder</button>
+  <button class="dTileDropAction" option="movefrom" style="display: none" title="Remove this lesson from the folder.">${moveto}Remove From Folder</button>
   <div class="dTileDropLine"></div>
-  <button class="dTileDropAction" option="rename" title="Rename this lesson."><img src="../images/dashboard/rename.svg">Rename</button>
-  <button class="dTileDropAction" option="copy" title="Create a duplicate of this lesson."><img src="../images/dashboard/copy.svg">Duplicate</button>
-  <button class="dTileDropAction" option="deletelesson" dashboard dropdown="dropdowns/editor/file/delete" style="--themeColor: var(--error)" title="Remove this lesson from your dashboard."><img class="dTileDropActionImage" src="/images/dashboard/delete.svg"><span>Delete</span></button>
+  <button class="dTileDropAction" option="rename" title="Rename this lesson.">${rename}Rename</button>
+  <button class="dTileDropAction" option="copy" title="Create a duplicate of this lesson.">${copy}Duplicate</button>
+  <button class="dTileDropAction" option="deletelesson" dashboard dropdown="dropdowns/editor/file/delete" style="--themeColor: var(--error)" title="Remove this lesson from your dashboard.">${trash}<span>Delete</span></button>
   `;
   css = {
     ".dTileDropAction": `--themeColor: var(--theme); display: flex; width: 100%; padding: 4px 8px 4px 4px; border-radius: 8px; align-items: center; font-size: 16px; font-weight: 600; text-align: left; transition: .15s`,
     ".dTileDropAction:not(:last-child)": `margin-bottom: 4px`,
-    ".dTileDropAction img": `width: 24px; height: 24px; padding: 2px; margin-right: 8px !important; background: var(--pageColor); border-radius: 4px`,
+    ".dTileDropAction svg": `width: 24px; height: 24px; padding: 2px; margin-right: 8px !important; background: var(--pageColor); border-radius: 4px`,
     ".dTileDropAction:hover": `background: var(--themeColor); color: #fff`,
     ".dTileDropLine": `width: 100%; height: 2px; margin-bottom: 4px; background: var(--gray); border-radius: 1px`
   };
@@ -167,10 +173,10 @@ export default class {
     });
     let deleteButton = frame.querySelector('.dTileDropAction[option="deletelesson"]');
     deleteButton.addEventListener("click", () => {
-      dropdownModule.open(deleteButton, "dropdowns/remove", { parent: extra.parent, type: "deletelesson", lessons: lessons, lessonID: lessonID, lesson: lesson, record: record, isOwner: isOwner });
+      this.open(deleteButton, import("@modules/dropdowns/remove"), { parent: extra.parent, type: "deletelesson", lessons: lessons, lessonID: lessonID, lesson: lesson, record: record, isOwner: isOwner });
     });
     
-    if (!isOwner) {
+    if (isOwner == false) {
       renameButton.remove();
       copyButton.remove();
       deleteButton.querySelector("span").textContent = "Remove";

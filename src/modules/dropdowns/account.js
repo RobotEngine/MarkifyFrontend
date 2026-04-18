@@ -10,18 +10,26 @@ import {
 
 import { version } from "@/configuration";
 
-import modalModule from "../utility/modal";
+import modalModule from "@modules/utility/modal";
+
+import logout from "@assets/account/logout.svg?raw";
+import settings from "@assets/account/settings.svg?raw";
+import app from "@assets/account/app.svg?raw";
+import report from "@assets/account/report.svg?raw";
+import exclamation from "@assets/account/exclamation.svg?raw";
+import question from "@assets/account/question.svg?raw";
+import send from "@assets/editor/actions/send.svg?raw";
 
 export default class {
   html = `
-  <button class="accountDrop accountLogout" style="--themeColor: var(--error)" close><div>Logout</div><div image></div></button>
-  <button class="accountDrop accountManage" dropdowntitle="Settings" noscrollclose><div>Settings</div><div image></div></button>
+  <button class="accountDrop accountLogout" style="--themeColor: var(--error)" close><div>Logout</div>${logout}</button>
+  <button class="accountDrop accountManage" dropdowntitle="Settings" noscrollclose><div>Settings</div>${settings}</button>
   <div class="accountDropLine"></div>
-  <button class="accountDrop" close pwa dropdowntitle="Add Markify as an app on your device!"><div>Get the App</div><div image></div></button>
-  <button class="accountDrop" report dropdowntitle="Send Feedback" noscrollclose><div>Send Feedback</div><div image></div></button>
-  <button class="accountDrop" close whatsnew><div>What's New</div><div image></div></button>
-  <button class="accountDrop" tutorial close modaltitle="Resources"><div>Resources</div><div image></div></button>
-  <button class="accountDrop" share dropdowntitle="Share Markify" style="--themeColor: var(--purple)"><div>Share Markify</div><div image></div></button>
+  <button class="accountDrop" close pwa dropdowntitle="Add Markify as an app on your device!"><div>Get the App</div>${app}</button>
+  <button class="accountDrop" report dropdowntitle="Send Feedback" noscrollclose><div>Send Feedback</div>${report}</button>
+  <button class="accountDrop" close whatsnew><div>What's New</div>${exclamation}</button>
+  <button class="accountDrop" tutorial close modaltitle="Resources"><div>Resources</div>${question}</button>
+  <button class="accountDrop" share dropdowntitle="Share Markify" style="--themeColor: var(--purple)"><div>Share Markify</div>${send}</button>
   <div class="accountDropLine"></div>
   <div class="accountSocialHolder">
     <a href="https://x.com/markifytool" target="_blank"><img src="../images/launch/socials/twitter.svg"></a>
@@ -43,10 +51,9 @@ export default class {
     ".accountDrop": `display: flex; width: 100%; padding: 6px; border-radius: 8px; justify-content: space-between; align-items: center; font-size: 16px; font-weight: 600; text-align: left; transition: .15s; --themeColor: var(--theme)`,
     ".accountDrop:not(:last-child)": `margin-bottom: 4px`,
     ".accountDrop div": `flex: 1; white-space: nowrap; text-overflow: ellipsis; overflow: hidden`,
-    ".accountDrop div[image]": `max-width: 24px; height: 24px; margin-left: 6px; transition: .15s`,
-    ".accountDrop div[image] svg": `width: 100%; height: 100%`,
+    ".accountDrop svg": `max-width: 24px; height: 24px; margin-left: 6px; transition: .15s`,
     ".accountDrop:hover": `background: var(--themeColor); color: #fff`,
-    ".accountDrop:hover div[image]": `filter: brightness(0) invert(1)`,
+    ".accountDrop:hover svg": `filter: brightness(0) invert(1)`,
     ".accountDrop[pwa]": `display: none`,
     ".accountDropLine": `width: 100%; height: 2px; margin-bottom: 4px; background: var(--gray); border-radius: 1px`,
     ".accountSocialHolder": `display: flex; flex-wrap: wrap; height: fit-content; padding: 3px; justify-content: space-evenly`,

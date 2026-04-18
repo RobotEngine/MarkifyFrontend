@@ -15,12 +15,13 @@ import {
   getLocalStore,
   setLocalStore,
   modifyParams,
+  getEpoch,
   sendRequest,
   subscribe
 } from "@/crucial";
 
-import dropdown from "../../utility/dropdown";
-import modal from "../../utility/modal";
+import dropdown from "@modules/utility/dropdown";
+import modal from "@modules/utility/modal";
 
 import lessonFrameModule from "@modules/dashboard/lessons";
 import optionsModule from "../../dashboard/options";
@@ -1096,7 +1097,7 @@ export default class extends page {
         });
         let removeButton = titleHolder.querySelector(".dFolderRemove");
         removeButton.addEventListener("click", () => {
-          dropdown.open(removeButton, "dropdowns/remove", { parent: this, type: "deletefolder", folderID: folderID, folders: folders, records: records, lessons: lessons });
+          dropdown.open(removeButton, import("@modules/dropdowns/remove"), { parent: this, type: "deletefolder", folderID: folderID, folders: folders, records: records, lessons: lessons });
         });
         //setSVG(removeButton, "../images/editor/file/delete.svg");
         titleHolder.style.padding = "14px 16px";

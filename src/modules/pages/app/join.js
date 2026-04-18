@@ -11,9 +11,9 @@ import {
   setLocalStore,
   modifyParams,
   sendRequest
-} from "@/crucial.js";
+} from "@/crucial";
 
-import alertModule from "@modules/utility/alert.js";
+import alertModule from "@modules/utility/alert";
 
 export default class extends page {
   turnstileEnabled = false;

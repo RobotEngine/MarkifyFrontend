@@ -17,15 +17,15 @@ import {
   modifyParams,
   sendRequest,
   subscribe
-} from "@/crucial.js";
+} from "@/crucial";
 
-import dropdown from "../../utility/dropdown.js";
-import modal from "../../utility/modal.js";
+import dropdown from "../../utility/dropdown";
+import modal from "../../utility/modal";
 
-import lessonFrameModule from "@modules/dashboard/lessons.js";
-import optionsModule from "../../dashboard/options.js";
+import lessonFrameModule from "@modules/dashboard/lessons";
+import optionsModule from "../../dashboard/options";
 
-import { close, trash } from "@modules/utility/coreicons.js";
+import { close, trash } from "@modules/utility/coreicons";
 import boardIcon from "@assets/icon.svg?raw";
 import breakoutIcon from "@assets/breakout.svg?raw";
 import exclamation from "@assets/account/exclamation.svg?raw";

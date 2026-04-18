@@ -1,7 +1,9 @@
 import {
   sleep,
   sendRequest
-} from "@/crucial.js";
+} from "@/crucial";
+
+import alertModule from "../utility/alert";
 
 export default class {
   title = "Move To";

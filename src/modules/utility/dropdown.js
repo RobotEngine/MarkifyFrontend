@@ -1,6 +1,6 @@
-import { fixed, newModule, sleep, setFrame } from "@/crucial.js";
+import { fixed, newModule, sleep, setFrame } from "@/crucial";
 
-import { close as closeIcon, back as backIcon } from "./coreicons.js";
+import { close as closeIcon, back as backIcon } from "./coreicons";
 
 export const dropdown = class {
   history = [];

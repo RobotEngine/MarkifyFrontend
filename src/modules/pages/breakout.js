@@ -1,4 +1,4 @@
-import { page, userID, account } from "@/crucial.js";
+import { page, userID, account } from "@/crucial";
 
 export default class extends page {
   title = "Breakout Waitlist";

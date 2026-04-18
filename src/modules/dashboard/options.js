@@ -1,9 +1,10 @@
 import {
   sleep,
   sendRequest
-} from "@/crucial.js";
+} from "@/crucial";
 
 import dropdownModule from "../utility/dropdown";
+import alertModule from "../utility/alert";
 
 export default class {
   html = `

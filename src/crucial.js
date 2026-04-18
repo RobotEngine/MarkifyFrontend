@@ -4,10 +4,10 @@ import {
   domain
 } from "./configuration";
 
-import corestyles from "./modules/utility/corestyles.js";
-import dropdownModule from "./modules/utility/dropdown.js";
-//import modalModule from "./modules/utility/modal.js";
-import alertModule from "./modules/utility/alert.js";
+import corestyles from "./modules/utility/corestyles";
+import dropdownModule from "./modules/utility/dropdown";
+//import modalModule from "./modules/utility/modal";
+import alertModule from "./modules/utility/alert";
 
 const configurations = {
   public: {

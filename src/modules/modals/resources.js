@@ -1,7 +1,7 @@
 import {
   sleep,
   sendRequest
-} from "@/crucial.js";
+} from "@/crucial";
 
 export default class {
   html = `

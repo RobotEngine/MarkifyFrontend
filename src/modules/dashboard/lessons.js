@@ -6,9 +6,9 @@ import {
   formatFullDate,
   getEpoch,
   sendRequest
-} from "@/crucial.js";
+} from "@/crucial";
 
-import { more } from "@modules/utility/coreicons.js";
+import { more } from "@modules/utility/coreicons";
 import membercount from "@assets/dashboard/membercount.svg?raw";
 
 export default class {

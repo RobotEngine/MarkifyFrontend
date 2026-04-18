@@ -4,7 +4,7 @@ import {
   account,
   sleep,
   getEpoch
-} from "@/crucial.js";
+} from "@/crucial";
 
 export default class extends page {
   title = "Collaboration across the Classroom";

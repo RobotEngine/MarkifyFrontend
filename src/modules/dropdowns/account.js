@@ -6,11 +6,11 @@ import {
   getParam,
   modifyParams,
   sendRequest
-} from "@/crucial.js";
+} from "@/crucial";
 
 import { version } from "@/configuration";
 
-import modalModule from "../utility/modal.js";
+import modalModule from "../utility/modal";
 
 export default class {
   html = `

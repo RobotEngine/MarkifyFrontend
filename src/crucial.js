@@ -343,6 +343,31 @@ export const setFrame = async (modulePromise, frame, extra, parent) => {
   
   if (frameSet == app) {
     extra.from = currentPage;
+
+    let path = extra.path ?? "";
+    let setURLState = new URL(path.substring(path.indexOf("/")), window.location.origin);
+    let params = {};
+    let originalParams = Object.fromEntries((new URL("", window.location)).searchParams.entries());
+    if (extra.passParams == true) {
+      params = originalParams;
+    }
+    if (extra.params != null) {
+      params = { ...params, ...extra.params };
+    }
+    let keys = Object.keys(params);
+    for (let i = 0; i < keys.length; i++) {
+      let key = keys[i];
+      let value = params[key];
+      if (value != null) {
+        setURLState.searchParams.append(key, value);
+      }
+    }
+    if (extra.pushHistory != false) {
+      window.history.pushState({ page: path, params: params }, "", setURLState.pathname + setURLState.search);
+    } else if (extra.replaceHistory == true) {
+      window.history.replaceState({ page: path, params: params }, "", setURLState.pathname + setURLState.search);
+    }
+    
     let currentRemotes = Object.keys(socket.remotes);
     for (let i = 0; i < currentRemotes.length; i++) {
       let remote = currentRemotes[i];
@@ -432,6 +457,7 @@ export const setFrame = async (modulePromise, frame, extra, parent) => {
 
 export const setPage = async (path, extra) => {
   extra = extra ?? {};
+  extra.path = path;
 
   let getPageModulePromise = new Promise(async (resolve) => {
     let loadModuleFunction = pages["./modules/" + path + ".js"];
@@ -446,30 +472,6 @@ export const setPage = async (path, extra) => {
   }
 
   currentPage = path;
-
-  //window.location.hash = "#" + path.substring(path.lastIndexOf("/") + 1);
-  let setURLState = new URL(path.substring(path.indexOf("/")), window.location.origin);
-  let params = {};
-  let originalParams = Object.fromEntries((new URL("", window.location)).searchParams.entries());
-  if (extra.passParams == true) {
-    params = originalParams;
-  }
-  if (extra.params != null) {
-    params = { ...params, ...extra.params };
-  }
-  let keys = Object.keys(params);
-  for (let i = 0; i < keys.length; i++) {
-    let key = keys[i];
-    let value = params[key];
-    if (value != null) {
-      setURLState.searchParams.append(key, value);
-    }
-  }
-  if (extra.pushHistory != false) {
-    window.history.pushState({ page: path, params: params }, "", setURLState.pathname + setURLState.search);
-  } else if (extra.replaceHistory == true) {
-    window.history.replaceState({ page: path, params: params }, "", setURLState.pathname + setURLState.search);
-  }
 
   if (page.title != null) {
     document.title = page.title + " | Markify";
@@ -1208,7 +1210,7 @@ let initSocket = async () => {
       openPage = "pages/" + (movedPages[hash] ?? hash);
     }
 
-    setPage(openPage, null, { pushHistory: false, replaceHistory: true, passParams: true, unsub: false, missPageRedirect: true });
+    setPage(openPage, { pushHistory: false, replaceHistory: true, passParams: true, unsub: false, missPageRedirect: true });
     if (wasConnected == true) {
       alertModule.open("worked", `<b>Connected</b>Reconnected to Markify`, { id: "connection" });
     }

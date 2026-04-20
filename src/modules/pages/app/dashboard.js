@@ -294,7 +294,7 @@ export default class extends page {
       openButton.href = "/app/lesson?lesson=" + account.currentWhatsNew;
       openButton.addEventListener("click", (event) => {
         event.preventDefault();
-        setPage("pages/app/lesson", null, { params: { lesson: account.currentWhatsNew } });
+        setPage("pages/app/lesson", { params: { lesson: account.currentWhatsNew } });
       });
       let shareButton = updateAlert.querySelector("button[share]");
       //setSVG(shareButton.querySelector("div[image]"), "../images/editor/actions/send.svg");
@@ -334,7 +334,7 @@ export default class extends page {
         if (hasFeatureEnabled("breakout") == false) {
           setPage("pages/breakout");
         } else {
-          setPage("pages/app/lesson", null, { params: { type: "breakout" } });
+          setPage("pages/app/lesson", { params: { type: "breakout" } });
         }
         bannerActionButton.removeAttribute("disabled");
       });
@@ -360,7 +360,7 @@ export default class extends page {
         if (this.sort != null && this.sort.length > 20) {
           params["folder"] = this.sort;
         }
-        setPage("pages/app/lesson", null, { params: params });
+        setPage("pages/app/lesson", { params: params });
       });
     }
     if (newBreakoutLessonButton != null) {
@@ -370,7 +370,7 @@ export default class extends page {
         if (this.sort != null && this.sort.length > 20) {
           params["folder"] = this.sort;
         }
-        setPage("pages/app/lesson", null, { params: params });
+        setPage("pages/app/lesson", { params: params });
       });
     }
 
@@ -1167,12 +1167,12 @@ export default class extends page {
         if (tile.hasAttribute("join")) {
           let method = tile.getAttribute("join");
           if (method.startsWith("pin_")) {
-            return setPage("pages/app/join", null, { params: { pin: method.substring(4) }});
+            return setPage("pages/app/join", { params: { pin: method.substring(4) }});
           } else if (method == "link") {
-            return setPage("pages/app/join", null, { params: { lesson: tile.getAttribute("lesson") } });
+            return setPage("pages/app/join", { params: { lesson: tile.getAttribute("lesson") } });
           }
         }
-        setPage("pages/app/lesson", null, { params: { lesson: tile.getAttribute("lesson") } });
+        setPage("pages/app/lesson", { params: { lesson: tile.getAttribute("lesson") } });
       }
 
       let button = target.closest("button, a");

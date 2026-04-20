@@ -246,7 +246,7 @@ export default class extends page {
     }
     let secondStepInit = (body) => {
       if (body.skip == true){
-        return setPage("pages/app/lesson", null, { passParams: true, params: { lesson: body.id } });
+        return setPage("pages/app/lesson", { passParams: true, params: { lesson: body.id } });
       }
       continueButton.style.display = "none";
       if (body.forceLogin != true) {
@@ -325,7 +325,7 @@ export default class extends page {
           transferData.captcha = captcha;
         }
       }
-      setPage("pages/app/lesson", null, { ...transferData, passParams: true, params: { lesson: lesson.id } });
+      setPage("pages/app/lesson", { ...transferData, passParams: true, params: { lesson: lesson.id } });
     }
     joinButton.addEventListener("click", processJoin);
     joinNickname.addEventListener("keydown", (event) => {

@@ -1,0 +1,6 @@
+WHEN UPDATING - PLEASE NOTE:
+
+- Had to modify pdf.mjs to allow for async with promise - Function: getDestinationHash in linkService
+  - pdf.mjs
+    - _bindLink(link, destination) { --> async _bindLink(link, destination) {
+    - link.href = this.linkService.getDestinationHash(destination); --> link.href = await this.linkService.getDestinationHash(destination);

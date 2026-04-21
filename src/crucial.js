@@ -40,14 +40,15 @@ export const serverURL = config.server;
 export const assetURL = config.assets;
 export const isLocal = ["localhost", "127.0.0.1"].includes(location.hostname);
 
-let socket = {};
+export let socket = {};
+export let connected = false;
 
 export const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
 export const week = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 
 export const supportedImageTypes = ["png", "jpeg", "jpg", "webp", "svg+xml", "tiff", "tif", "heic", "heif", "gif"];
 
-const pages = import.meta.glob("./modules/pages/**/*.js");
+const pages = import.meta.glob("@modules/pages/**/*.js");
 
 export const head = document.head;
 export const body = document.body;
@@ -460,7 +461,7 @@ export const setPage = async (path, extra) => {
   extra.path = path;
 
   let getPageModulePromise = new Promise(async (resolve) => {
-    let loadModuleFunction = pages["./modules/" + path + ".js"];
+    let loadModuleFunction = pages["/src/modules/" + path + ".js"];
     if (loadModuleFunction == null) {
       return resolve();
     }
@@ -1123,7 +1124,6 @@ export const loadScript = (url) => {
 }
 
 let wasConnected = false;
-let connected = false;
 const movedPages = { dashboard: "app/dashboard", lesson: "app/lesson", join: "app/join", editor: "app/lesson" };
 let initSocket = async () => {
   if (typeof SimpleSocket == "undefined") { // Backup if static fails

@@ -5,9 +5,9 @@ import {
 } from "./configuration";
 
 import { CoreStyles } from "./modules/utility/CoreStyles";
-import dropdownModule from "./modules/utility/Dropdown";
-//import modalModule from "./modules/utility/Modal";
-import alertModule from "./modules/utility/Alert";
+import { dropdown as dropdownModule } from "./modules/utility/Dropdown";
+//import { modal as modalModule } from "./modules/utility/Modal";
+import { alert as alertModule } from "./modules/utility/Alert";
 
 const configurations = {
   public: {

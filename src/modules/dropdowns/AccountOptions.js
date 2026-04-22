@@ -10,7 +10,7 @@ import {
 
 import { version } from "@/configuration";
 
-import modalModule from "@modules/utility/Modal";
+import { modal as modalModule } from "@modules/utility/Modal";
 
 import { Frame as SettingsFrame } from "./Settings";
 import { Frame as GiftFrame } from "./Gift";

@@ -87,7 +87,7 @@ export const Alert = class {
   }
 }
 
-export default {
+export const alert = {
   open: async (type, message, data) => {
     return await (await newModule(Alert)).open(type, message, data);
   },

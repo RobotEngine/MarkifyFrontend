@@ -20,8 +20,8 @@ import {
   subscribe
 } from "@/crucial";
 
-import dropdown from "@modules/utility/Dropdown";
-import modal from "@modules/utility/Modal";
+import { dropdown } from "@modules/utility/Dropdown";
+import { modal } from "@modules/utility/Modal";
 
 import { LessonFrame } from "@modules/dashboard/LessonFrame";
 import { Frame as LessonOptions } from "../../dashboard/LessonOptions";

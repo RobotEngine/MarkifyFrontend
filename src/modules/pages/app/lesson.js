@@ -23,7 +23,7 @@ import {
   objectUpdate
 } from "@/crucial";
 
-import alertModule from "@modules/utility/Alert";
+import { alert as alertModule } from "@modules/utility/Alert";
 
 import { preferences } from "@modules/lesson/preferences";
 import { defaultEmojis } from "@modules/lesson/default-emojis";

@@ -3,8 +3,8 @@ import {
   sendRequest
 } from "@/crucial";
 
-import dropdownModule from "@modules/utility/Dropdown";
-import alertModule from "@modules/utility/Alert";
+import { dropdown as dropdownModule } from "@modules/utility/Dropdown";
+import { alert as alertModule } from "@modules/utility/Alert";
 
 import open from "@assets/open.svg?raw";
 import moveto from "@assets/dashboard/moveto.svg?raw";

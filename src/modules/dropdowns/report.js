@@ -1,6 +1,6 @@
 import { sleep, sendRequest } from "@/crucial";
 
-import alertModule from "@modules/utility/Alert";
+import { alert as alertModule } from "@modules/utility/Alert";
 
 export class Frame {
   html = `

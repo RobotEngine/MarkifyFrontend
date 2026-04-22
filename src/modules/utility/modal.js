@@ -311,7 +311,7 @@ export const Modal = class {
   }
 }
 
-export default {
+export const modal = {
   open: async (template, button, data) => {
     return await (await newModule(Modal)).open(template, button, data ?? {});
   },

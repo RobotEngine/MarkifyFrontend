@@ -358,7 +358,7 @@ export const Dropdown = class {
   }
 };
 
-export default {
+export const dropdown = {
   open: async (button, module, data) => {
     return await (await newModule(Dropdown)).open(button, module, data ?? {});
   },

@@ -1,8 +1,8 @@
 import { fixed, newModule, sleep, setFrame } from "@/crucial";
 
-import { close as closeIcon, back as backIcon } from "./coreicons";
+import { close as closeIcon, back as backIcon } from "./CoreIcons";
 
-export const dropdown = class {
+export const Dropdown = class {
   history = [];
   cache = {};
 
@@ -360,9 +360,9 @@ export const dropdown = class {
 
 export default {
   open: async (button, module, data) => {
-    return await (await newModule(dropdown)).open(button, module, data ?? {});
+    return await (await newModule(Dropdown)).open(button, module, data ?? {});
   },
   close: async () => {
-    return await (await newModule(dropdown)).close();
+    return await (await newModule(Dropdown)).close();
   }
 };

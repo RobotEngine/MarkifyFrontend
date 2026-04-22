@@ -3,8 +3,8 @@ import {
   sendRequest
 } from "@/crucial";
 
-import dropdownModule from "@modules/utility/dropdown";
-import alertModule from "@modules/utility/alert";
+import dropdownModule from "@modules/utility/Dropdown";
+import alertModule from "@modules/utility/Alert";
 
 import open from "@assets/open.svg?raw";
 import moveto from "@assets/dashboard/moveto.svg?raw";
@@ -12,7 +12,7 @@ import rename from "@assets/rename.svg?raw";
 import copy from "@assets/copy.svg?raw";
 import { trash } from "@modules/utility/coreicons";
 
-export default class {
+export class Frame {
   html = `
   <button class="dTileDropAction" option="open" title="Open this lesson.">${open}Open</button>
   <button class="dTileDropAction" option="opennewtab" title="Open this lesson in a new tab.">${open}Open in New Tab</button>
@@ -62,7 +62,7 @@ export default class {
     });
     let moveToButton = frame.querySelector('.dTileDropAction[option="moveto"]');
     moveToButton.addEventListener("click", () => {
-      this.open(moveToButton, import("@modules/dropdowns/moveto.js"), { parent: extra.parent, lessons: lessons, lessonID: lessonID, lesson: lesson, record: record });
+      this.open(moveToButton, import("@modules/dropdowns/MoveTo.js"), { parent: extra.parent, lessons: lessons, lessonID: lessonID, lesson: lesson, record: record });
     });
     let moveFromButton = frame.querySelector('.dTileDropAction[option="movefrom"]');
     if (folderID != null) {
@@ -173,7 +173,7 @@ export default class {
     });
     let deleteButton = frame.querySelector('.dTileDropAction[option="deletelesson"]');
     deleteButton.addEventListener("click", () => {
-      this.open(deleteButton, import("@modules/dropdowns/remove"), { parent: extra.parent, type: "deletelesson", lessons: lessons, lessonID: lessonID, lesson: lesson, record: record, isOwner: isOwner });
+      this.open(deleteButton, import("@modules/dropdowns/Remove"), { parent: extra.parent, type: "deletelesson", lessons: lessons, lessonID: lessonID, lesson: lesson, record: record, isOwner: isOwner });
     });
     
     if (isOwner == false) {

@@ -11,7 +11,7 @@ import {
 import { more } from "@modules/utility/coreicons";
 import membercount from "@assets/dashboard/membercount.svg?raw";
 
-export default class {
+export class LessonFrame {
   html = `
   <div class="dTiles"></div>
   <div class="dNoLessons">

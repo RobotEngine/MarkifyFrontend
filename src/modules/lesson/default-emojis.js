@@ -1,4 +1,4 @@
-export default [
+export let defaultEmojis = [
   "THUMBS UP SIGN",
   "THUMBS DOWN SIGN",
   "PARTY POPPER",

@@ -1,6 +1,7 @@
 import {
-  page,
+  PageFrame,
   fixed,
+  favicon,
 
   userID,
   account,
@@ -18,17 +19,18 @@ import {
   subscribe,
   getLocalStore,
   setLocalStore,
+  copyObject,
   objectUpdate
 } from "@/crucial";
 
-import alertModule from "@modules/utility/alert";
+import alertModule from "@modules/utility/Alert";
 
-import preferences from "@modules/lesson/preferences";
-import defaultemojis from "@modules/lesson/defaultemojis";
+import { preferences } from "@modules/lesson/preferences";
+import { defaultEmojis } from "@modules/lesson/default-emojis";
 
 const lessonPages = import.meta.glob("@modules/lesson/pages/**/*.js");
 
-export default class extends page {
+export class Page extends PageFrame {
   title = "Lesson";
   allowBackgroundChange = true;
   html = `<div class="lPageHolder"></div>`;
@@ -134,14 +136,13 @@ export default class extends page {
     holder.setAttribute("pageid", id);
     holder.setAttribute("pagetype", type);
     holder.setAttribute("dropdownholder", "");
-    let getPageModulePromise = new Promise(async (resolve) => {
-      let loadModuleFunction = lessonPages["/src/modules/lesson/" + type + ".js"];
+    let newPage = await this.setFrame(new Promise(async (resolve) => {
+      let loadModuleFunction = lessonPages["/src/modules/lesson/pages/" + type + ".js"];
       if (loadModuleFunction == null) {
         return resolve();
       }
-      return resolve(((await loadModuleFunction()) ?? {}).default);
-    });
-    let newPage = await this.setFrame(getPageModulePromise, holder, { construct: construct });
+      return resolve(((await loadModuleFunction()) ?? {}).Page);
+    }), holder, { construct: construct });
     if (newPage == null) {
       return;
     }
@@ -278,8 +279,8 @@ export default class extends page {
   sources = {};
   pageRenderPipeline = { running: false, queue: [] };
 
-  preferences = preferences;
-  defaultEmojis = defaultemojis;
+  preferences = copyObject(preferences);
+  defaultEmojis = copyObject(defaultEmojis);
   recentEmojis = [];
 
   signalStrength = 1;

@@ -1,8 +1,8 @@
 import { sleep, sendRequest } from "@/crucial";
 
-import alertModule from "@modules/utility/alert";
+import alertModule from "@modules/utility/Alert";
 
-export default class {
+export class Frame {
   html = `
   <div class="aReportHolder">
     <div class="aReportTypeHolder">

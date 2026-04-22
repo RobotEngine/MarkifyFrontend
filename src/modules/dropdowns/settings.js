@@ -1,6 +1,6 @@
 import { account, sendRequest } from "@/crucial";
 
-export default class {
+export class Frame {
   maxHeight = 500;
   html = `
   <div class="aManageHolder">

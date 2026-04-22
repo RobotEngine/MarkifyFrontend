@@ -3,9 +3,9 @@ import {
   sendRequest
 } from "@/crucial";
 
-import alertModule from "../utility/alert";
+import alertModule from "../utility/Alert";
 
-export default class {
+export class Frame {
   title = "Move To";
   maxHeight = 450;
   html = `

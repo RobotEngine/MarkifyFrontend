@@ -1,6 +1,6 @@
-import { page, userID, account } from "@/crucial";
+import { PageFrame, userID, account } from "@/crucial";
 
-export default class extends page {
+export class Page extends PageFrame {
   title = "Breakout Waitlist";
   theme = "light";
   html = `

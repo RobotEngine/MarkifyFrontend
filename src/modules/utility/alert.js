@@ -1,8 +1,8 @@
 import { fixed, newModule, sleep } from "@/crucial";
 
-import { close, alerts } from "./coreicons";
+import { close, alerts } from "./CoreIcons";
 
-export const alert = class {
+export const Alert = class {
   css = {
     ".alertHolder": `--floatMargin: 12px; position: relative; box-sizing: border-box; display: flex; flex-direction: column; width: 600px; max-width: 100%; height: fit-content; margin: calc(34px + (var(--floatMargin) * 2)) 8px 8px 8px; align-items: center; z-index: 9999`,
     ".alert": `box-sizing: border-box; display: flex; max-width: 100%; transform: scale(0); opacity: 0; background: var(--pageColor); border-radius: 12px; box-shadow: var(--darkShadow); pointer-events: all; overflow: hidden`,
@@ -89,9 +89,9 @@ export const alert = class {
 
 export default {
   open: async (type, message, data) => {
-    return await (await newModule(alert)).open(type, message, data);
+    return await (await newModule(Alert)).open(type, message, data);
   },
   close: async (alertPass) => {
-    return await (await newModule(alert)).close(alertPass);
+    return await (await newModule(Alert)).close(alertPass);
   }
 };

@@ -1,6 +1,6 @@
 import { userID, sendRequest, copyClipboardText } from "@/crucial";
 
-export default class {
+export class Frame {
   html = `
   <div class="giftHolder">
     <img class="giftLogo" src="../images/dashboard/gift/logo.svg">

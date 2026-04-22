@@ -10,11 +10,11 @@ import {
 
 import { version } from "@/configuration";
 
-import modalModule from "@modules/utility/modal";
+import modalModule from "@modules/utility/Modal";
 
-import settings from "./settings";
-import gift from "./gift";
-import report from "./report";
+import { Frame as SettingsFrame } from "./Settings";
+import { Frame as GiftFrame } from "./Gift";
+import { Frame as ReportFrame } from "./Report";
 
 import logoutIcon from "@assets/account/logout.svg?raw";
 import settingsIcon from "@assets/account/settings.svg?raw";
@@ -24,7 +24,7 @@ import exclamationIcon from "@assets/account/exclamation.svg?raw";
 import questionIcon from "@assets/account/question.svg?raw";
 import sendIcon from "@assets/editor/actions/send.svg?raw";
 
-export default class {
+export class Frame {
   html = `
   <button class="accountDrop accountLogout" style="--themeColor: var(--error)" close><div>Logout</div>${logoutIcon}</button>
   <button class="accountDrop accountManage" dropdowntitle="Settings" noscrollclose><div>Settings</div>${settingsIcon}</button>
@@ -99,12 +99,12 @@ export default class {
     //setSVG(logoutButton.querySelector("div[image]"), "../images/tooltips/account/logout.svg");
     let settingsButton = frame.querySelector(".accountManage");
     settingsButton.addEventListener("click", () => {
-      this.open(settingsButton, settings);
+      this.open(settingsButton, SettingsFrame);
     });
     //setSVG(settingsButton.querySelector("div[image]"), "../images/tooltips/account/settings.svg");
     let tutorialButton = frame.querySelector(".accountDrop[tutorial]");
     tutorialButton.addEventListener("click", async () => {
-      modalModule.open(import("@modules/modals/resources"), null, { title: "Resources" });
+      modalModule.open(import("@modules/modals/Resources"), null, { title: "Resources" });
     });
     //setSVG(tutorialButton.querySelector("div[image]"), "../images/tooltips/account/question.svg");
     let isIos = /iphone|ipad|ipod/.test(window.navigator.userAgent.toLowerCase());
@@ -154,12 +154,12 @@ export default class {
     //setSVG(whatsNew.querySelector("div[image]"), "../images/tooltips/account/exclamation.svg");
     let shareButton = frame.querySelector(".accountDrop[share]");
     shareButton.addEventListener("click", () => {
-      this.open(shareButton, gift);
+      this.open(shareButton, GiftFrame);
     });
     //setSVG(shareButton.querySelector("div[image]"), "../images/editor/actions/send.svg");
     let reportButton = frame.querySelector(".accountDrop[report]");
     reportButton.addEventListener("click", () => {
-      this.open(reportButton, report);
+      this.open(reportButton, ReportFrame);
     });
     //setSVG(reportButton.querySelector("div[image]"), "../images/tooltips/account/report.svg");
 

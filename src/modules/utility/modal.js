@@ -1,8 +1,8 @@
 import { fixed, newModule, sleep, setFrame } from "@/crucial";
 
-import { close as closeIcon, back as backIcon } from "./coreicons";
+import { close as closeIcon, back as backIcon } from "./CoreIcons";
 
-export const modal = class {
+export const Modal = class {
   history = [];
   cache = {};
 
@@ -313,9 +313,9 @@ export const modal = class {
 
 export default {
   open: async (template, button, data) => {
-    return await (await newModule(modal)).open(template, button, data ?? {});
+    return await (await newModule(Modal)).open(template, button, data ?? {});
   },
   close: async () => {
-    return await (await newModule(modal)).close();
+    return await (await newModule(Modal)).close();
   }
 };

@@ -1,5 +1,5 @@
 import {
-  page,
+  PageFrame,
 
   userID,
   account,
@@ -13,9 +13,9 @@ import {
   sendRequest
 } from "@/crucial";
 
-import alertModule from "@modules/utility/alert";
+import alertModule from "@modules/utility/Alert";
 
-export default class extends page {
+export class Page extends PageFrame {
   turnstileEnabled = false;
 
   title = "Join";

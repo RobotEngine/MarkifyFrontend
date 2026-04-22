@@ -1,4 +1,4 @@
-export default {
+export let preferences = {
   tools: {
     selection: {
       subtool: "select"

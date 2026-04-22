@@ -1,12 +1,12 @@
 import {
-  page,
+  PageFrame,
   userID,
   account,
   sleep,
   getEpoch
 } from "@/crucial";
 
-export default class extends page {
+export class Page extends PageFrame {
   title = "Collaboration across the Classroom";
   theme = "light";
   html = `

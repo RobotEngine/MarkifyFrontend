@@ -2,11 +2,11 @@ import {
   sendRequest
 } from "@/crucial";
 
-import alertModule from "@modules/utility/alert";
+import alertModule from "@modules/utility/Alert";
 
 import { trash } from "@modules/utility/coreicons";
 
-export default class {
+export class Frame {
   html = `
   <div class="dDeleteHolder">
     <div class="dDeleteImage">${trash}</div>

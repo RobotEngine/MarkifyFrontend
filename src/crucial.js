@@ -4,10 +4,10 @@ import {
   domain
 } from "./configuration";
 
-import corestyles from "./modules/utility/corestyles";
-import dropdownModule from "./modules/utility/dropdown";
-//import modalModule from "./modules/utility/modal";
-import alertModule from "./modules/utility/alert";
+import { CoreStyles } from "./modules/utility/CoreStyles";
+import dropdownModule from "./modules/utility/Dropdown";
+//import modalModule from "./modules/utility/Modal";
+import alertModule from "./modules/utility/Alert";
 
 const configurations = {
   public: {
@@ -183,7 +183,7 @@ export const appendCSS = (newRules) => {
   }
 }
 
-export class page {
+export class PageFrame {
   isActive = () => {
     return this.loadId == currentPageLoadId;
   }
@@ -208,7 +208,19 @@ export const newModule = async (template, parent) => {
     return;
   }
   let templateResult = await template;
-  let module = new (templateResult.default ?? templateResult);
+  let module;
+  if (typeof templateResult != "object") {
+    module = new templateResult;
+  } else {
+    module = new (
+      templateResult.Frame
+      ?? templateResult.Module
+      ?? templateResult.default
+    );
+  }
+  if (module == null) {
+    return;
+  }
   module.newModule = function (moduleImport) {
     return newModule(moduleImport, this);
   }
@@ -460,14 +472,13 @@ export const setPage = async (path, extra) => {
   extra = extra ?? {};
   extra.path = path;
 
-  let getPageModulePromise = new Promise(async (resolve) => {
+  let page = await setFrame(new Promise(async (resolve) => {
     let loadModuleFunction = pages["/src/modules/" + path + ".js"];
     if (loadModuleFunction == null) {
       return resolve();
     }
-    return resolve(((await loadModuleFunction()) ?? {}).default);
-  });
-  let page = await setFrame(getPageModulePromise, null, extra);
+    return resolve(((await loadModuleFunction()) ?? {}).Page);
+  }), null, extra);
   if (page == null) {
     return;
   }
@@ -1282,4 +1293,4 @@ window.addEventListener("beforeinstallprompt", (event) => {
   window.deferredPrompt = event;
 });
 
-appendCSS(corestyles);
+appendCSS(CoreStyles);

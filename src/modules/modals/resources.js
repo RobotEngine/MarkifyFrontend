@@ -3,7 +3,7 @@ import {
   sendRequest
 } from "@/crucial";
 
-export default class {
+export class Frame {
   html = `
   <div class="dmWelcome">
     <div class="dmHeaderTx">Welcome To</div>

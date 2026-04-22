@@ -1,5 +1,5 @@
 import {
-  page,
+  PageFrame,
   fixed,
 
   userID,
@@ -20,11 +20,11 @@ import {
   subscribe
 } from "@/crucial";
 
-import dropdown from "@modules/utility/dropdown";
-import modal from "@modules/utility/modal";
+import dropdown from "@modules/utility/Dropdown";
+import modal from "@modules/utility/Modal";
 
-import lessonFrameModule from "@modules/dashboard/lessons";
-import optionsModule from "../../dashboard/options";
+import { LessonFrame } from "@modules/dashboard/LessonFrame";
+import { Frame as LessonOptions } from "../../dashboard/LessonOptions";
 
 import { close, trash } from "@modules/utility/coreicons";
 import boardIcon from "@assets/icon.svg?raw";
@@ -32,7 +32,7 @@ import breakoutIcon from "@assets/breakout.svg?raw";
 import exclamation from "@assets/account/exclamation.svg?raw";
 import share from "@assets/editor/actions/send.svg?raw";
 
-export default class extends page {
+export class Page extends PageFrame {
   title = "Dashboard";
   allowBackgroundChange = true;
   preJs = () => {
@@ -278,7 +278,7 @@ export default class extends page {
 
     // Handle Onboard:
     if (account.onboard == null) {
-      modal.open(import("@modules/modals/resources.js"));
+      modal.open(import("@modules/modals/Resources.js"));
     } else if (account.lastWhatsNew != null && account.currentWhatsNew != null && account.lastWhatsNew != account.currentWhatsNew) {
       let closeButton = updateAlert.querySelector(".dSidebarUpdateAlertTitle > button");
       //setSVG(closeButton, "../images/tooltips/close.svg");
@@ -382,7 +382,7 @@ export default class extends page {
     username.textContent = account.user;
     username.title = account.user;
     accountButton.addEventListener("click", () => {
-      dropdown.open(accountButton, import("@modules/dropdowns/account"), { parent: this });
+      dropdown.open(accountButton, import("@modules/dropdowns/AccountOptions"), { parent: this });
     });
 
     this.updateScrollShadows = () => {
@@ -1097,7 +1097,7 @@ export default class extends page {
         });
         let removeButton = titleHolder.querySelector(".dFolderRemove");
         removeButton.addEventListener("click", () => {
-          dropdown.open(removeButton, import("@modules/dropdowns/remove"), { parent: this, type: "deletefolder", folderID: folderID, folders: folders, records: records, lessons: lessons });
+          dropdown.open(removeButton, import("@modules/dropdowns/Remove"), { parent: this, type: "deletefolder", folderID: folderID, folders: folders, records: records, lessons: lessons });
         });
         //setSVG(removeButton, "../images/editor/file/delete.svg");
         titleHolder.style.padding = "14px 16px";
@@ -1127,7 +1127,7 @@ export default class extends page {
         firstLoad: firstLoad,
         prevSort: prevSort
       };
-      await this.setFrame(lessonFrameModule, tileHolder, extra);
+      await this.setFrame(LessonFrame, tileHolder, extra);
       scrollEventPass = extra.scrollEventPass;
     }
     this.updateTiles(null, true);
@@ -1158,7 +1158,7 @@ export default class extends page {
         event.preventDefault();
         let optionButton = target.closest(".dTileOptions");
         if (optionButton != null) {
-          return dropdown.open(optionButton, optionsModule, { parent: this, tile: tile, lessonID: tile.getAttribute("lesson"), lessons: lessons });
+          return dropdown.open(optionButton, LessonOptions, { parent: this, tile: tile, lessonID: tile.getAttribute("lesson"), lessons: lessons });
         }
         let lessonTitle = target.closest(".dTileTitle[contenteditable]");
         if (lessonTitle != null) {
@@ -1248,7 +1248,7 @@ export default class extends page {
         return;
       }
       event.preventDefault();
-      dropdown.open(tile.querySelector(".dTileOptions"), optionsModule, { parent: this, tile: tile, lessonID: tile.getAttribute("lesson"), lessons: lessons });
+      dropdown.open(tile.querySelector(".dTileOptions"), LessonOptions, { parent: this, tile: tile, lessonID: tile.getAttribute("lesson"), lessons: lessons });
     });
 
     let dragContext = {};

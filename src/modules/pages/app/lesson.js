@@ -182,7 +182,7 @@ export class Page extends PageFrame {
       page.pageHolder.setAttribute("remove", "");
       let newActivePage = this.frame.querySelector(".lPage:not([remove])");
       if (newActivePage == null && extra.skipExitCheck != true) {
-        return setFrame("pages/app/dashboard");
+        return setPage("pages/app/dashboard");
       }
       if (page.pageHolder.hasAttribute("active") == true) {
         if (newActivePage != null) {
@@ -832,7 +832,7 @@ export class Page extends PageFrame {
     
     if (code == 403 || code == 406) {
       page.innerHTML = "";
-      setFrame("pages/app/join", null, { passParams: true });
+      setPage("pages/app/join", { passParams: true });
     }
     if (code != 200) {
       return;
@@ -951,12 +951,12 @@ export class Page extends PageFrame {
         let [code] = await sendRequest("GET", path, null, { session: this.session, allowError: [403, 419] });
         if (code == 403) {
           if (sendBody.pin != null) {
-            setFrame("pages/app/join", null, { passParams: true }); // Send back to join page
+            setPage("pages/app/join", { passParams: true }); // Send back to join page
           } else {
-            setFrame("pages/app/lesson", null, { passParams: true }); // Refresh to rejoin
+            setPage("pages/app/lesson", { passParams: true }); // Refresh to rejoin
           }
         } else if (code != 200 && code != 0 && code != null) {
-          setFrame("pages/app/lesson", null, { construct: { session: this.session }, passParams: true });
+          setPage("pages/app/lesson", { construct: { session: this.session }, passParams: true });
         }
       }
   

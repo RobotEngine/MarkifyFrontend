@@ -18,17 +18,20 @@ import {
   subscribe,
   getLocalStore,
   setLocalStore,
+  getObject,
   copyObject,
   objectUpdate
 } from "@/crucial";
 
 import { Pipeline } from "./Pipeline";
 import { Utility } from "./Utility";
+import { Render } from "./render/Render";
 
 export class Editor {
   constructor () {
     this.pipeline = new Pipeline;
     this.utils = new Utility(this);
+    this.render = new Render(this);
   }
 
   html = `
@@ -231,6 +234,20 @@ export class Editor {
       return await savePreference();
     }
     this.savePreferenceTimeout = setTimeout(savePreference, 1000); // Save after 1 second of no changes
+  }
+
+  exitObserve() {
+    if (this.realtime.observing != null && this.realtime.module != null) {
+      this.realtime.module.exitObserve();
+    }
+  }
+
+  setPage(pageNumber, animate) {
+    if (pageNumber < 1 || pageNumber > this.annotationPages.length) {
+      return;
+    }
+    this.currentPage = pageNumber;
+    this.utils.updateAnnotationScroll(this.annotationPages[this.currentPage - 1], animate);
   }
 
   async js(frame) {

@@ -32,7 +32,7 @@ export class Frame {
     ".dDeleteCancel:hover": `background: var(--theme); --borderWidth: 0px; transform: scale(1.1); color: #fff !important`,
     ".dDeleteOptions button:active": `transform: scale(1)`
   };
-  js = async (frame, extra) => {
+  async js(frame, extra) {
     let parent = extra.parent;
     let option = extra.type;
     let title = frame.querySelector(".dDeleteTitle");

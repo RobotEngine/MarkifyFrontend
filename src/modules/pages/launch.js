@@ -296,7 +296,7 @@ export class Page extends PageFrame {
     ".lFooterSocials a img": `width: 100%; height: 100%`
   };
 
-  js = async (page) => {
+  async js(page) {
     // Launch page login button
     const loginBtn = page.querySelector(".lOpen");
     if (userID != null) {

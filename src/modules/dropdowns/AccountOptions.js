@@ -68,7 +68,7 @@ export class Frame {
     ".accountCopyrightHolder": `display: flex; flex-wrap: wrap; margin: 2px 0; justify-content: space-between; align-items: center; color: var(--darkGray); font-size: 14px; font-weight: 500`,
     ".accountCopyrightHolder a": `text-decoration: none`,
   };
-  js = async (frame) => {
+  async js(frame) {
     frame.style.width = "200px";
     frame.style.minWidth = "100%";
     frame.style.maxWidth = "100%";

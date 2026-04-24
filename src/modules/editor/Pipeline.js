@@ -3,7 +3,7 @@
 export class Pipeline {
   pipeline = {}; // All active events
   pipelineSubs = {}; // All active subscribes
-  publish = async (event, data) => {
+  async publish(event, data) {
     let listeners = this.pipeline[event] ?? [];
     for (let i = 0; i < listeners.length; i++) {
       let subscribe = (this.pipelineSubs[listeners[i]] ?? {})[event] ?? {};
@@ -12,7 +12,7 @@ export class Pipeline {
       }
     }
   }
-  subscribe = (id, event, callback, extra) => {
+  subscribe(id, event, callback, extra) {
     extra = extra ?? {};
 
     if (extra.unsubscribe != true) {
@@ -42,7 +42,7 @@ export class Pipeline {
       });
     }
   }
-  unsubscribe = (id, event) => {
+  unsubscribe(id, event) {
     let pipelineSubs = this.pipelineSubs[id];
     if (pipelineSubs == null) {
       return;

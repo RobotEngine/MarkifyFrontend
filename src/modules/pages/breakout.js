@@ -52,7 +52,7 @@ export class Page extends PageFrame {
     ".waitSocials a": `width: 32px; height: 32px; margin: 8px`,
     ".waitSocials a img": `width: 100%; height: 100%`
   };
-  js = async (page) => {
+  async js(page) {
     let beforeModal = page.querySelector(".waitModal[before]");
     let afterModal = page.querySelector(".waitModal[after]");
 

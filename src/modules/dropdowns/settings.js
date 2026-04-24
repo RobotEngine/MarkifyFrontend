@@ -125,7 +125,7 @@ export class Frame {
       default: true
     }
   };
-  js = async (frame) => {
+  async js(frame) {
     frame.querySelector(".aManageInfoHolder button").addEventListener("click", () => {
       let a = typeof window.screenX != "undefined" ? window.screenX : window.screenLeft;
       let i = typeof window.screenY != "undefined" ? window.screenY : window.screenTop;

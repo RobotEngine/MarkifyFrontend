@@ -42,7 +42,7 @@ export class Frame {
     '.giftSelectHandle[handle="bottom"]': `left: 50%; bottom: -14px; transform: translateX(-50%)`,
     ".giftCounter": `margin-top: 6px; font-size: 16px; opacity: 0; transition: .2s`
   };
-  js = async (frame) => {
+  async js(frame) {
     let selectBox = frame.querySelector(".giftSelect");
     let shareText = selectBox.querySelector(".giftSelectShareText");
     let shareLink = shareText.querySelector(".giftSelectShareText a");

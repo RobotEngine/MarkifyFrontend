@@ -50,7 +50,7 @@ export class Frame {
     ".aReportDescHolder textarea": `flex: 1; padding: 8px; width: 250px; max-width: calc(100% - 22px); min-height: 140px; background: unset; border: solid 3px var(--hover); border-radius: 16px; outline: none; resize: none; color: var(--textColor); font-family: var(--font); font-size: 15px`,
     ".aReportSubmitButton": `padding: 6px 10px; margin: 15px 0 3px 0; background: var(--theme); --borderRadius: 16px; color: #fff; font-size: 16px`
   };
-  js = async (frame) => {
+  async js(frame) {
     frame.setAttribute("noscrollclose", "");
     
     let buttonHolder = frame.querySelector(".aReportTypeHolder");

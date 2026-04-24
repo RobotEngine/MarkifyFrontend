@@ -115,7 +115,7 @@ export class Page extends PageFrame {
     //".jCaptchaHolder[hidden]": `display: none`
     //".jCFTurnstile": ``
   };
-  js = async (page) => {
+  async js(page) {
     let code = getParam("pin") ?? "";
     let lessonID = getParam("lesson") ?? "";
     let name = getParam("name");

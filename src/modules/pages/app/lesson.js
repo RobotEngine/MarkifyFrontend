@@ -56,7 +56,7 @@ export class Page extends PageFrame {
 
   pages = {};
   minPageSize = 200;
-  updateFavicon = () => {
+  updateFavicon() {
     clearTimeout(this.updateFaviconTimeout);
     this.updateFaviconTimeout = setTimeout(() => {
       let pages = Object.keys(this.pages);
@@ -73,7 +73,7 @@ export class Page extends PageFrame {
       }
     }, 10);
   }
-  addPage = async (id, type, extra = {}) => {
+  async addPage(id, type, extra = {}) {
     id = id ?? type;
     let holder = extra.holder;
     if ((this.pages[type] ?? {})[id] != null) {
@@ -163,7 +163,7 @@ export class Page extends PageFrame {
     this.updateFavicon();
     return newPage;
   }
-  removePage = (id, type, extra = {}) => {
+  removePage(id, type, extra = {}) {
     let typePages = this.pages[type] ?? {};
     if (typePages[id] == null) {
       return;
@@ -249,7 +249,7 @@ export class Page extends PageFrame {
     this.pushToPipelines(null, "page_remove", { type: type });
     this.updateFavicon();
   }
-  pushToPipelines = (type, event, data) => {
+  pushToPipelines(type, event, data) {
     let pageTypeKeys = Object.keys(this.pages);
     for (let i = 0; i < pageTypeKeys.length; i++) {
       let pageType = pageTypeKeys[i];
@@ -287,7 +287,7 @@ export class Page extends PageFrame {
 
   maximized = false;
 
-  js = async (page, joinData) => {
+  async js(page, joinData) {
     this.id = getParam("lesson") ?? "";
 
     (async () => { // Load QuillJS CSS:

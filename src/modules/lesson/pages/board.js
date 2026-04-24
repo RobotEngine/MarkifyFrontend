@@ -180,7 +180,7 @@ export class Page {
     ".eBottomSection[breakout] button svg": `width: 32px; height: 32px; transition: .2s`,
     ".eBottomSection[breakout] button:hover svg": `transform: scale(.9)`
   };
-  js = async (frame, extra) => {
+  async js(frame, extra) {
     frame.style.position = "relative";
     frame.style.width = "100%";
     frame.style.height = "100%";

@@ -35,7 +35,7 @@ import share from "@assets/editor/actions/send.svg?raw";
 export class Page extends PageFrame {
   title = "Dashboard";
   allowBackgroundChange = true;
-  preJs = () => {
+  preJs() {
     if (userID == null) {
       checkForAuth(true);
       return false;
@@ -225,7 +225,7 @@ export class Page extends PageFrame {
     ".dFolderRemove svg": `width: 22px; height: 22px`
   };
   loadAmount = 25;
-  checkTime = (sort, record) => {
+  checkTime(sort, record) {
     let time = record.opened ?? record.added;
     switch (sort) {
       case "shared":
@@ -239,7 +239,7 @@ export class Page extends PageFrame {
     }
     return time;
   }
-  js = async (page) => {
+  async js(page) {
     let dashboardHolder = page.querySelector(".dPageHolder")
     let dashboard = dashboardHolder.querySelector(".dPage")
     let sidebarHolder = dashboard.querySelector(".dSidebarHolder");

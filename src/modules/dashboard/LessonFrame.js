@@ -50,7 +50,7 @@ export class LessonFrame {
     ".dNoLessonsTitle": `margin-top: 24px; font-size: 32px; font-weight: 700; color: var(--theme)`,
     ".dNoLessonsDesc": `max-width: 350px; margin-top: 8px; font-size: 18px; font-weight: 500`
   };
-  js = async (frame, extra) => {
+  async js(frame, extra) {
     let button = extra.button;
     let sort = extra.sort;
     let records = extra.records[sort];

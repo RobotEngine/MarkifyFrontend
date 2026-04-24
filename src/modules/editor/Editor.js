@@ -18,14 +18,17 @@ import {
   subscribe,
   getLocalStore,
   setLocalStore,
+  copyObject,
   objectUpdate
 } from "@/crucial";
 
 import { Pipeline } from "./Pipeline";
+import { Utility } from "./Utility";
 
 export class Editor {
-  constructor() {
+  constructor () {
     this.pipeline = new Pipeline;
+    this.utils = new Utility(this);
   }
 
   html = `
@@ -82,13 +85,13 @@ export class Editor {
   };
   
   active = true;
-  isPageActive = () => {
+  isPageActive() {
     return this.active == true;
   }
-  isThisPage = (element) => {
+  isThisPage(element) {
     return element != null && element.closest(".lPage") == this.pageFrame;
   }
-  isEditorContent = (target) => {
+  isEditorContent(target) {
     if (target == null) {
       return false;
     }
@@ -96,7 +99,7 @@ export class Editor {
   }
 
   running = true;
-  destroy = () => {
+  destroy() {
     this.running = false;
     this.visibleChunks = [];
     this.runUpdateCycle(true);
@@ -162,7 +165,7 @@ export class Editor {
 
   backgroundColor = "FFFFFF";
 
-  getState = () => {
+  getState() {
     return {
       annotations: this.annotations,
       reactions: this.reactions,
@@ -178,7 +181,7 @@ export class Editor {
       centerPosition: this.getCenterPosition()
     };
   }
-  setState = async (state = {}) => {
+  async setState(state = {}) {
     this.visibleChunks = [];
     this.loadedChunks = {};
     this.annotations = state.annotations ?? this.annotations;
@@ -197,7 +200,7 @@ export class Editor {
     await this.updateChunks();
     await this.utils.updateCurrentPage(true);
   }
-  reset = () => {
+  reset() {
     //this.visibleChunks = [];
     //this.loadedChunks = {};
     this.annotations = {};
@@ -208,7 +211,55 @@ export class Editor {
     this.comments = {};
   }
 
-  js = () => {
-    console.log(this.pipeline)
+  async savePreference() {
+    let tempRevert = copyObject(this.lastSavePreferences);
+    let changes = objectUpdate(this.preferences, this.lastSavePreferences);
+    this.lastSavePreferences = copyObject(this.preferences);
+    if (Object.keys(changes).length > 0) {
+      let [code] = await sendRequest("POST", "lessons/save/preferences", { save: changes });
+      if (code != 200) {
+        this.lastSavePreferences = tempRevert;
+      }
+    }
+  }
+  async savePreferences(skip) {
+    if (userID == null) {
+      return; // Can't save if not a user!
+    }
+    clearTimeout(this.savePreferenceTimeout);
+    if (skip == true) {
+      return await savePreference();
+    }
+    this.savePreferenceTimeout = setTimeout(savePreference, 1000); // Save after 1 second of no changes
+  }
+
+  async js(frame) {
+    let contentHolder = this.contentHolder ?? frame.parentElement;
+    let page = this.page ?? contentHolder.closest(".content");
+    let content = contentHolder.querySelector(".eContent");
+    let realtimeHolder = content.querySelector(".eRealtime");
+    let editorContent = content.querySelector(".eEditorContent");
+    let annotations = editorContent.querySelector(".eAnnotations");
+    let background = content.querySelector(".eBackground");
+
+    this.page = page;
+    this.pageFrame = page.closest(".lPage");
+    this.contentHolder = contentHolder;
+    this.content = content;
+    this.annotationHolder = annotations;
+
+    frame.style.width = "fit-content";
+    frame.style.height = "fit-content";
+    //contentHolder.style.willChange = "scroll-position";
+
+    let localOptions = getLocalStore("options");
+    if (localOptions != null) {
+      this.localOptions = JSON.parse(getLocalStore("options"));
+      let localOptionKeys = Object.keys(this.localOptions);
+      for (let i = 0; i < localOptionKeys.length; i++) {
+        let option = localOptionKeys[i];
+        this.options[option] = this.localOptions[option];
+      }
+    }
   }
 }

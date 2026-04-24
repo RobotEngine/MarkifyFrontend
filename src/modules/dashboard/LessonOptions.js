@@ -31,7 +31,7 @@ export class Frame {
     ".dTileDropAction:hover": `background: var(--themeColor); color: #fff`,
     ".dTileDropLine": `width: 100%; height: 2px; margin-bottom: 4px; background: var(--gray); border-radius: 1px`
   };
-  js = async (frame, extra) => {
+  async js(frame, extra) {
     let lessonID = extra.lessonID;
     let lessons = extra.lessons;
     let lesson = lessons[lessonID];

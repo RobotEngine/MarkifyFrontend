@@ -81,6 +81,133 @@ export class Editor {
     ".eReaction div[count]": `margin: 0 5px 0 6px; font-size: 16px; font-weight: 700`
   };
   
+  active = true;
+  isPageActive = () => {
+    return this.active == true;
+  }
+  isThisPage = (element) => {
+    return element != null && element.closest(".lPage") == this.pageFrame;
+  }
+  isEditorContent = (target) => {
+    if (target == null) {
+      return false;
+    }
+    return target.closest(".eContent") == this.content;
+  }
+
+  running = true;
+  destroy = () => {
+    this.running = false;
+    this.visibleChunks = [];
+    this.runUpdateCycle(true);
+  }
+
+  options = {
+    snapping: true,
+    cursors: true,
+    cursornames: true,
+    stylusmode: false,
+    comments: true,
+    fullscreen: false
+  };
+  settings = {};
+  self = {};
+
+  realtime = {
+    enabled: true,
+    subscribes: [],
+    tool: 0, // 0: Pointer; 1: Markup; 2: Pen; 3: Erase
+    observed: 0,
+    forceShort: async () => {
+      if (this.realtime.module != null) {
+        await this.realtime.module.publishShort(null, null, true);
+      }
+    }
+  };
+
+  annotations = {};
+  reactions = {};
+  sources = {};
+  sourceRenders = {};
+
+  currentRootAnnotations = {};
+
+  selecting = {};
+  realtimeSelect = {};
+
+  minimumEditingAccess = 0;
+  defaultLocks = ["c"];
+
+  visibleChunks = [];
+  loadedChunks = {};
+  defaultChunks = {};
+  chunkAnnotations = {};
+  chunkWidth = 1000;
+  chunkHeight = 1000;
+  scrollOffset = 58;
+
+  visiblePages = [0];
+  annotationPages = [];
+  currentPage = 1;
+
+  pageRenderPipeline = { running: false, queue: [] };
+
+  comments = {};
+
+  zoom = 1;
+  maxLayer = null;
+  minLayer = null;
+  zooming = false;
+  pinching = false;
+
+  backgroundColor = "FFFFFF";
+
+  getState = () => {
+    return {
+      annotations: this.annotations,
+      reactions: this.reactions,
+      //sources: this.sources,
+      //sourceRenders: this.sourceRenders,
+      currentRootAnnotations: this.currentRootAnnotations,
+      chunkAnnotations: this.chunkAnnotations,
+      //visiblePages: this.visiblePages,
+      annotationPages: this.annotationPages,
+      //currentPage: this.currentPage,
+      comments: this.comments,
+      zoom: this.zoom,
+      centerPosition: this.getCenterPosition()
+    };
+  }
+  setState = async (state = {}) => {
+    this.visibleChunks = [];
+    this.loadedChunks = {};
+    this.annotations = state.annotations ?? this.annotations;
+    this.reactions = state.reactions ?? this.reactions;
+    this.currentRootAnnotations = state.currentRootAnnotations ?? this.currentRootAnnotations;
+    this.chunkAnnotations = state.chunkAnnotations ?? this.chunkAnnotations;
+    this.annotationPages = state.annotationPages ?? this.annotationPages;
+    this.comments = state.comments ?? this.comments;
+    await this.render.setMarginSize();
+    if (state.zoom != null) {
+      await this.setZoom(state.zoom);
+    }
+    if (state.centerPosition != null) {
+      this.goToCenterPosition(state.centerPosition.x, state.centerPosition.y);
+    }
+    await this.updateChunks();
+    await this.utils.updateCurrentPage(true);
+  }
+  reset = () => {
+    //this.visibleChunks = [];
+    //this.loadedChunks = {};
+    this.annotations = {};
+    this.reactions = {};
+    this.currentRootAnnotations = {};
+    this.chunkAnnotations = {};
+    this.annotationPages = [];
+    this.comments = {};
+  }
+
   js = () => {
     console.log(this.pipeline)
   }

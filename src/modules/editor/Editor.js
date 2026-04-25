@@ -25,7 +25,7 @@ import {
 
 import { Pipeline } from "./Pipeline";
 import { Utility } from "./Utility";
-import { Render } from "./render/Render";
+import { Render } from "./Render";
 
 export class Editor {
   constructor () {
@@ -236,6 +236,11 @@ export class Editor {
     this.savePreferenceTimeout = setTimeout(savePreference, 1000); // Save after 1 second of no changes
   }
 
+  adjustRealtimeHolder() {
+    if (this.realtime.module != null && this.realtime.module.adjustRealtimeHolder != null) {
+      this.realtime.module.adjustRealtimeHolder();
+    }
+  }
   exitObserve() {
     if (this.realtime.observing != null && this.realtime.module != null) {
       this.realtime.module.exitObserve();
@@ -250,6 +255,48 @@ export class Editor {
     this.utils.updateAnnotationScroll(this.annotationPages[this.currentPage - 1], animate);
   }
 
+  updatePageSize() {
+    let rect = this.page.getBoundingClientRect();
+    this.pageOffsetWidth = rect.width;
+    this.pageOffsetHeight = rect.height;
+    let scaleWidth = this.page.offsetWidth - this.pageOffsetWidth;
+    let halfScaleWidth = scaleWidth / 2;
+    let scaleHeight = this.page.offsetHeight - this.pageOffsetHeight;
+    let halfScaleHeight = scaleHeight / 2;
+    this.pageRect = {
+      scale: 1,
+      x: rect.x - halfScaleWidth,
+      y: rect.y - halfScaleHeight,
+      width: this.pageOffsetWidth,
+      height: this.pageOffsetHeight,
+      left: rect.left - halfScaleWidth,
+      right: rect.right + halfScaleWidth,
+      top: rect.top - halfScaleHeight,
+      bottom: rect.bottom + halfScaleHeight
+    };
+    this.frame.style.setProperty("--interfacePadding", this.scrollOffset + "px");
+  }
+
+  getCenterPosition() {
+    let annotationRect = this.utils.annotationsRect();
+    return {
+      x: (((this.pageOffsetWidth / 2) - annotationRect.left) / this.zoom),
+      y: (((this.pageOffsetHeight / 2) - annotationRect.top) / this.zoom)
+    };
+  }
+
+  goToCenterPosition(x, y, animate) {
+    let annotationRect = this.utils.annotationsRect();
+    let options = {
+      left: (this.contentHolder.scrollLeft + annotationRect.left) + (x * this.zoom) - (this.pageOffsetWidth / 2),
+      top: (this.contentHolder.scrollTop + annotationRect.top) + (y * this.zoom) - (this.pageOffsetHeight / 2)
+    };
+    if (animate == true) {
+      options.behavior = "smooth";
+    }
+    this.contentHolder.scrollTo(options);
+  }
+
   async js(frame) {
     let contentHolder = this.contentHolder ?? frame.parentElement;
     let page = this.page ?? contentHolder.closest(".content");
@@ -259,10 +306,13 @@ export class Editor {
     let annotations = editorContent.querySelector(".eAnnotations");
     let background = content.querySelector(".eBackground");
 
+    //this.frame = frame;
     this.page = page;
     this.pageFrame = page.closest(".lPage");
-    this.contentHolder = contentHolder;
     this.content = content;
+    this.realtimeHolder = realtimeHolder;
+    this.editorContent = editorContent;
+    this.contentHolder = contentHolder;
     this.annotationHolder = annotations;
 
     frame.style.width = "fit-content";
@@ -278,5 +328,30 @@ export class Editor {
         this.options[option] = this.localOptions[option];
       }
     }
+
+    let recenterTimeoutFromSimulatedResize;
+    this.pipeline.subscribe("resizeChange", "resize", async (event) => {
+      let centerPosition = this.getCenterPosition();
+      
+      this.updatePageSize();
+      await this.render.setMarginSize();
+
+      if (event.simulated != true) {
+        this.goToCenterPosition(centerPosition.x, centerPosition.y);
+      } else {
+        clearTimeout(recenterTimeoutFromSimulatedResize);
+        recenterTimeoutFromSimulatedResize = setTimeout(() => {
+          if (this.annotationPages.length > 0) {
+            this.utils.updateAnnotationScroll(this.annotationPages[this.currentPage - 1]);
+          } else {
+            this.utils.centerWindowWithPage();
+          }
+        }, 100);
+      }
+    }, { sort: 1 });
+    this.updatePageSize();
+
+    await this.render.setMarginSize();
+    this.utils.centerWindowWithPage();
   }
 }

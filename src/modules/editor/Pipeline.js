@@ -16,9 +16,9 @@ export class Pipeline {
     extra = extra ?? {};
 
     if (extra.unsubscribe != true) {
-      this.pipeline.unsubscribe(id, event);
+      this.unsubscribe(id, event);
     } else {
-      this.pipeline.unsubscribe(id);
+      this.unsubscribe(id);
     }
 
     let pipelineSubs = this.pipelineSubs[id];

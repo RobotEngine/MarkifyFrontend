@@ -57,8 +57,8 @@ export class Utility {
     return {
       x,
       y,
-      left: x - contentHolder.scrollLeft,
-      top: y - contentHolder.scrollTop,
+      left: x - this.editor.contentHolder.scrollLeft,
+      top: y - this.editor.contentHolder.scrollTop,
       width: this.editor.render.marginLeft + this.editor.render.marginRight,
       height: this.editor.render.marginTop + this.editor.render.marginBottom
     };

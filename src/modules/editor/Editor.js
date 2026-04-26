@@ -26,12 +26,18 @@ import {
 import { Pipeline } from "./Pipeline";
 import { Utility } from "./Utility";
 import { Render } from "./Render";
+import { Save } from "./Save";
+import { History } from "./History";
+import { Text } from "./Text";
 
 export class Editor {
   constructor () {
     this.pipeline = new Pipeline;
     this.utils = new Utility(this);
     this.render = new Render(this);
+    this.save = new Save(this);
+    this.history = new History(this);
+    this.text = new Text(this);
   }
 
   html = `
@@ -319,6 +325,7 @@ export class Editor {
     frame.style.height = "fit-content";
     //contentHolder.style.willChange = "scroll-position";
 
+    // Handle setting options to how they where previously set:
     let localOptions = getLocalStore("options");
     if (localOptions != null) {
       this.localOptions = JSON.parse(getLocalStore("options"));
@@ -329,6 +336,7 @@ export class Editor {
       }
     }
 
+    // Handle resizing and recentering of the editor frame:
     let recenterTimeoutFromSimulatedResize;
     this.pipeline.subscribe("resizeChange", "resize", async (event) => {
       let centerPosition = this.getCenterPosition();
@@ -350,6 +358,28 @@ export class Editor {
       }
     }, { sort: 1 });
     this.updatePageSize();
+
+    // Handle resync of modified annotations after connection loss:
+    if (this.resync != null && this.resync.save != null && this.resync.save.synced == false && this.resync.annotations != null) {
+      if (this.self.access > 0) {
+        let resyncKeys = Object.keys(this.resync.annotations);
+        for (let i = 0; i < resyncKeys.length; i++) {
+          let anno = this.resync.annotations[resyncKeys[i]] ?? {};
+          if (anno.save == true && (anno.render._id.includes("pending_") == false || anno.render.remove != true)) {
+            let render = copyObject(anno.render);
+            delete anno.expire;
+            this.annotations[render._id] = { render: render };
+            this.save.pendingSaves[render._id] = { ...this.save.pendingSaves[render._id], ...render };
+          }
+        }
+        this.save.syncSave(true);
+      }
+    }
+    if (this.pageID != null && (window.resync ?? {}).pageSync != null) {
+      window.resync.pageSync[this.pageID] = { save: this.save, annotations: this.annotations };
+    }
+
+
 
     await this.render.setMarginSize();
     this.utils.centerWindowWithPage();

@@ -75,6 +75,17 @@ export let subscribes = [];
 export let pageTheme;
 export let pageAllowsBackgroundChange = false;
 
+export const changeGlobalImports = (global, func) => {
+  func = func ?? ((key) => { return key.toLowerCase(); });
+  let keys = Object.keys(global);
+  let result = {};
+  for (let i = 0; i < keys.length; i++) {
+    let key = keys[i];
+    result[func(key)] = global[key];
+  }
+  return result;
+}
+
 let primaryButtonDown = false;
 let isStylusActive = false;
 export const mouseDown = () => { return primaryButtonDown; }

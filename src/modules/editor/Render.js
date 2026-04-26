@@ -9,8 +9,7 @@ import { rotatePointOrigin, rotatePoint } from "./math";
 const annotations = changeGlobalImports(import.meta.glob("./render/annotations/**/*.js"));
 const annotationsPath = "./render/annotations/";
 
-import PDF_JS_PATH from "@/libraries/pdfjs/pdf.mjs?url";
-import PDF_JS_WORKER_PATH from "@/libraries/pdfjs/pdf.worker.mjs?url";
+import { PDFJS, PDFJS_WORKER_PATH } from "./library-imports";
 
 /*
   _id - ID - The unique ID of the annotation
@@ -208,10 +207,10 @@ export class Render {
     this.editor.pageRenderPipeline.running = true;
 
     if (window.pdfjsLib == null) {
-      await import(PDF_JS_PATH); // Load PDFJS
+      await PDFJS(); // Load PDFJS
     }
-    if (pdfjsLib.GlobalWorkerOptions.workerSrc == "") {
-      pdfjsLib.GlobalWorkerOptions.workerSrc = PDF_JS_WORKER_PATH; //new URL("../../libraries/pdfjs/pdf.worker.mjs", import.meta.url).href;
+    if ((pdfjsLib.GlobalWorkerOptions.workerSrc ?? "") == "") {
+      pdfjsLib.GlobalWorkerOptions.workerSrc = (await PDFJS_WORKER_PATH()).default;
     }
 
     while (

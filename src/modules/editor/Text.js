@@ -1,32 +1,6 @@
-import Quill from "quill/core";
+import { sleep } from "@/crucial";
 
-import {
-  fixed,
-  favicon,
-  loadScript,
-
-  userID,
-  account,
-
-  mouseDown,
-  setPage,
-  setFrame,
-  sleep,
-  getParam,
-  modifyParams,
-  getEpoch,
-  sendRequest,
-  socket,
-  connected,
-  subscribe,
-  getLocalStore,
-  setLocalStore,
-  getObject,
-  copyObject,
-  objectUpdate
-} from "@/crucial";
-
-import { MATHQUILL_PATH } from "@modules/editor/paths";
+import { QUILL, MATHQUILL } from "./library-imports";
 
 export class Text {
   constructor(editor) {
@@ -49,22 +23,8 @@ export class Text {
     "playpensans": ["Playpen Sans", 5]
   };
 
-  async getMathQuill() {
-    if (this.mathquillInterface == null) {
-      if (window.MathQuill == null) {
-        let mathquillScript = import(MATHQUILL_PATH);
-        if (this.editor.exporting == true) {
-          this.editor.exportPromises.push(mathquillScript);
-        }
-        await mathquillScript;
-      }
-      await sleep();
-      this.mathquillInterface = window.MathQuill.getInterface(3);
-    }
-    return this.mathquillInterface;
-  }
-
   async getQuill() {
+    let Quill = (await QUILL()).default;
     if (window.QuillSetup != true) {
       window.QuillSetup = true;
       let Parchment = Quill.import("parchment");
@@ -381,6 +341,21 @@ export class Text {
       }
       this.loadFont(font);
     }
+  }
+
+  async getMathQuill() {
+    if (this.mathquillInterface == null) {
+      if (window.MathQuill == null) {
+        let mathquillScript = MATHQUILL();
+        if (this.editor.exporting == true) {
+          this.editor.exportPromises.push(mathquillScript);
+        }
+        await mathquillScript;
+      }
+      await sleep();
+      this.mathquillInterface = window.MathQuill.getInterface(3);
+    }
+    return this.mathquillInterface;
   }
 
   getCurrentCaretPosition(element) {

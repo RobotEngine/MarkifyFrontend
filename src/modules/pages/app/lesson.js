@@ -30,11 +30,7 @@ import { defaultEmojis } from "@modules/lesson/default-emojis";
 
 const lessonPages = import.meta.glob("@modules/lesson/pages/**/*.js");
 
-import {
-  PDF_JS_PATH,
-  PDF_JS_WORKER_PATH,
-  MATHQUILL_PATH
-} from "@modules/editor/paths";
+import { PDFJS, QUILL, PDFJS_WORKER, MATHQUILL } from "../../editor/library-imports";
 
 export class Page extends PageFrame {
   title = "Lesson";
@@ -297,10 +293,10 @@ export class Page extends PageFrame {
     this.id = getParam("lesson") ?? "";
 
     // Preload Libraries:
-    import(PDF_JS_PATH);
-    import(PDF_JS_WORKER_PATH);
-    import("Quill/core");
-    import(MATHQUILL_PATH);
+    PDFJS();
+    PDFJS_WORKER();
+    QUILL();
+    MATHQUILL();
 
     (async () => { // Load QuillJS CSS:
       await import("quill/dist/quill.core.css");

@@ -379,7 +379,7 @@ export class Editor {
       window.resync.pageSync[this.pageID] = { save: this.save, annotations: this.annotations };
     }
 
-
+    
 
     await this.render.setMarginSize();
     this.utils.centerWindowWithPage();

@@ -304,22 +304,15 @@ export class Editor {
   }
 
   async js(frame) {
-    let contentHolder = this.contentHolder ?? frame.parentElement;
-    let page = this.page ?? contentHolder.closest(".content");
-    let content = contentHolder.querySelector(".eContent");
-    let realtimeHolder = content.querySelector(".eRealtime");
-    let editorContent = content.querySelector(".eEditorContent");
-    let annotations = editorContent.querySelector(".eAnnotations");
-    let background = content.querySelector(".eBackground");
-
     //this.frame = frame;
-    this.page = page;
-    this.pageFrame = page.closest(".lPage");
-    this.content = content;
-    this.realtimeHolder = realtimeHolder;
-    this.editorContent = editorContent;
-    this.contentHolder = contentHolder;
-    this.annotationHolder = annotations;
+    this.contentHolder = this.contentHolder ?? frame.parentElement;
+    this.page = this.page ?? this.contentHolder.closest(".content");
+    this.pageFrame = this.page.closest(".lPage");
+    this.content = this.contentHolder.querySelector(".eContent");
+    this.realtimeHolder = this.content.querySelector(".eRealtime");
+    this.editorContent = this.content.querySelector(".eEditorContent");
+    this.annotationHolder = this.editorContent.querySelector(".eAnnotations");
+    this.background = this.content.querySelector(".eBackground");
 
     frame.style.width = "fit-content";
     frame.style.height = "fit-content";

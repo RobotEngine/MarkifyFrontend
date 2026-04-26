@@ -177,7 +177,10 @@ export class Render {
     }
     requestAnimationFrame(render);
   }
-  async addParentToQueue(annotation = { render: {} }, holder = annotations) {
+  async addParentToQueue(annotation = { render: {} }, holder) {
+    if (holder == null) {
+      holder = this.editor.annotationHolder;
+    }
     if ((annotation.component ?? {}).holder != null) {
       return holder;
     }

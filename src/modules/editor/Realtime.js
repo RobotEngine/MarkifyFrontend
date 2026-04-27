@@ -111,7 +111,7 @@ export class Module {
         let sendY = (this.mouseY - annotationRect.top) / this.editor.zoom;
         filter.p = this.editor.utils.pointInChunk(sendX, sendY);
 
-        if (filter.p != (this.lastCursorChunk ?? filter.p)) {
+        if (this.lastCursorChunk != null && filter.p != this.lastCursorChunk) {
           let pubData = [ this.editor.sessionID, filter.p ];
           if (this.editor.includeIdInShortPublish == true) {
             pubData.unshift(this.editor.id);
@@ -241,6 +241,7 @@ export class Module {
         }
         socket.publish({ ...standardFilter, p: this.lastCursorChunk }, [ this.editor.sessionID, "" ]);
         this.lastCursorPublish = epoch;
+        this.lastCursorChunk = null;
         this.lastCursorContent = null;
       } else {
         this.endSyncTimeout = setTimeout(() => {
@@ -387,8 +388,54 @@ export class Module {
   }
 
   adjustRealtimeHolder() {
-    let adjustElements = this.editor.realtimeHolder.querySelectorAll("div[scale]");
     let annotationRect = this.editor.utils.annotationsRect();
+    let scrollLeft = this.editor.contentHolder.scrollLeft;
+    let scrollTop = this.editor.contentHolder.scrollTop;
+
+    let allRealtimeSelections = this.editor.realtimeHolder.querySelectorAll(".eCollabSelect");
+    for (let i = 0; i < allRealtimeSelections.length; i++) {
+      let selection = allRealtimeSelections[i];
+      let annoID = selection.getAttribute("anno");
+      let render = {};
+      if (annoID != "cursor") {
+        if (this.editor.annotations[annoID] == null) {
+          selection.remove();
+          continue;
+        }
+        render = {
+          ...((this.editor.annotations[annoID]).render ?? {}),
+          ...(this.editor.selecting[annoID] ?? {})
+        };
+      } else {
+        let member = this.members[selection.getAttribute("member")];
+        if (member == null || member.cursorRender == null) {
+          continue;
+        }
+        render = {
+          ...member.cursorRender,
+          ...(this.editor.selecting[annoID] ?? {})
+        };
+      }
+      if (render.f == null) {
+        continue;
+      }
+      let rect = this.editor.utils.getRect(render);
+      
+      selection.setAttribute("notransition", "");
+      
+      let rotate = rect.rotation;
+      if (rotate > 180) {
+        rotate = -(360 - rotate);
+      }
+      selection.style.width = ((rect.width * this.editor.zoom) - 3) + "px";
+      selection.style.height = ((rect.height * this.editor.zoom) - 3) + "px";
+      selection.style.transform = "translate(" + (annotationRect.left + (rect.x * this.editor.zoom) + scrollLeft - 1.5) + "px," + (annotationRect.top + (rect.y * this.editor.zoom) + scrollTop - 1.5) + "px) rotate(" + rotate + "deg)";
+      
+      selection.offsetHeight;
+      selection.removeAttribute("notransition");
+    }
+    
+    let adjustElements = this.editor.realtimeHolder.querySelectorAll("div[scale]");
     for (let i = 0; i < adjustElements.length; i++) {
       let element = adjustElements[i];
       if (element.hasAttribute("scale") == true) {
@@ -402,7 +449,7 @@ export class Module {
         if (element.hasAttribute("x") == true && element.hasAttribute("y") == true) {
           let x = parseFloat(element.getAttribute("x")) * this.editor.zoom;
           let y = parseFloat(element.getAttribute("y")) * this.editor.zoom;
-          element.style.transform = "translate(" + (x + annotationRect.left + (parseInt(element.getAttribute("offsetx") ?? "0")) + this.editor.contentHolder.scrollLeft) + "px," + (y + annotationRect.top + (parseInt(element.getAttribute("offsety") ?? "0")) + this.editor.contentHolder.scrollTop) + "px)";
+          element.style.transform = "translate(" + (x + annotationRect.left + (parseInt(element.getAttribute("offsetx") ?? "0")) + scrollLeft) + "px," + (y + annotationRect.top + (parseInt(element.getAttribute("offsety") ?? "0")) + scrollTop) + "px)";
         }
         element.offsetHeight;
         element.removeAttribute("notransition");
@@ -426,9 +473,10 @@ export class Module {
     let memberElements = [];
     let elementKeys = Object.keys(member.elements);
     for (let i = 0; i < elementKeys.length; i++) {
-      memberElements.push(member.elements[elementKeys[i]]);
+      let key = elementKeys[i];
+      memberElements.push(member.elements[key]);
+      delete member.elements[key];
     }
-    member.elements = {};
     (async () => {
       for (let i = 0; i < memberElements.length; i++) {
         let elem = memberElements[i];
@@ -533,9 +581,7 @@ export class Module {
           return this.removeRealtime(memberID);
         }
         clearInterval(member.interval);
-        member.interval = setInterval(() => {
-          this.removeRealtime(memberID);
-        }, 120000); // Remove realtime member elements if inactive for 2 minutes
+        member.interval = setInterval(() => { this.removeRealtime(memberID); }, 120000); // Remove realtime member elements if inactive for 2 minutes
         let cursorHolder = member.elements.cursor;
         if (cursorHolder == null) {
           this.editor.realtimeHolder.insertAdjacentHTML("beforeend", `<div class="eCursor" member="${memberID}" scale notransition></div>`);

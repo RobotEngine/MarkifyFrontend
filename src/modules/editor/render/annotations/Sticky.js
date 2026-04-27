@@ -15,7 +15,7 @@ export class Annotation extends BaseAnnotation {
 
   DEFAULT_FONT_SIZE = 16;
 
-  SELECTION_FUNCTION = (selection) => {
+  SELECTION_FUNCTION(selection) {
     if (["bottomright", "topleft", "topright", "bottomleft"].includes(selection.handle) == true) {
       return { resizePreserveAspect: true };
     }
@@ -35,7 +35,7 @@ export class Annotation extends BaseAnnotation {
     ".eAnnotation[sticky][selected] button": `pointer-events: all`
   };
 
-  render = () => {
+  render() {
     if (this.element == null) {
       this.element = document.createElement("div");
       this.element.className = "eAnnotation";

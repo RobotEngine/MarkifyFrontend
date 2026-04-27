@@ -5,7 +5,7 @@ import { assetURL } from "../../../../crucial";
 export class Annotation extends BaseAnnotation {
   ACTION_BAR_TOOLS = ["imageborder", "unlock", "delete"];
 
-  SELECTION_FUNCTION = (selection) => {
+  SELECTION_FUNCTION(selection) {
     if (["bottomright", "topleft", "topright", "bottomleft"].includes(selection.handle) == true) {
       return { resizePreserveAspect: true };
     }
@@ -18,7 +18,7 @@ export class Annotation extends BaseAnnotation {
     ".eAnnotation[media][border] > img": `width: calc(100% - 16px); height: calc(100% - 16px); left: 8px; top: 8px; border-radius: 4px`
   };
 
-  render = () => {
+  render() {
     if (this.element == null) {
       this.element = document.createElement("div");
       this.element.className = "eAnnotation";

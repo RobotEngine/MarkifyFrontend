@@ -221,13 +221,13 @@ export const newModule = async (template, parent) => {
   let templateResult = await template;
   let module;
   if (typeof templateResult != "object") {
-    module = new templateResult;
+    module = new templateResult(parent);
   } else {
     module = new (
       templateResult.Frame
       ?? templateResult.Module
       ?? templateResult.default
-    );
+    )(parent);
   }
   if (module == null) {
     return;

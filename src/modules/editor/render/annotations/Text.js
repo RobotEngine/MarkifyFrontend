@@ -17,7 +17,7 @@ export class Annotation extends BaseAnnotation {
     ".eAnnotation[text] div[text][placeborder]": `width: max-content; margin: 0px; border: solid 3px var(--themeColor); border-radius: 8px`
   };
 
-  render = () => {
+  render() {
     if (this.element == null) {
       this.element = document.createElement("div");
       this.element.className = "eAnnotation";

@@ -18,10 +18,12 @@ import {
   subscribe,
   getLocalStore,
   setLocalStore,
-  objectUpdate
+  objectUpdate,
+  copyObject
 } from "@/crucial";
 
 import { Editor } from "@modules/editor/Editor";
+import { REALTIME, TOOLBAR } from "../../editor/imports";
 
 export class Page {
   html = `
@@ -287,6 +289,15 @@ export class Page {
       }
       await this.editor.loadAnnotations(annoBody, { pageID: pageParam, jumpID: checkForJumpLink });
       contentHolder.removeAttribute("disabled");
+    })();
+
+    // Load additional editor modules:
+    (async () => {
+      this.editor.register(REALTIME());
+
+      await this.editor.register(TOOLBAR());
+      editorToolbar.removeAttribute("notransition");
+      viewerToolbar.removeAttribute("notransition");
     })();
   }
 }

@@ -19,12 +19,12 @@ export class Annotation extends BaseAnnotation {
 
   ACTION_BAR_TOOLS = ["uploadpage", "resize", "pagetype", "rotatepage", "settitle", "hidepage", "color", "unlock", "delete"];
 
-  SELECTION_FUNCTION = (selection, render) => {
+  SELECTION_FUNCTION(selection, render) {
     if (render.source != null && ["bottomright", "topleft", "topright", "bottomleft"].includes(selection.handle) == true) {
       return { resizePreserveAspect: true };
     }
   }
-  MM_TO_PX = (mm) => {
+  MM_TO_PX(mm) {
     return mm * 96 / 25.4;
   }
 
@@ -57,7 +57,7 @@ export class Annotation extends BaseAnnotation {
     ".hiddenCanvasElement": `display: none`
   };
 
-  render = () => {
+  render() {
     if (this.element == null) {
       this.element = document.createElement("div");
       this.element.className = "eAnnotation";

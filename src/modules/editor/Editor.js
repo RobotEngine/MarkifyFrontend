@@ -73,6 +73,17 @@ export class Editor {
     ".eReaction img": `width: 32px; height: 32px; transform: scale(0.65); border-radius: 7px; filter: drop-shadow(0px 0px 8px #fff)`,
     ".eReaction div[count]": `margin: 0 5px 0 6px; font-size: 16px; font-weight: 700`
   };
+
+  async register(template) {
+    let module = await this.newModule(template);
+    if (module == null) {
+      return;
+    }
+    if (module.js != null) {
+      await module.js();
+    }
+    return module;
+  }
   
   active = true;
   isPageActive() {

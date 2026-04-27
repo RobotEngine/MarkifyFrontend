@@ -5,7 +5,7 @@ import { darkenHex } from "../../utils/darken-hex";
 export class Annotation extends BaseAnnotation {
   ACTION_BAR_TOOLS = ["color", "thickness", "opacity", "style", "unlock", "delete"];
 
-  render = () => {
+  render() {
     if (this.element == null) {
       this.element = document.createElement("div");
       this.element.className = "eAnnotation";

@@ -8,13 +8,13 @@ export class Annotation extends BaseAnnotation {
 
   ACTION_BAR_TOOLS = ["color", "thickness", "opacity", "unlock", "delete"];
 
-  SELECTION_FUNCTION = (selection) => {
+  SELECTION_FUNCTION(selection) {
     if (["bottomright", "topleft", "topright", "bottomleft"].includes(selection.handle) == true) {
       return { resizePreserveAspect: true };
     }
   }
 
-  render = () => {
+  render() {
     let halfT = this.properties.t / 2;
     let width = this.properties.s[0] + this.properties.t;
     let height = this.properties.s[1] + this.properties.t;

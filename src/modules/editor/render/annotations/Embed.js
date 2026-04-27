@@ -30,7 +30,7 @@ export class Annotation extends BaseAnnotation {
     ".eAnnotation[embed] div[details] div[info] a[link] div[icon] svg": `width: 100%; height: 100%`
   };
 
-  render = () => {
+  render() {
     if (this.element == null) {
       this.element = document.createElement("div");
       this.element.className = "eAnnotation";

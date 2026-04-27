@@ -16,7 +16,7 @@ export class Annotation extends BaseAnnotation {
   IGNORE_LOCKED_WARNING = true;
   KEYBINDS_ENABLED = false;
 
-  SELECTION_START = async () => {
+  async SELECTION_START() {
     if (this.annotation == null) {
       return;
     }
@@ -31,7 +31,7 @@ export class Annotation extends BaseAnnotation {
     this.editor.pipeline.publish("comment_select_start", this.properties);
     //this.subscribe("click_move", this.commentModule.updateCommentFrame);
   }
-  SELECTION_END = () => {
+  SELECTION_END() {
     if (this.commentModule == null) {
       return;
     }
@@ -45,7 +45,7 @@ export class Annotation extends BaseAnnotation {
     }
   }
   commentThreads = {};
-  handleParentThread = () => {
+  handleParentThread() {
     let parentAnnotation = this.editor.annotations[this.properties.parent];
     if (parentAnnotation != null) {
       if (parentAnnotation.pointer != null) {
@@ -113,7 +113,7 @@ export class Annotation extends BaseAnnotation {
     ".eAnnotation[comment] > div[commentholder] > div[comment] div[replycount]": `display: none; width: 100%; max-width: 200px; margin-top: 4px; color: var(--theme); font-size: 12px; font-weight: 600`
   };
 
-  render = () => {
+  render() {
     if (this.properties.resolved == true && this.editor.selecting[this.properties._id] == null) {
       return this.remove();
     }

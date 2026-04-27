@@ -339,11 +339,20 @@ export class Render {
     }
 
     if (annotation.component == null) {
-      annotation.component = await this.loadModule(render.f);
-    } else if (annotation.component.parentID != parent && annotation.component.parentID != null) {
-      let prevParentAnnotation = this.editor.annotations[annotation.component.parentID] ?? {};
-      if (prevParentAnnotation.renderedChildren != null) {
-        delete prevParentAnnotation.renderedChildren[_id];
+      if (annotation.loadComponent == null) {
+        annotation.loadComponent = new Promise(async (resolve) => {
+          annotation.component = await this.loadModule(render.f);
+          resolve();
+          delete annotation.loadComponent;
+        });
+      }
+      await annotation.loadComponent;
+    } else {
+      if (annotation.component.parentID != parent && annotation.component.parentID != null) {
+        let prevParentAnnotation = this.editor.annotations[annotation.component.parentID] ?? {};
+        if (prevParentAnnotation.renderedChildren != null) {
+          delete prevParentAnnotation.renderedChildren[_id];
+        }
       }
     }
     if (annotation.component == null) {

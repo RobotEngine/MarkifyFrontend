@@ -689,16 +689,31 @@ export class Module {
             let original;
             if (annoID == "cursor") { // Just a temporary prop, no saving:
               let prevPreview = member.selection_cursor_preview;
-              if (prevPreview != null && prevPreview.properties.f != anno.f) {
-                prevPreview.remove();
-                prevPreview = null;
+              if (prevPreview != null && member.selection_cursor_preview.render.f != anno.f) {
+                if (prevPreview.component != null) {
+                  prevPreview.component.remove();
+                }
+                member.selection_cursor_preview = null;
+                delete member.selection_cursor_preview_version;
               }
-              if (member.elements.selection_cursor_annotation == null) {
-                prevPreview = null;
+              if (member.selection_cursor_preview == null) {
+                member.selection_cursor_preview = {};
+                delete member.selection_cursor_preview_version;
+              }
+              if (member.selection_cursor_preview_version == null) {
+                member.selection_cursor_preview_version = 0;
               }
               merge = { ...anno, _id: memberID + "_cursor" };
-              let annoPreview = (await this.editor.render.create({ component: prevPreview, render: merge })).component;
-              member.selection_cursor_preview = annoPreview;
+              member.selection_cursor_preview.render = merge;
+
+              let thisCallId = ++member.selection_cursor_preview_version;
+
+              let annoPreview = (await this.editor.render.create(member.selection_cursor_preview)).component;
+
+              if (member.selection_cursor_preview_version != thisCallId) {
+                return;
+              }
+
               annoElem = annoPreview.getElement();
               member.elements.selection_cursor_annotation = annoElem;
               annoElem.setAttribute("member", memberID);

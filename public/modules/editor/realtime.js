@@ -208,6 +208,7 @@ modules["editor/realtime"] = class {
           }
           socket.publish({ ...standardFilter, p: lastCursorChunk }, [ editor.sessionID, "" ]);
           lastCursorPublish = epoch;
+          lastCursorChunk = null;
           lastCursorContent = null;
         } else {
           endSyncTimeout = setTimeout(() => {

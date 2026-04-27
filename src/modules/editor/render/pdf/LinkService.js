@@ -1,3 +1,12 @@
+const DEFAULT_LINK_REL = "noopener noreferrer nofollow";
+const LinkTarget = {
+  NONE: 0,
+  SELF: 1,
+  BLANK: 2,
+  PARENT: 3,
+  TOP: 4
+};
+
 export class LinkService {
   externalLinkEnabled = true;
   constructor({
@@ -83,7 +92,7 @@ export class LinkService {
     if (foundPage == null) {
       return;
     }
-    this.editor.setPage(foundPage.number, false);
+    this.editor.setCurrentPage(foundPage.number, false);
   }
   goToPage(val) {
     if (!this.pdfDocument) {
@@ -101,7 +110,7 @@ export class LinkService {
     if (foundPage == null) {
       return;
     }
-    this.editor.setPage(foundPage, false);
+    this.editor.setCurrentPage(foundPage, false);
   }
   addLinkAttributes(link, url, newWindow = false) {
     if (!url || typeof url !== "string") {
@@ -174,7 +183,7 @@ export class LinkService {
         return;
     }
     if (setPage != null) {
-      this.editor.setPage(setPage, animate);
+      this.editor.setCurrentPage(setPage, animate);
     }
   }
 }

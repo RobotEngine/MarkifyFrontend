@@ -504,7 +504,7 @@ export class Page extends PageFrame {
     });
     sizeUpdate();
 
-     this.addEventListener(window, "pointerdown", (event) => {
+    this.addEventListener(window, "pointerdown", (event) => {
       startDivider(event);
     }, { passive: false });
 
@@ -787,6 +787,7 @@ export class Page extends PageFrame {
         this.pushToPipelines(data.tool ?? "board", "long", data);
       }
     }
+    setSubscribes();
 
     let sendBody = { ss: socket.secureID };
 

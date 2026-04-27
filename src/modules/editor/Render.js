@@ -1,6 +1,6 @@
 // RENDER : Handles rendering objects/annotations onto the board:
 
-import { changeGlobalImports, randomString, loadScript, sendRequest } from "@/crucial";
+import { changeGlobalImports, randomString, sendRequest, sleep } from "@/crucial";
 
 import { renderPage } from "./render/pdf/render-page";
 
@@ -170,17 +170,14 @@ export class Render {
       }
       await sleep(20);
       if (this.fragmentQueue.length > 0) {
-        requestAnimationFrame(render);
+        requestAnimationFrame(() => { render(); });
       } else {
         this.runningParentingRender = false;
       }
     }
-    requestAnimationFrame(render);
+    requestAnimationFrame(() => { render(); });
   }
   async addParentToQueue(annotation = { render: {} }, holder) {
-    if (holder == null) {
-      holder = this.editor.annotationHolder;
-    }
     if ((annotation.component ?? {}).holder != null) {
       return holder;
     }
@@ -203,6 +200,7 @@ export class Render {
     }
     return fragmentData[0];
   }
+
   async processPageRenders() {
     if (this.editor.pageRenderPipeline.running == true) {
       return;
@@ -219,25 +217,25 @@ export class Render {
     while (
       this.editor.pageRenderPipeline.queue.length > 0
       || (this.editor.exporting == true && Object.keys(this.pdfFileLoading).length > 0)) {
-      let [sourcePageId, scopedFunction] = this.editor.pageRenderPipeline.queue.shift() ?? [];
+      let [sourcePageId, scopedFunction, renderer] = this.editor.pageRenderPipeline.queue.shift() ?? [];
       if (scopedFunction != null) {
-        await scopedFunction(sourcePageId);
+        await scopedFunction(renderer, sourcePageId);
       }
       await sleep(1);
     }
 
     this.editor.pageRenderPipeline.running = false;
   }
-  async renderPage(sourcePageId) {
-    return await renderPage(this, sourcePageId);
+  async renderPage(renderer, sourcePageId) {
+    return await renderPage(renderer, sourcePageId);
   }
   async addPageToQueue(sourceID, pageNumber, forceRunRender) {
     let sourcePageId = sourceID + "_" + pageNumber;
     if (this.pdfPageStorage[sourcePageId] == null) {
       this.pdfPageStorage[sourcePageId] = [sourceID, pageNumber];
-      this.editor.pageRenderPipeline.queue.push([sourcePageId, this.renderPage]);
+      this.editor.pageRenderPipeline.queue.push([sourcePageId, this.renderPage, this]);
       if (this.editor.exporting != true || forceRunRender == true) {
-        setTimeout(this.processPageRenders, 0);
+        setTimeout(() => { this.processPageRenders(); }, 0);
       }
     }
   }
@@ -307,7 +305,7 @@ export class Render {
       }
     }
 
-    let holder = annotations;
+    let holder = this.editor.annotationHolder;
     let parentAnnotation
     if (parent != null) {
       parentAnnotation = this.editor.annotations[parent] ?? {};

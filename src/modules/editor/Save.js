@@ -284,7 +284,7 @@ export class Save {
         render: {
           ...annotation.render,
           ...(options.renderPassthrough ?? {}),
-          ...(this.selecting[annoID] ?? {}) 
+          ...(this.editor.selecting[annoID] ?? {}) 
         },
         ...(options.render ?? {})
       },

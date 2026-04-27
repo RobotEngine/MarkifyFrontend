@@ -1,6 +1,8 @@
-import { sendRequest } from "@/crucial";
+import { sendRequest, addTempListener, sleep } from "@/crucial";
 
 import { LinkService } from "./LinkService";
+
+import { assetURL } from "../../../../crucial";
 
 export const renderPage = async (renderer, sourcePageId) => {
   if (renderer.editor.running == false) {
@@ -145,7 +147,7 @@ export const renderPage = async (renderer, sourcePageId) => {
               PARENT: 3,
               TOP: 4
             };
-            
+
             (new pdfjsLib.AnnotationLayer({
               div: annotationHolder,
               page: pageRender,
@@ -155,7 +157,7 @@ export const renderPage = async (renderer, sourcePageId) => {
               linkService: new LinkService({
                 sourceID: sourceID,
                 editor: renderer.editor,
-                pdfDocument
+                pdfDocument: source.pdf
               })
               //async executeSetOCGState(action) {}
             });

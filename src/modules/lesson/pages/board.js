@@ -256,5 +256,37 @@ export class Page {
       }
     });
     this.pipeline = this.editor.pipeline;
+
+    page.addEventListener("pointerdown", (event) => {
+      this.pipeline.publish("pointerdown", { event: event });
+      this.pipeline.publish("click_start", { type: "pointerdown", event: event });
+    }, { passive: false });
+    page.addEventListener("touchstart", (event) => {
+      this.pipeline.publish("touchstart", { event: event });
+    }, { passive: false });
+    page.addEventListener("click", (event) => {
+      this.pipeline.publish("click", { event: event });
+    }, { passive: false });
+    page.addEventListener("mouseleave", (event) => {
+      this.pipeline.publish("mouseleave", { event: event });
+    });
+    page.addEventListener("contextmenu", (event) => {
+      this.pipeline.publish("contextmenu", { event: event });
+    });
+
+    // Fetch annotations:
+    let pageParam = getParam("page");
+    let checkForJumpLink = getParam("annotation");
+    (async () => {
+      if (this.session == null) {
+        return;
+      }
+      let [annoCode, annoBody] = await sendRequest("GET", "lessons/join/annotations", null, { session: this.parent.session });
+      if (annoCode != 200 && connected == true) {
+        return alertModule.open("error", `<b>Error Loading Annotations</b>Please try again later...`);
+      }
+      await this.editor.loadAnnotations(annoBody, { pageID: pageParam, jumpID: checkForJumpLink });
+      contentHolder.removeAttribute("disabled");
+    })();
   }
 }

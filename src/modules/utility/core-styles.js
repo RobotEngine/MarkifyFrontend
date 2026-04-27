@@ -1,4 +1,4 @@
-export const CoreStyles = {
+export const coreStyles = {
   ".content[hideoverflow]": `max-width: 100vw !important; max-height: 100vh !important; overflow: hidden !important`,
   "button, a": `border: none; background: none; user-select: none; color: var(--textColor); font-family: var(--font); cursor: pointer; transition: .1s`,
   "button:active, a:active": `transform: scale(.975)`,

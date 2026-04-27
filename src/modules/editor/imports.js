@@ -5,3 +5,5 @@ export const PDFJS_WORKER_PATH = () => { return import("@/libraries/pdfjs/pdf.wo
 export const QUILL = () => { return import("Quill/core"); };
 
 export const MATHQUILL = () => { return import("@/libraries/mathquill/mathquill.min.js"); };
+
+export const EMOJIS = () => { return import("@modules/utility/emojis"); };

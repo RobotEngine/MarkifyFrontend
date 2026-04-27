@@ -9,7 +9,7 @@ import { rotatePointOrigin, rotatePoint } from "./math";
 const annotations = changeGlobalImports(import.meta.glob("./render/annotations/**/*.js"));
 const annotationsPath = "./render/annotations/";
 
-import { PDFJS, PDFJS_WORKER_PATH } from "./library-imports";
+import { PDFJS, PDFJS_WORKER_PATH } from "./imports";
 
 /*
   _id - ID - The unique ID of the annotation
@@ -150,32 +150,32 @@ export class Render {
     }
   }
 
+  async renderFragment() {
+    let currentQueue = [...this.fragmentQueue];
+    this.fragmentQueue = [];
+    while (currentQueue.length > 0) {
+      let fragmentID = currentQueue.pop();
+      let [fragment, holder] = this.fragmentStorage[fragmentID] ?? [];
+      delete this.fragmentStorage[fragmentID];
+      if (holder == null || fragment == null) {
+        continue;
+      }
+      holder.appendChild(fragment);
+    }
+    await sleep(20);
+    if (this.fragmentQueue.length > 0) {
+      requestAnimationFrame(() => { this.renderFragment(); });
+    } else {
+      this.runningParentingRender = false;
+    }
+  }
   async pushParentingRender() {
     if (this.runningParentingRender == true) {
       return;
     }
     this.runningParentingRender = true;
 
-    let render = async () => {
-      let currentQueue = [...this.fragmentQueue];
-      this.fragmentQueue = [];
-      while (currentQueue.length > 0) {
-        let fragmentID = currentQueue.pop();
-        let [fragment, holder] = this.fragmentStorage[fragmentID] ?? [];
-        delete this.fragmentStorage[fragmentID];
-        if (holder == null || fragment == null) {
-          continue;
-        }
-        holder.appendChild(fragment);
-      }
-      await sleep(20);
-      if (this.fragmentQueue.length > 0) {
-        requestAnimationFrame(() => { render(); });
-      } else {
-        this.runningParentingRender = false;
-      }
-    }
-    requestAnimationFrame(() => { render(); });
+    requestAnimationFrame(() => { this.renderFragment(); });
   }
   async addParentToQueue(annotation = { render: {} }, holder) {
     if ((annotation.component ?? {}).holder != null) {
@@ -196,7 +196,7 @@ export class Render {
       this.fragmentStorage[fragmentID] = [document.createDocumentFragment(), holder];
       fragmentData = this.fragmentStorage[fragmentID];
       this.fragmentQueue.push(fragmentID);
-      setTimeout(this.pushParentingRender, 0);
+      this.pushParentingRender();
     }
     return fragmentData[0];
   }
@@ -350,7 +350,7 @@ export class Render {
       return {};
     }
 
-    annotation.component.editor = this;
+    annotation.component.editor = this.editor;
     annotation.component.annotation = annotation;
     annotation.component.properties = { ...render, p: [xPos, yPos], s: [width, height], parent: parent };
     annotation.component.holder = await this.addParentToQueue(annotation, holder); //holder ?? annotations;

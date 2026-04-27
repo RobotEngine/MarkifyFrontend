@@ -4,7 +4,7 @@ import {
   domain
 } from "./configuration";
 
-import { CoreStyles } from "./modules/utility/CoreStyles";
+import { coreStyles } from "./modules/utility/core-styles";
 import { dropdown as dropdownModule } from "./modules/utility/Dropdown";
 //import { modal as modalModule } from "./modules/utility/Modal";
 import { alert as alertModule } from "./modules/utility/Alert";
@@ -1304,4 +1304,4 @@ window.addEventListener("beforeinstallprompt", (event) => {
   window.deferredPrompt = event;
 });
 
-appendCSS(CoreStyles);
+appendCSS(coreStyles);

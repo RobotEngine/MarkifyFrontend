@@ -68,6 +68,7 @@ export class Annotation extends BaseAnnotation {
       <div content annoholdercontainer></div>`;
       this.holder.appendChild(this.element);
     }
+    
     this.element.style.width = this.properties.s[0] + "px";
     this.element.style.height = this.properties.s[1] + "px";
 
@@ -189,7 +190,7 @@ export class Annotation extends BaseAnnotation {
           pdfDocumentHolder.style.opacity = 0;
           pdfDocumentHolder.style.transition = "opacity .3s";
         }
-        this.parent.render.addPageToQueue(this.properties.source, this.properties.number);
+        this.editor.render.addPageToQueue(this.properties.source, this.properties.number);
       } else {
         pdfDocumentHolder.setAttribute("sourcepage", sourcePageId);
         pdfDocumentHolder.setAttribute("width", this.properties.s[0]);
@@ -235,7 +236,7 @@ export class Annotation extends BaseAnnotation {
       if (pageHiddenHolder == null) {
         this.element.insertAdjacentHTML("beforeend", `<div hide></div>`);
         let hiddenElem = this.element.querySelector(":scope > div[hide]");
-        if (this.parent.self.access < 4) {
+        if (this.editor.self.access < 4) {
           hiddenElem.insertAdjacentHTML("beforeend", `<img hideicon src="../images/editor/hidden.svg" draggable="false">`);
         } else {
           if (this.exporting != true) {
@@ -243,7 +244,7 @@ export class Annotation extends BaseAnnotation {
               <img src="../images/editor/hidden.svg" draggable="false">
               <div hidemodaltitle>Page Hidden</div>
             </div>`);
-            if (this.parent.self.access > 3) {
+            if (this.editor.self.access > 3) {
               hiddenElem.querySelector("div[hidemodal]").insertAdjacentHTML("beforeend", `<button class="largeButton">Reveal Page</button>`);
             }
           }

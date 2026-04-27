@@ -26,7 +26,7 @@ import { modal } from "@modules/utility/Modal";
 import { LessonFrame } from "@modules/dashboard/LessonFrame";
 import { Frame as LessonOptions } from "../../dashboard/LessonOptions";
 
-import { close, trash } from "@modules/utility/coreicons";
+import { close, trash } from "@modules/utility/core-icons";
 import boardIcon from "@assets/icon.svg?raw";
 import breakoutIcon from "@assets/breakout.svg?raw";
 import exclamation from "@assets/account/exclamation.svg?raw";

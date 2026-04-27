@@ -1,6 +1,6 @@
-import { sleep } from "@/crucial";
+import { head, appendCSS, sleep, uncleanString } from "@/crucial";
 
-import { QUILL, MATHQUILL } from "./library-imports";
+import { QUILL, MATHQUILL } from "./imports";
 
 export class Text {
   constructor(editor) {
@@ -308,7 +308,7 @@ export class Text {
         delete window.loadingFonts[font];
         let newRules = {};
         newRules[".ql-editor .ql-font-" + font] = "font-family: " + '"' + fontInfo[0] + '"';
-        addCSS(newRules);
+        appendCSS(newRules);
         newFontLink.removeEventListener("load", loadFunction);
         newFontLink.removeEventListener("error", errorFunction);
         resolve();

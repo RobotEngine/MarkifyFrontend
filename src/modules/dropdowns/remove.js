@@ -4,7 +4,7 @@ import {
 
 import { alert as alertModule } from "@modules/utility/Alert";
 
-import { trash } from "@modules/utility/coreicons";
+import { trash } from "@modules/utility/core-icons";
 
 export class Frame {
   html = `

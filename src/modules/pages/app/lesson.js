@@ -30,7 +30,7 @@ import { defaultEmojis } from "@modules/lesson/default-emojis";
 
 const lessonPages = import.meta.glob("@modules/lesson/pages/**/*.js");
 
-import { PDFJS, QUILL, PDFJS_WORKER, MATHQUILL } from "../../editor/library-imports";
+import { PDFJS, QUILL, PDFJS_WORKER, MATHQUILL } from "../../editor/imports";
 
 export class Page extends PageFrame {
   title = "Lesson";

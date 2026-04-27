@@ -8,7 +8,7 @@ import {
   sendRequest
 } from "@/crucial";
 
-import { more } from "@modules/utility/coreicons";
+import { more } from "@modules/utility/core-icons";
 import membercount from "@assets/dashboard/membercount.svg?raw";
 
 export class LessonFrame {

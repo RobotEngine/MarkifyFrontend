@@ -1,6 +1,6 @@
 import { fixed, newModule, sleep } from "@/crucial";
 
-import { close, alerts } from "./CoreIcons";
+import { close, alerts } from "./core-icons";
 
 export const Alert = class {
   css = {

@@ -10,7 +10,7 @@ import open from "@assets/open.svg?raw";
 import moveto from "@assets/dashboard/moveto.svg?raw";
 import rename from "@assets/rename.svg?raw";
 import copy from "@assets/copy.svg?raw";
-import { trash } from "@modules/utility/coreicons";
+import { trash } from "@modules/utility/core-icons";
 
 export class Frame {
   html = `

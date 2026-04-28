@@ -628,7 +628,10 @@ export class Module {
           this.currentToolModulePath = "pan";
           await this.activateTool(null, { resetSelection: false });
         }
-        return this.currentToolModule.clickStart(event);
+        if ((this.currentToolModule ?? {}).clickStart != null) {
+          this.currentToolModule.clickStart(event);
+        }
+        return;
       }
       if (event.buttons > 1) {
         return;

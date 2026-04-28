@@ -237,9 +237,9 @@ export class Editor {
     }
     clearTimeout(this.savePreferenceTimeout);
     if (skip == true) {
-      return await savePreference();
+      return await this.savePreference();
     }
-    this.savePreferenceTimeout = setTimeout(savePreference, 1000); // Save after 1 second of no changes
+    this.savePreferenceTimeout = setTimeout(() => { this.savePreference(); }, 1000); // Save after 1 second of no changes
   }
 
   setShortSub() {

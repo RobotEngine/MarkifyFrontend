@@ -266,6 +266,13 @@ export class Module {
       this.editor.annotationHolder.setAttribute("pointereventsdisabled", "");
     }
   }
+  async loadModule(path) {
+    let moduleLoadFunction = toolModules[toolModulePath + this.currentToolModulePath + ".js"];
+    if (moduleLoadFunction == null) {
+      return;
+    }
+    return await this.editor.newModule((await moduleLoadFunction()).Tool);
+  }
   async activateTool(extra, options = {}) {
     //this.editor.pinchZoomDisable = false;
     this.editor.usingStylus = false;
@@ -304,10 +311,7 @@ export class Module {
 
     let newModule;
     if (this.currentToolModulePath != null) {
-      let moduleLoadFunction = toolModules[toolModulePath + this.currentToolModulePath + ".js"];
-      if (moduleLoadFunction != null) {
-        newModule = await this.editor.newModule((await moduleLoadFunction()).Tool);
-      }
+      newModule = await this.loadModule(this.currentToolModulePath);
     }
     this.currentToolModule = newModule ?? {};
     if (newModule != null) {
@@ -603,13 +607,15 @@ export class Module {
       let toolbarContent = toolbars[toolbar.getAttribute("type")];
       if (toolbarContent != null) {
         toolbar.innerHTML = toolbarContent;
+        toolbar.querySelector(".eToolbarContent").addEventListener("scroll", () => { this.toolbar.update(); });
       }
     }
     this.toolbarHolder.removeAttribute("hidden");
 
     this.updateMaxHeight();
     this.activateTool();
-    //this.toolbar.updateButtons(this.toolbarHolder);
+    this.toolbar.updateButtons(this.toolbarHolder);
+    this.toolbar.checkToolToggle();
 
     // Subscribe to events:
     this.editor.pipeline.subscribe("toolbarMouse", "click_start", async (data) => {
@@ -632,7 +638,7 @@ export class Module {
         this.editor.pipeline.publish("stylusmodechange", { stylusmode: true });
       }
       let target = event.target;
-      if (target.closest(".eToolbar") == toolbar) {
+      if (target.closest('.eToolbar:not([hidden])') != null) {
         this.toolbar.setTool(target.closest("button"), true);
       }
       if (target.closest(".eContent") != null) {
@@ -697,6 +703,10 @@ export class Module {
       let event = data.event;
       this.checkShift(event);
       this.pushToolEvent("keydown", event);
+
+      if (event.key == "Enter") {
+        this.toolbar.startTool(event.target.closest("button"));
+      }
 
       // Keybind Manager:
       if (this.editor.isPageActive() == false) {

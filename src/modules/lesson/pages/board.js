@@ -64,15 +64,8 @@ export class Page {
         </div>
       </div>
       <div class="eToolbarHolder" toolbarholder hidden>
-        <div class="eToolbar" editor keeptooltip hidden notransition></div>
-        <div class="eToolbar" viewer keeptooltip hidden notransition>
-          <div class="eToolbarContent eVerticalToolsHolder">
-            <button class="eTool" tool="raisehand" tooltip="Raise Hand" noselect style="--theme: var(--green); --hoverColor: rgba(var(--greenRGB), .3)"><div></div></button>
-            <div class="eDivider"></div>
-            <button class="eTool" tool="select" tooltip="Select" selected><div></div></button>
-            <button class="eTool" tool="pan" tooltip="Pan"><div></div></button>
-          </div>
-        </div>
+        <div class="eToolbar" type="editor" keeptooltip hidden notransition></div>
+        <div class="eToolbar" type="viewer" keeptooltip hidden notransition></div>
       </div>
       <div class="eBottomHolder">
         <div class="eBottom">
@@ -223,8 +216,8 @@ export class Page {
     let contentHolder = mainPage.querySelector(".eContentHolder");
 
     let toolbarHolder = page.querySelector(".eToolbarHolder");
-    let editorToolbar = toolbarHolder.querySelector(".eToolbar[editor]");
-    let viewerToolbar = toolbarHolder.querySelector(".eToolbar[viewer]");
+    let editorToolbar = toolbarHolder.querySelector('.eToolbar[type="editor"]');
+    let viewerToolbar = toolbarHolder.querySelector('.eToolbar[type="viewer"]');
     let handButton = viewerToolbar.querySelector('.eTool[tool="raisehand"]');
     let selectButton = viewerToolbar.querySelector('.eTool[tool="select"]');
     let panButton = viewerToolbar.querySelector('.eTool[tool="pan"]');
@@ -299,5 +292,9 @@ export class Page {
       editorToolbar.removeAttribute("notransition");
       viewerToolbar.removeAttribute("notransition");
     })();
+
+    // TEMPORARY FOR TOOLBAR TESTING (DELETE LATER):
+    toolbarHolder.setAttribute("left", "");
+    editorToolbar.removeAttribute("hidden");
   }
 }

@@ -1,6 +1,6 @@
 import { BaseAnnotation } from "../../Render";
 
-import { cleanString } from "../../../../crucial";
+import { cleanString } from "@/crucial";
 
 import linkIcon from "@assets/editor/actions/link.svg?raw";
 

@@ -19,7 +19,8 @@ import {
   getLocalStore,
   setLocalStore,
   objectUpdate,
-  copyObject
+  copyObject,
+  getObject
 } from "@/crucial";
 
 import { Editor } from "@modules/editor/Editor";

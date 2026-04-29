@@ -1,36 +1,80 @@
+import selectIcon from "@assets/editor/toolbar/select.svg?raw";
+import panIcon from "@assets/editor/toolbar/pan.svg?raw";
+import dragIcon from "@assets/editor/toolbar/drag.svg?raw";
+
+import drawIcon from "@assets/editor/toolbar/draw.svg?raw";
+import penIcon from "@assets/editor/toolbar/pen.svg?raw";
+
+import markupIcon from "@assets/editor/toolbar/markup.svg?raw";
+import highlighterIcon from "@assets/editor/toolbar/highlighter.svg?raw";
+import understrikeIcon from "@assets/editor/toolbar/understrike.svg?raw";
+
+import eraseIcon from "@assets/editor/toolbar/erase.svg?raw";
+
+import textIcon from "@assets/editor/toolbar/text.svg?raw";
+import equationIcon from "@assets/editor/toolbar/equation.svg?raw";
+
+import shapeIcon from "@assets/editor/toolbar/shape.svg?raw";
+import squareIcon from "@assets/editor/toolbar/square.svg?raw";
+import ellipseIcon from "@assets/editor/toolbar/ellipse.svg?raw";
+import triangleIcon from "@assets/editor/toolbar/triangle.svg?raw";
+import parallelogramIcon from "@assets/editor/toolbar/parallelogram.svg?raw";
+import trapezoidIcon from "@assets/editor/toolbar/trapezoid.svg?raw";
+import rhombusIcon from "@assets/editor/toolbar/rhombus.svg?raw";
+import ovalIcon from "@assets/editor/toolbar/oval.svg?raw";
+import arrowIcon from "@assets/editor/toolbar/arrow.svg?raw";
+import starIcon from "@assets/editor/toolbar/star.svg?raw";
+import plusIcon from "@assets/editor/toolbar/plus.svg?raw";
+import heartIcon from "@assets/editor/toolbar/heart.svg?raw";
+import speechIcon from "@assets/editor/toolbar/speech.svg?raw";
+import polygonIcon from "@assets/editor/toolbar/polygon.svg?raw";
+import lineIcon from "@assets/editor/toolbar/line.svg?raw";
+
+import stickyIcon from "@assets/editor/toolbar/sticky.svg?raw";
+
+import commentIcon from "@assets/editor/toolbar/comment.svg?raw";
+
+import pageIcon from "@assets/editor/toolbar/page.svg?raw";
+
+import mediaIcon from "@assets/editor/toolbar/media.svg?raw";
+import uploadIcon from "@assets/editor/toolbar/upload.svg?raw";
+import embedIcon from "@assets/editor/toolbar/embed.svg?raw";
+
+import raisehandIcon from "@assets/editor/toolbar/raisehand.svg?raw";
+
 export const toolbars = {
   editor: `<div class="eToolbarContent eVerticalToolsHolder hideScroll">
-    <button class="eTool" tool="selection" tooltip="Selection" selected><div></div></button>
-    <button class="eTool" tool="draw" tooltip="Draw"><div></div></button>
-    <button class="eTool" tool="markup" tooltip="Markup"><div></div></button>
-    <button class="eTool" tool="erase" tooltip="Erase"><div></div></button>
-    <button class="eTool" tool="text" tooltip="Text Box"><div></div></button>
-    <button class="eTool" tool="shape" tooltip="Shapes"><div></div></button>
-    <button class="eTool" tool="sticky" tooltip="Stickies"><div></div></button>
-    <button class="eTool" tool="comment" tooltip="Comments"><div></div></button>
-    <button class="eTool" tool="page" tooltip="Page"><div></div></button>
-    <button class="eTool" tool="media" tooltip="Media"><div></div></button>
+    <button class="eTool" tool="selection" tooltip="Selection" selected><div>${selectIcon}</div></button>
+    <button class="eTool" tool="draw" tooltip="Draw"><div>${drawIcon}</div></button>
+    <button class="eTool" tool="markup" tooltip="Markup"><div>${markupIcon}</div></button>
+    <button class="eTool" tool="erase" tooltip="Erase"><div>${eraseIcon}</div></button>
+    <button class="eTool" tool="text" tooltip="Text Box"><div>${textIcon}</div></button>
+    <button class="eTool" tool="shape" tooltip="Shapes"><div>${shapeIcon}</div></button>
+    <button class="eTool" tool="sticky" tooltip="Stickies"><div>${stickyIcon}</div></button>
+    <button class="eTool" tool="comment" tooltip="Comments"><div>${commentIcon}</div></button>
+    <button class="eTool" tool="page" tooltip="Page"><div>${pageIcon}</div></button>
+    <button class="eTool" tool="media" tooltip="Media"><div>${mediaIcon}</div></button>
   </div>`,
 
   viewer: `<div class="eToolbarContent eVerticalToolsHolder">
-    <button class="eTool" tool="raisehand" tooltip="Raise Hand" noselect style="--theme: var(--green); --hoverColor: rgba(var(--greenRGB), .3)"><div></div></button>
+    <button class="eTool" tool="raisehand" tooltip="Raise Hand" noselect style="--theme: var(--green); --hoverColor: rgba(var(--greenRGB), .3)"><div>${raisehandIcon}</div></button>
     <div class="eDivider"></div>
-    <button class="eTool" tool="select" tooltip="Select" selected><div></div></button>
-    <button class="eTool" tool="pan" tooltip="Pan"><div></div></button>
+    <button class="eTool" tool="select" tooltip="Select" selected><div>${selectIcon}</div></button>
+    <button class="eTool" tool="pan" tooltip="Pan"><div>${panIcon}</div></button>
   </div>`
 };
 
 export const tools = {
   "selection": {
     html: `<div class="eVerticalToolsHolder">
-      <button class="eTool" tool="select" tooltip="Select" module="editor/toolbar/select"><div></div></button>
-      <button class="eTool" tool="pan" tooltip="Pan" module="editor/toolbar/pan"><div></div></button>
-      <button class="eTool" tool="drag" tooltip="Multi-Select" module="editor/toolbar/drag"><div></div></button>
+      <button class="eTool" tool="select" tooltip="Select" module="selection/select"><div>${selectIcon}</div></button>
+      <button class="eTool" tool="pan" tooltip="Pan" module="selection/pan"><div>${panIcon}</div></button>
+      <button class="eTool" tool="drag" tooltip="Multi-Select" module="selection/drag"><div>${dragIcon}</div></button>
     </div>`
   },
   "draw": {
     html: `<div class="eVerticalToolsHolder">
-      <button class="eTool" tool="pen" tooltip="Pen" module="editor/toolbar/pen"><div></div></button>
+      <button class="eTool" tool="pen" tooltip="Pen" module="pen"><div>${penIcon}</div></button>
       <div class="eDivider"></div>
       <button class="eTool" option="color" tooltip="Color" module="editor/toolbar/color"><div></div></button>
       <button class="eTool" option="thickness" tooltip="Thickness" module="editor/toolbar/thickness"><div></div></button>
@@ -39,53 +83,52 @@ export const tools = {
   },
   "markup": {
     html: `<div class="eVerticalToolsHolder">
-      <button class="eTool" tool="highlighter" tooltip="Highlighter" module="editor/toolbar/highlighter"><div></div></button>
-      <button class="eTool" tool="understrike" tooltip="Underline" module="editor/toolbar/understrike"><div></div></button>
+      <button class="eTool" tool="highlighter" tooltip="Highlighter" module="markup/highlighter"><div>${highlighterIcon}</div></button>
+      <button class="eTool" tool="understrike" tooltip="Underline" module="markup/understrike"><div>${understrikeIcon}</div></button>
       <div class="eDivider"></div>
       <button class="eTool" option="color" tooltip="Color" module="editor/toolbar/color"><div></div></button>
       <button class="eTool" option="thickness" tooltip="Thickness" module="editor/toolbar/thickness"><div></div></button>
       <button class="eTool" option="opacity" tooltip="Opacity" module="editor/toolbar/opacity"><div></div></button>
     </div>`
   },
-  "erase": { id: "erase", type: "tool", module: "editor/toolbar/eraser" },
-  //"text": { id: "text", type: "tool", module: "editor/toolbar/text" },
+  "erase": { id: "erase", type: "tool", module: "eraser" },
   "text": {
     html: `<div class="eVerticalToolsHolder">
-      <button class="eTool" tool="text" tooltip="Text" module="editor/toolbar/text"><div></div></button>
-      <button class="eTool" tool="equation" tooltip="Equation" module="editor/toolbar/equation"><div></div></button>
+      <button class="eTool" tool="text" tooltip="Text" module="text/textbox"><div>${textIcon}</div></button>
+      <button class="eTool" tool="equation" tooltip="Equation" module="text/equation"><div>${equationIcon}</div></button>
     </div>`
   },
   "shape": {
     html: `<div class="eVerticalToolsHolder eVerticalToolsShapeContainer">
-      <button class="eTool" tool="square" tooltip="Square" module="editor/toolbar/shape"><div></div></button>
-      <button class="eTool" tool="ellipse" tooltip="Ellipse" module="editor/toolbar/shape"><div></div></button>
-      <button class="eTool" tool="triangle" tooltip="Triangle" module="editor/toolbar/shape"><div></div></button>
-      <button class="eTool" tool="parallelogram" tooltip="Parallelogram" module="editor/toolbar/shape"><div></div></button>
-      <button class="eTool" tool="trapezoid" tooltip="Trapezoid" module="editor/toolbar/shape"><div></div></button>
-      <button class="eTool" tool="rhombus" tooltip="Rhombus" module="editor/toolbar/shape"><div></div></button>
-      <button class="eTool" tool="oval" tooltip="Oval" module="editor/toolbar/shape/oval"><div></div></button>
-      <button class="eTool" tool="arrow" tooltip="Arrow" module="editor/toolbar/shape/arrow"><div></div></button>
-      <button class="eTool" tool="star" tooltip="Star" module="editor/toolbar/shape/star"><div></div></button>
-      <button class="eTool" tool="plus" tooltip="Plus" module="editor/toolbar/shape"><div></div></button>
-      <button class="eTool" tool="heart" tooltip="Heart" module="editor/toolbar/shape"><div></div></button>
-      <button class="eTool" tool="speech" tooltip="Speech" module="editor/toolbar/shape"><div></div></button>
-      <button class="eTool" tool="polygon" tooltip="Polygon" module="editor/toolbar/shape/polygon"><div></div></button>
-      <button class="eTool" tool="line" tooltip="Line" module="editor/toolbar/shape"><div></div></button>
+      <button class="eTool" tool="square" tooltip="Square" module="shape/shape"><div>${squareIcon}</div></button>
+      <button class="eTool" tool="ellipse" tooltip="Ellipse" module="shape/shape"><div>${ellipseIcon}</div></button>
+      <button class="eTool" tool="triangle" tooltip="Triangle" module="shape/shape"><div>${triangleIcon}</div></button>
+      <button class="eTool" tool="parallelogram" tooltip="Parallelogram" module="shape/shape"><div>${parallelogramIcon}</div></button>
+      <button class="eTool" tool="trapezoid" tooltip="Trapezoid" module="shape/shape"><div>${trapezoidIcon}</div></button>
+      <button class="eTool" tool="rhombus" tooltip="Rhombus" module="shape/shape"><div>${rhombusIcon}</div></button>
+      <button class="eTool" tool="oval" tooltip="Oval" module="shape/oval"><div>${ovalIcon}</div></button>
+      <button class="eTool" tool="arrow" tooltip="Arrow" module="shape/arrow"><div>${arrowIcon}</div></button>
+      <button class="eTool" tool="star" tooltip="Star" module="shape/star"><div>${starIcon}</div></button>
+      <button class="eTool" tool="plus" tooltip="Plus" module="shape/shape"><div>${plusIcon}</div></button>
+      <button class="eTool" tool="heart" tooltip="Heart" module="shape/shape"><div>${heartIcon}</div></button>
+      <button class="eTool" tool="speech" tooltip="Speech" module="shape/shape"><div>${speechIcon}</div></button>
+      <button class="eTool" tool="polygon" tooltip="Polygon" module="shape/polygon"><div>${polygonIcon}</div></button>
+      <button class="eTool" tool="line" tooltip="Line" module="shape/shape"><div>${lineIcon}</div></button>
     </div>`
   },
-  "sticky": { id: "sticky", type: "tool", module: "editor/toolbar/sticky" },
-  "comment": { id: "comment", type: "tool", module: "editor/toolbar/comment" },
-  "page": { id: "page", type: "tool", module: "editor/toolbar/page" },
+  "sticky": { id: "sticky", type: "tool", module: "sticky" },
+  "comment": { id: "comment", type: "tool", module: "comment" },
+  "page": { id: "page", type: "tool", module: "page" },
   "media": {
     html: `<div class="eVerticalToolsHolder">
-      <button class="eTool" tool="upload" tooltip="Upload Image" module="editor/toolbar/upload"><div></div></button>
-      <button class="eTool" tool="embed" tooltip="Embed" module="editor/toolbar/embed"><div></div></button>
+      <button class="eTool" tool="upload" tooltip="Upload Image" module="media/upload"><div>${uploadIcon}</div></button>
+      <button class="eTool" tool="embed" tooltip="Embed" module="media/embed"><div>${embedIcon}</div></button>
     </div>`
   },
 
   // Viewer Toolbar:
-  "select": { id: "select", type: "tool", module: "editor/toolbar/select" },
-  "pan": { id: "pan", type: "tool", module: "editor/toolbar/pan" }
+  "select": { id: "select", type: "tool", module: "selection/select" },
+  "pan": { id: "pan", type: "tool", module: "selection/pan" }
 };
 
 export const mappedToolTypes = {

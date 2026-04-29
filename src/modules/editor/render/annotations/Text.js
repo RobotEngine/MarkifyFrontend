@@ -1,6 +1,6 @@
 import { BaseAnnotation } from "../../Render";
 
-import { objectEqual } from "../../../../crucial";
+import { objectEqual } from "@/crucial";
 
 export class Annotation extends BaseAnnotation {
   SHOW_ONLY_WIDTH_HANDLES = true;

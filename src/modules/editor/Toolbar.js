@@ -180,7 +180,7 @@ export class Module {
 
   currentTool = "selection";
   currentSubTool = "select";
-  currentToolModulePath = "select";
+  currentToolModulePath = "selection/select";
   //currentToolButton = null;
   //subToolbar = null;
   //currentSubToolButton = null;
@@ -218,9 +218,9 @@ export class Module {
     if (cursor.type == "set") {
       if (cursor.value != this.currentMouseSVG) {
         if (cursor.value != null) {
-          this.content.style.cursor = cursor.value;
+          this.editor.content.style.cursor = cursor.value;
         } else {
-          this.content.style.removeProperty("cursor");
+          this.editor.content.style.removeProperty("cursor");
         }
         this.currentMouseSVG = cursor.value;
       }
@@ -241,7 +241,7 @@ export class Module {
         reader.readAsDataURL(new Blob([setSVG], { type: "image/svg+xml" }));
         reader.onload = () => {
           let translate = cursor.translate ?? {};
-          this.content.style.cursor = "url('" + reader.result + "') " + (translate.x ?? 0) + " " + (translate.y ?? 0) + ", auto";
+          this.editor.content.style.cursor = "url('" + reader.result + "') " + (translate.x ?? 0) + " " + (translate.y ?? 0) + ", auto";
         }
       }
     }
@@ -317,8 +317,8 @@ export class Module {
     if (newModule != null) {
       newModule.editor = this.editor;
       newModule.toolbar = this;
-      newModule.tool = currentSubTool ?? currentTool;
-      newModule.button = currentSubToolButton ?? currentToolButton;
+      newModule.tool = this.currentSubTool ?? this.currentTool;
+      newModule.button = this.currentSubToolButton ?? this.currentToolButton;
       if (newModule.enable != null) {
         newModule.enable(extra ?? {});
       }
@@ -354,15 +354,15 @@ export class Module {
       let timeStamp = specificEvent.timeStamp;
       if (timeStamp != null) {
         let type = specificEvent.type ?? event;
-        if ((lastEventTimeStamps[type] ?? timeStamp) > timeStamp) { // Safari unorders coalesced events!?
+        if ((this.lastEventTimeStamps[type] ?? timeStamp) > timeStamp) { // Safari unorders coalesced events!?
           events = [event]; // Just use the main event if it's broken
           break;
         }
-        lastEventTimeStamps[type] = timeStamp;
+        this.lastEventTimeStamps[type] = timeStamp;
       }
     }
     for (let i = 0; i < events.length; i++) {
-      callback(events[i]);
+      callback.call(this.currentToolModule, events[i]); // Use .call() to keep "this" context
     }
   }
 
@@ -386,7 +386,7 @@ export class Module {
     return result ?? {};
   }
   getToolPreference() {
-    return this.editor.preferences.tools[currentSubTool] ?? this.editor.preferences.tools[currentTool] ?? {};
+    return this.editor.preferences.tools[this.currentSubTool] ?? this.editor.preferences.tools[this.currentTool] ?? {};
   }
   setToolPreference(path, value) {
     let split = path.split(".");
@@ -623,9 +623,9 @@ export class Module {
       this.checkShift(event);
       if (data.event.button == 1) { // Start pan from scroll wheel press
         event.preventDefault();
-        if (this.currentToolModulePath != "pan") {
+        if (this.currentToolModulePath != "selection/pan") {
           this.previousToolModule = this.currentToolModulePath;
-          this.currentToolModulePath = "pan";
+          this.currentToolModulePath = "selection/pan";
           await this.activateTool(null, { resetSelection: false });
         }
         if ((this.currentToolModule ?? {}).clickStart != null) {
@@ -654,28 +654,30 @@ export class Module {
       this.tooltip.set(event);
       this.pushToolEvent("clickMove", event);
 
-      if (this.currentToolModule.MOUSE == null || this.currentToolModule.MOUSE.override != true) {
-        if (this.selection.action == null) {
-          let handle = event.target.closest(".eSelectHandle");
-          if (handle != null) {
-            if (handle.hasAttribute("move") == true) {
-              this.updateMouse({ type: "svg", svg: moveCursorIcon, translate: { x: 22, y: 22 } });
-            } else if (handle.hasAttribute("rotation") == true) {
-              this.updateMouse({ type: "svg", svg: resizeCursorIcon, translate: { x: 22, y: 22 }, rotate: this.selection.rotation + parseInt(handle.getAttribute("rotation")) });
-            } else if (handle.getAttribute("handle") == "rotate") {
-              this.updateMouse({ type: "svg", svg: rotateCursorIcon, translate: { x: 22, y: 22 }, rotate: this.selection.rotation });
+      if (this.currentToolModule != null) {
+        if (this.currentToolModule.MOUSE == null || this.currentToolModule.MOUSE.override != true) {
+          if (this.selection.action == null) {
+            let handle = event.target.closest(".eSelectHandle");
+            if (handle != null) {
+              if (handle.hasAttribute("move") == true) {
+                this.updateMouse({ type: "svg", svg: moveCursorIcon, translate: { x: 22, y: 22 } });
+              } else if (handle.hasAttribute("rotation") == true) {
+                this.updateMouse({ type: "svg", svg: resizeCursorIcon, translate: { x: 22, y: 22 }, rotate: this.selection.rotation + parseInt(handle.getAttribute("rotation")) });
+              } else if (handle.getAttribute("handle") == "rotate") {
+                this.updateMouse({ type: "svg", svg: rotateCursorIcon, translate: { x: 22, y: 22 }, rotate: this.selection.rotation });
+              } else {
+                this.updateMouse(this.currentToolModule.MOUSE);
+              }
             } else {
               this.updateMouse(this.currentToolModule.MOUSE);
             }
-          } else {
-            this.updateMouse(this.currentToolModule.MOUSE);
           }
         }
       }
     }, { sort: 1 });
     this.editor.pipeline.subscribe("toolbarMouse", "click_end", (data) => {
       this.checkShift(data.event);
-      if (this.previousToolModule != null && this.previousToolModule != "pan") {
+      if (this.previousToolModule != null && this.previousToolModule != "selection/pan") {
         data.event.preventDefault();
         this.currentToolModulePath = this.previousToolModule;
         this.previousToolModule = null;

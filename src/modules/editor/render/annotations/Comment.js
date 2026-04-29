@@ -1,6 +1,6 @@
 import { BaseAnnotation } from "../../Render";
 
-import { objectEqual, timeSince } from "../../../../crucial";
+import { objectEqual, timeSince } from "@/crucial";
 
 export class Annotation extends BaseAnnotation {
   DISABLE_SNAPPING = true;

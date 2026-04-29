@@ -1,8 +1,6 @@
-import { sendRequest, addTempListener, sleep } from "@/crucial";
+import { assetURL, sendRequest, addTempListener, sleep } from "@/crucial";
 
 import { LinkService } from "./LinkService";
-
-import { assetURL } from "../../../../crucial";
 
 export const renderPage = async (renderer, sourcePageId) => {
   if (renderer.editor.running == false) {

@@ -387,11 +387,12 @@ export class Module {
     this.animationFrameId = requestAnimationFrame(() => { this.smoothScroll(); });
   }
 
-  adjustRealtimeHolder() {
-    let annotationRect = this.editor.utils.annotationsRect();
-    let scrollLeft = this.editor.contentHolder.scrollLeft;
-    let scrollTop = this.editor.contentHolder.scrollTop;
-
+  refreshRealtimeSelections(transition, cache = {}) {
+    let annotationRect = cache.annotationRect ?? this.editor.utils.annotationsRect();
+    let scrollLeft = cache.scrollLeft ?? this.editor.contentHolder.scrollLeft;
+    let scrollTop = cache.scrollTop ?? this.editor.contentHolder.scrollTop;
+    let isTransitionFunction = typeof transitionFunction == "function";
+    
     let allRealtimeSelections = this.editor.realtimeHolder.querySelectorAll(".eCollabSelect");
     for (let i = 0; i < allRealtimeSelections.length; i++) {
       let selection = allRealtimeSelections[i];
@@ -421,7 +422,13 @@ export class Module {
       }
       let rect = this.editor.utils.getRect(render);
       
-      selection.setAttribute("notransition", "");
+      let useTransition = transition == true;
+      if (isTransitionFunction == true) {
+        useTransition = isTransitionFunction(rect);
+      }
+      if (useTransition == false) {
+        selection.setAttribute("notransition", "");
+      }
       
       let rotate = rect.rotation;
       if (rotate > 180) {
@@ -431,9 +438,18 @@ export class Module {
       selection.style.height = ((rect.height * this.editor.zoom) - 3) + "px";
       selection.style.transform = "translate(" + (annotationRect.left + (rect.x * this.editor.zoom) + scrollLeft - 1.5) + "px," + (annotationRect.top + (rect.y * this.editor.zoom) + scrollTop - 1.5) + "px) rotate(" + rotate + "deg)";
       
-      selection.offsetHeight;
-      selection.removeAttribute("notransition");
+      if (useTransition == false) {
+        selection.offsetHeight;
+        selection.removeAttribute("notransition");
+      }
     }
+  }
+  adjustRealtimeHolder() {
+    let annotationRect = this.editor.utils.annotationsRect();
+    let scrollLeft = this.editor.contentHolder.scrollLeft;
+    let scrollTop = this.editor.contentHolder.scrollTop;
+
+    this.refreshRealtimeSelections(false, { annotationRect, scrollLeft, scrollTop });
     
     let adjustElements = this.editor.realtimeHolder.querySelectorAll("div[scale]");
     for (let i = 0; i < adjustElements.length; i++) {

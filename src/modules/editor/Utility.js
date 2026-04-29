@@ -44,8 +44,8 @@ export class Utility {
       height: frameRect.height,
       left: diffX,
       top: diffY,
-      x: diffX + contentHolder.scrollLeft,
-      y: diffY + contentHolder.scrollTop
+      x: diffX + this.editor.contentHolder.scrollLeft,
+      y: diffY + this.editor.contentHolder.scrollTop
     }
   }
   localBoundingRect(frame) {

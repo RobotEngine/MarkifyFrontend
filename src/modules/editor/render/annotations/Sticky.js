@@ -1,6 +1,6 @@
 import { BaseAnnotation } from "../../Render";
 
-import { objectEqual, cleanString, getObject } from "../../../../crucial";
+import { objectEqual, cleanString, getObject } from "@/crucial";
 
 import { textColorBackground } from "../../utils/text-color-background";
 

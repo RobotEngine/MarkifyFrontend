@@ -1,4 +1,4 @@
-import { getObject } from "../../crucial";
+import { getObject } from "@/crucial";
 
 import { emojis, ignoreEmojis, sheetSize } from "../utility/emojis";
 

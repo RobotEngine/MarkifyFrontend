@@ -1,6 +1,6 @@
-import { sleep } from "../../../crucial";
+import { sleep } from "@/crucial";
 
-import { close } from "../../utility/core-icons";
+import { close } from "@modules/utility/core-icons";
 
 export class SideMenu {
   constructor(toolbar) {

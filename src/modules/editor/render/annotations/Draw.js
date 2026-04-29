@@ -1,6 +1,6 @@
 import { BaseAnnotation } from "../../Render";
 
-import { cleanString } from "../../../../crucial";
+import { cleanString } from "@/crucial";
 
 export class Annotation extends BaseAnnotation {
   CAN_ERASE = true;
@@ -75,6 +75,7 @@ export class Annotation extends BaseAnnotation {
       this.element.style.width = width + "px";
       this.element.style.height = height + "px";
       let svg = this.element.querySelector("svg");
+      let path = svg.querySelector("path");
       path.setAttribute("stroke-width", this.properties.t);
       if (this.cache.lastDrawSetPoints != drawSetPoints) {
         this.cache.lastDrawSetPoints = drawSetPoints;

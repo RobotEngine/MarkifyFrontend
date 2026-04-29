@@ -1,6 +1,6 @@
 import { BaseAnnotation } from "../../Render";
 
-import { assetURL } from "../../../../crucial";
+import { assetURL } from "@/crucial";
 
 export class Annotation extends BaseAnnotation {
   ACTION_BAR_TOOLS = ["imageborder", "unlock", "delete"];

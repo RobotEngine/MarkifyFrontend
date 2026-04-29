@@ -1,6 +1,6 @@
 import { BaseAnnotation } from "../../Render";
 
-import { cleanString } from "../../../../crucial";
+import { cleanString } from "@/crucial";
 
 export class Annotation extends BaseAnnotation {
   CAN_ERASE = true;

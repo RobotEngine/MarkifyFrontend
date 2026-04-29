@@ -342,7 +342,7 @@ export class Render {
       if (annotation.loadComponent == null) {
         annotation.loadComponent = new Promise(async (resolve) => {
           annotation.component = await this.loadModule(render.f);
-          resolve();
+          resolve(annotation.component);
           delete annotation.loadComponent;
         });
       }

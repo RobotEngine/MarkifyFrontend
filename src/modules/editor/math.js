@@ -1,4 +1,4 @@
-export const distance = () => {
+export const distance = (ax, ay, bx, by) => {
   return ((ay - by) ** 2 + (ax - bx) ** 2) ** 0.5;
 }
 
@@ -46,7 +46,7 @@ export const lowPassFilter = (newPoint, prevPoint, alpha = 0.25) => {
   return [x, y];
 }
 
-export const perpendicularDistance = () => {
+export const perpendicularDistance = (point, lineStart, lineEnd) => {
   return Math.abs(
     (lineEnd[1] - lineStart[1]) * point[0] - (lineEnd[0] - lineStart[0]) * point[1] +
     lineEnd[0] * lineStart[1] - lineEnd[1] * lineStart[0]) /
@@ -103,7 +103,7 @@ export const rotatePointOrigin = (pointX, pointY, centerX, centerY, angle) => {
   ];
 }
 
-export const pointInRotatedBounds = () => {
+export const pointInRotatedBounds = (pointX, pointY, topLeftX, topLeftY, bottomRightX, bottomRightY, angle = 0, tolerance = 0) => {
   if (bottomRightX < topLeftX) {
     [topLeftX, bottomRightX] = [bottomRightX, topLeftX];
   }

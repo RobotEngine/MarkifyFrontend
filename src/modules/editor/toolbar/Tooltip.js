@@ -97,7 +97,7 @@ export class Tooltip {
     let barRect = this.tooltipText.parentElement.getBoundingClientRect();
     let buttonRect = this.tooltipElement.getBoundingClientRect();
 
-    this.tooltipText.style.left = (buttonRect.left - barRect.left) + (this.tooltipElement.clientWidth / 2) - (tooltipText.clientWidth / 2) + "px";
+    this.tooltipText.style.left = (buttonRect.left - barRect.left) + (this.tooltipElement.clientWidth / 2) - (this.tooltipText.clientWidth / 2) + "px";
 
     if (actionContainer == null) {
       if (this.tooltipText.parentElement.hasAttribute("tooltipbottom") == false) {

@@ -247,6 +247,11 @@ export class Editor {
       this.realtime.module.setShortSub(this.visibleChunks);
     }
   }
+  refreshRealtimeSelections(transition, cache) {
+    if (this.realtime.module != null) {
+      this.realtime.module.refreshRealtimeSelections(transition, cache);
+    }
+  }
   adjustRealtimeHolder() {
     if (this.realtime.module != null) {
       this.realtime.module.adjustRealtimeHolder();

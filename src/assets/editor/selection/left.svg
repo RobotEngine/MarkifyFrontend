@@ -1,0 +1,1 @@
+<svg class="eSelectHandle" handle="left" widthhandle width="12" height="28" rotation="135" viewBox="0 0 12 28" fill="none" xmlns="http://www.w3.org/2000/svg"> <path d="M6 6V22" stroke-width="12" stroke-linecap="round"/> <path d="M6 6V22" stroke="var(--theme)" stroke-width="4" stroke-linecap="round"/> </svg>

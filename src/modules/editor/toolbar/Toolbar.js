@@ -1,4 +1,4 @@
-import { sleep } from "../../../crucial";
+import { sleep } from "@/crucial";
 
 import { tools } from "./tools";
 
@@ -180,7 +180,7 @@ export class Toolbar {
       }
     }
     if (this.toolbar.currentToolModule != null && this.toolbar.currentMouseSVG != null) {
-      this.updateMouse(this.toolbar.currentToolModule.MOUSE ?? { type: "set" });
+      this.toolbar.updateMouse(this.toolbar.currentToolModule.MOUSE ?? { type: "set" });
     }
   }
 

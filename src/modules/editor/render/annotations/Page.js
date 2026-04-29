@@ -1,6 +1,6 @@
 import { BaseAnnotation } from "../../Render";
 
-import { cleanString } from "../../../../crucial";
+import { cleanString } from "@/crucial";
 
 import { textColorBackground } from "../../utils/text-color-background";
 import { contrastCheck } from "../../utils/contrast-check";

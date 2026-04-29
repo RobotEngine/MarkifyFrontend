@@ -122,17 +122,17 @@ export class Selection {
     let scrollTop = this.editor.contentHolder.scrollTop;
 
     let selections = Object.keys(this.editor.selecting);
-    if (this.currentToolModule != null) {
-      let setUserSelect = this.currentToolModule.USER_SELECT;
-      let setTouchAction = this.currentToolModule.TOUCH_ACTION;
+    if (this.toolbar.currentToolModule != null) {
+      let setUserSelect = this.toolbar.currentToolModule.USER_SELECT;
+      let setTouchAction = this.toolbar.currentToolModule.TOUCH_ACTION;
       if (selections.length > 0) {
         setUserSelect = "none";
         setTouchAction = "none";
         if (this.originalUserSelect === null) {
-          this.originalUserSelect = this.currentToolModule.USER_SELECT;
+          this.originalUserSelect = this.toolbar.currentToolModule.USER_SELECT;
         }
         if (this.originalTouchAction === null) {
-          this.originalTouchAction = this.currentToolModule.TOUCH_ACTION;
+          this.originalTouchAction = this.toolbar.currentToolModule.TOUCH_ACTION;
         }
         this.replaceCursorActive = true;
       } else if (this.replaceCursorActive == true) {
@@ -143,16 +143,16 @@ export class Selection {
         this.originalTouchAction = null;
       }
       let propertyChange = false;
-      if (setUserSelect != this.currentToolModule.USER_SELECT) {
-        this.currentToolModule.USER_SELECT = setUserSelect;
+      if (setUserSelect != this.toolbar.currentToolModule.USER_SELECT) {
+        this.toolbar.currentToolModule.USER_SELECT = setUserSelect;
         propertyChange = true;
       }
-      if (setTouchAction != this.currentToolModule.TOUCH_ACTION) {
-        this.currentToolModule.TOUCH_ACTION = setTouchAction;
+      if (setTouchAction != this.toolbar.currentToolModule.TOUCH_ACTION) {
+        this.toolbar.currentToolModule.TOUCH_ACTION = setTouchAction;
         propertyChange = true;
       }
       if (propertyChange == true) {
-        this.applyToolModule();
+        this.toolbar.applyToolModule();
       }
     }
     for (let i = 0; i < selections.length; i++) {

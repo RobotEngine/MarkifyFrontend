@@ -1,8 +1,8 @@
-import { Tool as PenTool } from "../Pen";
+import { Draw } from "../../Draw";
 
 import highlighterCursor from "@assets/editor/cursors/highlighter.svg?raw";
 
-export class Tool extends PenTool {
+export class Tool extends Draw {
   FUNCTION = "markup";
   STRAITEN_CHECK = true;
   REALTIME_TOOL = 1;

@@ -597,6 +597,13 @@ export class Module {
     return [saveTextData, saveAnnoData];
   }
 
+  getToolbar() {
+    if (this.toolbarHolder == null) {
+      return;
+    }
+    return this.toolbarHolder.querySelector(".eToolbar:not([hidden])");
+  }
+
   async js() {
     this.toolbarHolder = this.editor.page.querySelector("div[toolbarholder]") ?? this.editor.page;
 

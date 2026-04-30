@@ -100,20 +100,20 @@ export const tools = {
   },
   "shape": {
     html: `<div class="eVerticalToolsHolder eVerticalToolsShapeContainer">
-      <button class="eTool" tool="square" tooltip="Square" module="shape/shape"><div>${squareIcon}</div></button>
-      <button class="eTool" tool="ellipse" tooltip="Ellipse" module="shape/shape"><div>${ellipseIcon}</div></button>
-      <button class="eTool" tool="triangle" tooltip="Triangle" module="shape/shape"><div>${triangleIcon}</div></button>
-      <button class="eTool" tool="parallelogram" tooltip="Parallelogram" module="shape/shape"><div>${parallelogramIcon}</div></button>
-      <button class="eTool" tool="trapezoid" tooltip="Trapezoid" module="shape/shape"><div>${trapezoidIcon}</div></button>
-      <button class="eTool" tool="rhombus" tooltip="Rhombus" module="shape/shape"><div>${rhombusIcon}</div></button>
-      <button class="eTool" tool="oval" tooltip="Oval" module="shape/oval"><div>${ovalIcon}</div></button>
-      <button class="eTool" tool="arrow" tooltip="Arrow" module="shape/arrow"><div>${arrowIcon}</div></button>
-      <button class="eTool" tool="star" tooltip="Star" module="shape/star"><div>${starIcon}</div></button>
-      <button class="eTool" tool="plus" tooltip="Plus" module="shape/shape"><div>${plusIcon}</div></button>
-      <button class="eTool" tool="heart" tooltip="Heart" module="shape/shape"><div>${heartIcon}</div></button>
-      <button class="eTool" tool="speech" tooltip="Speech" module="shape/shape"><div>${speechIcon}</div></button>
-      <button class="eTool" tool="polygon" tooltip="Polygon" module="shape/polygon"><div>${polygonIcon}</div></button>
-      <button class="eTool" tool="line" tooltip="Line" module="shape/shape"><div>${lineIcon}</div></button>
+      <button class="eTool" tool="square" tooltip="Square" module="shapes/shape"><div>${squareIcon}</div></button>
+      <button class="eTool" tool="ellipse" tooltip="Ellipse" module="shapes/shape"><div>${ellipseIcon}</div></button>
+      <button class="eTool" tool="triangle" tooltip="Triangle" module="shapes/shape"><div>${triangleIcon}</div></button>
+      <button class="eTool" tool="parallelogram" tooltip="Parallelogram" module="shapes/shape"><div>${parallelogramIcon}</div></button>
+      <button class="eTool" tool="trapezoid" tooltip="Trapezoid" module="shapes/shape"><div>${trapezoidIcon}</div></button>
+      <button class="eTool" tool="rhombus" tooltip="Rhombus" module="shapes/shape"><div>${rhombusIcon}</div></button>
+      <button class="eTool" tool="oval" tooltip="Oval" module="shapes/oval"><div>${ovalIcon}</div></button>
+      <button class="eTool" tool="arrow" tooltip="Arrow" module="shapes/arrow"><div>${arrowIcon}</div></button>
+      <button class="eTool" tool="star" tooltip="Star" module="shapes/star"><div>${starIcon}</div></button>
+      <button class="eTool" tool="plus" tooltip="Plus" module="shapes/shape"><div>${plusIcon}</div></button>
+      <button class="eTool" tool="heart" tooltip="Heart" module="shapes/shape"><div>${heartIcon}</div></button>
+      <button class="eTool" tool="speech" tooltip="Speech" module="shapes/shape"><div>${speechIcon}</div></button>
+      <button class="eTool" tool="polygon" tooltip="Polygon" module="shapes/polygon"><div>${polygonIcon}</div></button>
+      <button class="eTool" tool="line" tooltip="Line" module="shapes/shape"><div>${lineIcon}</div></button>
     </div>`
   },
   "sticky": { id: "sticky", type: "tool", module: "sticky" },

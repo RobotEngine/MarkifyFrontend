@@ -48,8 +48,6 @@ export const week = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Fr
 
 export const supportedImageTypes = ["png", "jpeg", "jpg", "webp", "svg+xml", "tiff", "tif", "heic", "heif", "gif"];
 
-const pages = import.meta.glob("@modules/pages/**/*.js");
-
 export const head = document.head;
 export const body = document.body;
 export const app = body.querySelector(".app");
@@ -478,6 +476,7 @@ export const setFrame = async (modulePromise, frame, extra, parent) => {
   return module;
 }
 
+const pages = changeGlobalImports(import.meta.glob("@modules/pages/**/*.js"));
 export const setPage = async (path, extra) => {
   extra = extra ?? {};
   extra.path = path;

@@ -1,46 +1,46 @@
-import selectIcon from "@assets/editor/toolbar/select.svg?raw";
-import panIcon from "@assets/editor/toolbar/pan.svg?raw";
-import dragIcon from "@assets/editor/toolbar/drag.svg?raw";
+import selectIcon from "../icons/toolbar/select.svg?raw";
+import panIcon from "../icons/toolbar/pan.svg?raw";
+import dragIcon from "../icons/toolbar/drag.svg?raw";
 
-import drawIcon from "@assets/editor/toolbar/draw.svg?raw";
-import penIcon from "@assets/editor/toolbar/pen.svg?raw";
+import drawIcon from "../icons/toolbar/draw.svg?raw";
+import penIcon from "../icons/toolbar/pen.svg?raw";
 
-import markupIcon from "@assets/editor/toolbar/markup.svg?raw";
-import highlighterIcon from "@assets/editor/toolbar/highlighter.svg?raw";
-import understrikeIcon from "@assets/editor/toolbar/understrike.svg?raw";
+import markupIcon from "../icons/toolbar/markup.svg?raw";
+import highlighterIcon from "../icons/toolbar/highlighter.svg?raw";
+import understrikeIcon from "../icons/toolbar/understrike.svg?raw";
 
-import eraseIcon from "@assets/editor/toolbar/erase.svg?raw";
+import eraseIcon from "../icons/toolbar/erase.svg?raw";
 
-import textIcon from "@assets/editor/toolbar/text.svg?raw";
-import equationIcon from "@assets/editor/toolbar/equation.svg?raw";
+import textIcon from "../icons/toolbar/text.svg?raw";
+import equationIcon from "../icons/toolbar/equation.svg?raw";
 
-import shapeIcon from "@assets/editor/toolbar/shape.svg?raw";
-import squareIcon from "@assets/editor/toolbar/square.svg?raw";
-import ellipseIcon from "@assets/editor/toolbar/ellipse.svg?raw";
-import triangleIcon from "@assets/editor/toolbar/triangle.svg?raw";
-import parallelogramIcon from "@assets/editor/toolbar/parallelogram.svg?raw";
-import trapezoidIcon from "@assets/editor/toolbar/trapezoid.svg?raw";
-import rhombusIcon from "@assets/editor/toolbar/rhombus.svg?raw";
-import ovalIcon from "@assets/editor/toolbar/oval.svg?raw";
-import arrowIcon from "@assets/editor/toolbar/arrow.svg?raw";
-import starIcon from "@assets/editor/toolbar/star.svg?raw";
-import plusIcon from "@assets/editor/toolbar/plus.svg?raw";
-import heartIcon from "@assets/editor/toolbar/heart.svg?raw";
-import speechIcon from "@assets/editor/toolbar/speech.svg?raw";
-import polygonIcon from "@assets/editor/toolbar/polygon.svg?raw";
-import lineIcon from "@assets/editor/toolbar/line.svg?raw";
+import shapeIcon from "../icons/toolbar/shape.svg?raw";
+import squareIcon from "../icons/toolbar/square.svg?raw";
+import ellipseIcon from "../icons/toolbar/ellipse.svg?raw";
+import triangleIcon from "../icons/toolbar/triangle.svg?raw";
+import parallelogramIcon from "../icons/toolbar/parallelogram.svg?raw";
+import trapezoidIcon from "../icons/toolbar/trapezoid.svg?raw";
+import rhombusIcon from "../icons/toolbar/rhombus.svg?raw";
+import ovalIcon from "../icons/toolbar/oval.svg?raw";
+import arrowIcon from "../icons/toolbar/arrow.svg?raw";
+import starIcon from "../icons/toolbar/star.svg?raw";
+import plusIcon from "../icons/toolbar/plus.svg?raw";
+import heartIcon from "../icons/toolbar/heart.svg?raw";
+import speechIcon from "../icons/toolbar/speech.svg?raw";
+import polygonIcon from "../icons/toolbar/polygon.svg?raw";
+import lineIcon from "../icons/toolbar/line.svg?raw";
 
-import stickyIcon from "@assets/editor/toolbar/sticky.svg?raw";
+import stickyIcon from "../icons/toolbar/sticky.svg?raw";
 
-import commentIcon from "@assets/editor/toolbar/comment.svg?raw";
+import commentIcon from "../icons/toolbar/comment.svg?raw";
 
-import pageIcon from "@assets/editor/toolbar/page.svg?raw";
+import pageIcon from "../icons/toolbar/page.svg?raw";
 
-import mediaIcon from "@assets/editor/toolbar/media.svg?raw";
-import uploadIcon from "@assets/editor/toolbar/upload.svg?raw";
-import embedIcon from "@assets/editor/toolbar/embed.svg?raw";
+import mediaIcon from "../icons/toolbar/media.svg?raw";
+import uploadIcon from "../icons/toolbar/upload.svg?raw";
+import embedIcon from "../icons/toolbar/embed.svg?raw";
 
-import raisehandIcon from "@assets/editor/toolbar/raisehand.svg?raw";
+import raisehandIcon from "../icons/toolbar/raisehand.svg?raw";
 
 export const toolbars = {
   editor: `<div class="eToolbarContent eVerticalToolsHolder hideScroll">

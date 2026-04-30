@@ -2,7 +2,7 @@ import { BaseAnnotation } from "../../Render";
 
 import { cleanString } from "@/crucial";
 
-import linkIcon from "@assets/editor/actions/link.svg?raw";
+import linkIcon from "../../icons/actions/link.svg?raw";
 
 export class Annotation extends BaseAnnotation {
   ACTION_BAR_TOOLS = ["openlink", "enlarge", "setembed", "unlock", "delete"];

@@ -22,7 +22,7 @@ import appIcon from "@assets/account/app.svg?raw";
 import reportIcon from "@assets/account/report.svg?raw";
 import exclamationIcon from "@assets/account/exclamation.svg?raw";
 import questionIcon from "@assets/account/question.svg?raw";
-import sendIcon from "@assets/editor/actions/send.svg?raw";
+import sendIcon from "../editor/icons/actions/send.svg?raw";
 
 export class Frame {
   html = `

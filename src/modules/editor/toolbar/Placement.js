@@ -1,6 +1,6 @@
 import { round, pointInRotatedBounds } from "../math";
 
-import insertCursor from "@assets/editor/cursors/insert.svg?raw";
+import insertCursor from "../icons/cursors/insert.svg?raw";
 
 export class Placement {
   PROPERTIES = {};

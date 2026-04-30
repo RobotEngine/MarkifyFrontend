@@ -1,6 +1,6 @@
 import { round, pointInRotatedBounds } from "../math";
 
-import insertCursor from "@assets/editor/cursors/insert.svg?raw";
+import insertCursor from "../icons/cursors/insert.svg?raw";
 
 export class ResizePlacement {
   ACTIVE = true;
@@ -46,6 +46,9 @@ export class ResizePlacement {
       this.startY = null;
       this.width = this.width ?? this.annotation.render.s[0];
       this.height = this.height ?? this.annotation.render.s[1];
+    }
+    if (this.annotationPreview == null) {
+      this.annotationPreview = { ...this.annotation };
     }
     if (event != null) {
       let { mouseX, mouseY } = this.editor.utils.localMousePosition(event);
@@ -130,8 +133,8 @@ export class ResizePlacement {
       let topAnnotation = viableAnnotations.sort((a, b) => { return (b.l ?? b.sync ?? minLayer) - (a.l ?? a.sync ?? minLayer); })[0] ?? { l: minLayer };
       this.annotation.render.l = (topAnnotation.l ?? topAnnotation.sync ?? minLayer) + 1;
     }
-    this.annotation.render = { ...this.annotation.render, ...this.RENDER_INSERT };
-    await this.editor.render.create(this.annotation);
+    this.annotationPreview.render = { ...this.annotation.render, ...this.RENDER_INSERT };
+    await this.editor.render.create(this.annotationPreview);
     this.editor.selecting["cursor"] = this.annotation.render;
   }
   scroll() {
@@ -162,5 +165,6 @@ export class ResizePlacement {
     }
     this.editor.render.remove(this.annotation);
     this.annotation = null;
+    this.annotationPreview = null;
   }
 }

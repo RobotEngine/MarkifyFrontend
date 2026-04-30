@@ -33,8 +33,10 @@ export class SideMenu {
 
     let contentHolder = this.frame.querySelector(".eSideMenuContent");
     let newModule = await this.editor.setFrame(template, contentHolder, { ...extra, construct: { editor: this.editor, toolbar: this.toolbar }, hideLoading: true });
-    contentHolder.style.padding = (newModule.padding ?? 6) + "px";
-    this.frame.querySelector(".eSideMenuHeaderTitle").innerHTML = extra.title ?? newModule.title ?? "";
+    if (newModule != null) {
+      contentHolder.style.padding = (newModule.padding ?? 6) + "px";
+      this.frame.querySelector(".eSideMenuHeaderTitle").innerHTML = extra.title ?? newModule.title ?? "";
+    }
 
     this.frame.offsetHeight;
     this.frame.style.zIndex = "4";

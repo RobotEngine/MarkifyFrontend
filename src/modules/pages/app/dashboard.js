@@ -30,7 +30,7 @@ import { close, trash } from "@modules/utility/core-icons";
 import boardIcon from "@assets/icon.svg?raw";
 import breakoutIcon from "@assets/breakout.svg?raw";
 import exclamation from "@assets/account/exclamation.svg?raw";
-import share from "@assets/editor/actions/send.svg?raw";
+import share from "../../editor/icons/actions/send.svg?raw";
 
 export class Page extends PageFrame {
   title = "Dashboard";

@@ -2,7 +2,7 @@ import { mouseDown, sleep, copyObject } from "@/crucial";
 
 import { rotatedBounds } from "../../../math";
 
-import dragCursor from "@assets/editor/cursors/cursor.svg?raw";
+import dragCursor from "../../../icons/cursors/cursor.svg?raw";
 
 export class Tool {
   USER_SELECT = "none";

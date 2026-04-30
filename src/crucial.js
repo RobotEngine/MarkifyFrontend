@@ -58,7 +58,6 @@ export const stylesheet = document.querySelector("style").sheet;
 export const favicon = document.querySelector('link[rel="icon"]');
 
 export const loadingAnim = app.innerHTML;
-app.querySelector(".loading[new]").setAttribute("appload", "");
 
 export let currentPage = "";
 let currentPageLoadId;

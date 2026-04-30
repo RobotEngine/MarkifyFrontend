@@ -1,6 +1,6 @@
 import { Draw } from "../../Draw";
 
-import highlighterCursor from "@assets/editor/cursors/highlighter.svg?raw";
+import highlighterCursor from "../../../icons/cursors/highlighter.svg?raw";
 
 export class Tool extends Draw {
   FUNCTION = "markup";

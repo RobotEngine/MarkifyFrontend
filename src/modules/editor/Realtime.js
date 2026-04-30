@@ -14,11 +14,11 @@ import { alert as alertModule } from "../utility/Alert";
 import { textColorBackground } from "./utils/text-color-background";
 import { hexToRGBString } from "./utils/hex-to-rgb-string";
 
-import highlighter from "@assets/editor/cursors/highlighter.svg?raw";
-import pen from "@assets/editor/cursors/pen.svg?raw";
-import eraser from "@assets/editor/cursors/eraser.svg?raw";
-import insert from "@assets/editor/cursors/insert.svg?raw";
-import comment from "@assets/editor/cursors/comment.svg?raw";
+import highlighter from "./icons/cursors/highlighter.svg?raw";
+import pen from "./icons/cursors/pen.svg?raw";
+import eraser from "./icons/cursors/eraser.svg?raw";
+import insert from "./icons/cursors/insert.svg?raw";
+import comment from "./icons/cursors/comment.svg?raw";
 
 export class Module {
   constructor(editor) {

@@ -7,9 +7,9 @@ import { hexToRGBString } from "./utils/hex-to-rgb-string";
 const toolModules = changeGlobalImports(import.meta.glob("./toolbar/tools/**/*.js"));
 const toolModulePath = "./toolbar/tools/";
 
-import moveCursorIcon from "@assets/editor/cursors/move.svg?raw";
-import resizeCursorIcon from "@assets/editor/cursors/resize.svg?raw";
-import rotateCursorIcon from "@assets/editor/cursors/rotate.svg?raw";
+import moveCursorIcon from "./icons/cursors/move.svg?raw";
+import resizeCursorIcon from "./icons/cursors/resize.svg?raw";
+import rotateCursorIcon from "./icons/cursors/rotate.svg?raw";
 
 import { Tooltip } from "./toolbar/Tooltip";
 import { SideMenu } from "./toolbar/SideMenu";
@@ -694,7 +694,11 @@ export class Module {
       this.pushToolEvent("clickEnd", data.event);
     }, { sort: 1 });
     this.editor.pipeline.subscribe("toolbarMouse", "click", (data) => {
-      this.pushToolEvent("click", data.event);
+      let event = data.event;
+      this.pushToolEvent("click", event);
+      if ((event ?? {}).target != null && event.target.closest(".eToolbar") != null) {
+        this.pushToolEvent("toolbar_click", data.event);
+      }
     }, { sort: 1 });
     this.editor.pipeline.subscribe("toolbarMouse", "touchstart", (data) => {
       this.pushToolEvent("touchstart", data.event);

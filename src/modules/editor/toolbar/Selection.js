@@ -2,25 +2,25 @@ import { account, mouseDown, sleep, sendRequest, copyObject, getObject } from "@
 
 import { rotatedBounds, rotatePoint, rotatePointOrigin, round, pointInRotatedBounds } from "../math";
 
-import { dropdown as dropdownModule } from "../../utility/Dropdown";
+import { dropdown as dropdownModule } from "@modules/utility/Dropdown";
 
-import topLeftSelectHandle from "@assets/editor/selection/topleft.svg?raw";
-import topRightSelectHandle from "@assets/editor/selection/topright.svg?raw";
-import bottomLeftSelectHandle from "@assets/editor/selection/bottomleft.svg?raw";
-import bottomRightSelectHandle from "@assets/editor/selection/bottomright.svg?raw";
-import leftSelectHandle from "@assets/editor/selection/left.svg?raw";
-import rightSelectHandle from "@assets/editor/selection/right.svg?raw";
-import topSelectHandle from "@assets/editor/selection/top.svg?raw";
-import bottomSelectHandle from "@assets/editor/selection/bottom.svg?raw";
-import rotateSelectHandle from "@assets/editor/selection/rotate.svg?raw";
-import duplicateLeftSelectHandle from "@assets/editor/selection/duplicateleft.svg?raw";
-import duplicateRightSelectHandle from "@assets/editor/selection/duplicateright.svg?raw";
-import duplicateTopSelectHandle from "@assets/editor/selection/duplicatetop.svg?raw";
-import duplicateBottomSelectHandle from "@assets/editor/selection/duplicatebottom.svg?raw";
+import topLeftSelectHandle from "../icons/selection/topleft.svg?raw";
+import topRightSelectHandle from "../icons/selection/topright.svg?raw";
+import bottomLeftSelectHandle from "../icons/selection/bottomleft.svg?raw";
+import bottomRightSelectHandle from "../icons/selection/bottomright.svg?raw";
+import leftSelectHandle from "../icons/selection/left.svg?raw";
+import rightSelectHandle from "../icons/selection/right.svg?raw";
+import topSelectHandle from "../icons/selection/top.svg?raw";
+import bottomSelectHandle from "../icons/selection/bottom.svg?raw";
+import rotateSelectHandle from "../icons/selection/rotate.svg?raw";
+import duplicateLeftSelectHandle from "../icons/selection/duplicateleft.svg?raw";
+import duplicateRightSelectHandle from "../icons/selection/duplicateright.svg?raw";
+import duplicateTopSelectHandle from "../icons/selection/duplicatetop.svg?raw";
+import duplicateBottomSelectHandle from "../icons/selection/duplicatebottom.svg?raw";
 
-import moveCursorIcon from "@assets/editor/cursors/move.svg?raw";
-import resizeCursorIcon from "@assets/editor/cursors/resize.svg?raw";
-import rotateCursorIcon from "@assets/editor/cursors/rotate.svg?raw";
+import moveCursorIcon from "../icons/cursors/move.svg?raw";
+import resizeCursorIcon from "../icons/cursors/resize.svg?raw";
+import rotateCursorIcon from "../icons/cursors/rotate.svg?raw";
 
 export class Selection {
   constructor(toolbar) {

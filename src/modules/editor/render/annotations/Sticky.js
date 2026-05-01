@@ -149,7 +149,7 @@ export class Annotation extends BaseAnnotation {
                 let emojiModule = await EMOJIS();
                 if (emojiModule != null) {
                   this.editor.render.emojiModule = emojiModule;
-                  this.editor.render.emojiDictionary = getObject(emojiModule.emojis, "name");
+                  this.editor.render.emojiDictionary = getObject(await emojiModule.emojis, "name");
                 }
                 this.editor.render.loadingEmojis = false;
               } else {

@@ -266,12 +266,19 @@ export class Module {
       this.editor.annotationHolder.setAttribute("pointereventsdisabled", "");
     }
   }
-  async loadModule(path) {
-    let moduleLoadFunction = toolModules[toolModulePath + this.currentToolModulePath + ".js"];
+  async getModule(path) {
+    let moduleLoadFunction = toolModules[toolModulePath + path + ".js"];
     if (moduleLoadFunction == null) {
       return;
     }
-    return await this.editor.newModule((await moduleLoadFunction()).Tool);
+    return (await moduleLoadFunction()).Tool;
+  }
+  async loadModule(path) {
+    let module = await this.getModule(path ?? this.currentToolModulePath);
+    if (module == null) {
+      return;
+    }
+    return await this.editor.newModule(module);
   }
   async activateTool(extra, options = {}) {
     //this.editor.pinchZoomDisable = false;
@@ -378,7 +385,7 @@ export class Module {
       ...(this.editor.selecting[annoID] ?? {})
     };
   }
-  getAnnotationPreference() {
+  getAnnotationPreference(returnMissing) {
     let result = this.editor.preferences.tools[this.getPreferenceTool().f];
     if (returnMissing == true) {
       return result;

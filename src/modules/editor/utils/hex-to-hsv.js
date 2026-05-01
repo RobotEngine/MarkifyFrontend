@@ -1,6 +1,6 @@
 import { hexToHSL } from "./hex-to-hsl";
 
-export const hexToHSV = () => {
+export const hexToHSV = (hex) => {
   let [h, s, l] = hexToHSL(hex);
   let x = s * (l < 50 ? l : 100 - l);
   let b = l + (x / 100);

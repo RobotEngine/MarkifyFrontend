@@ -970,7 +970,7 @@ export class Selection {
     }
 
     await this.updateActionBar();
-    this.tooltip.update();
+    this.toolbar.tooltip.update();
     
     let containerFrame = this.actionFrame.querySelector(".eActionContainer");
     if (this.actionFrame.hasAttribute("top") == true) {

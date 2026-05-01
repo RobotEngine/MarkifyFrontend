@@ -153,7 +153,7 @@ export class Toolbar {
   }
 
   async updateButtons(contentHolder) {
-    let gottenTools = contentHolder.querySelectorAll(".eTool");
+    let gottenTools = (contentHolder ?? this.toolbar.getToolbar()).querySelectorAll(".eTool");
     for (let i = 0; i < gottenTools.length; i++) {
       let tool = gottenTools[i];
       let div = tool.querySelector("div");
@@ -172,6 +172,7 @@ export class Toolbar {
       } else if (tool.hasAttribute("module") == true) {
         let newModule = await this.toolbar.loadModule(tool.getAttribute("module"));
         if (newModule != null) {
+          newModule.toolbar = this.toolbar;
           newModule.editor = this.editor;
           if (newModule.setToolbarButton != null) {
             newModule.setToolbarButton(div);
@@ -184,8 +185,8 @@ export class Toolbar {
     }
   }
 
-  async createSubSub(moduleName) {
-    if (this.toolbar.currentSubToolButton == null || moduleName == null) {
+  async createSubSub(modulePath) {
+    if (this.toolbar.currentSubToolButton == null || modulePath == null) {
       return;
     }
     let toolbar = this.toolbar.currentSubToolButton.closest(".eSubToolContainer");
@@ -207,7 +208,11 @@ export class Toolbar {
     } else {
       contentContainer.style.transform = "translateX(100%)";
     }
-    this.toolbar.applyToolModule(await this.toolbar.setFrame(moduleName, this.toolbar.subSubToolbar.querySelector(".eSubToolContent"), { construct: { editor: this.editor, toolbar: this, isToolbar: true } }));
+    this.toolbar.applyToolModule(await this.toolbar.setFrame(
+      this.toolbar.getModule(modulePath),
+      this.toolbar.subSubToolbar.querySelector(".eSubToolContent"),
+      { construct: { editor: this.editor, toolbar: this.toolbar, isToolbar: true } }
+    ));
   }
   closeSubSub(update) {
     if (this.toolbar.subSubToolbar == null) {
@@ -271,7 +276,11 @@ export class Toolbar {
 
     let contentHolder = this.toolbar.subToolbar.querySelector(".eSubToolContent");
     if (toolData.frame != null) {
-      await this.toolbar.setFrame(toolData.frame, contentHolder, { construct: { editor: this.editor, toolbar: this, isToolbar: true } });
+      await this.toolbar.setFrame(
+        this.toolbar.getModule(toolData.frame),
+        contentHolder,
+        { construct: { editor: this.editor, toolbar: this.toolbar, isToolbar: true } }
+      );
     } else if (toolData.html != null) {
       contentHolder.innerHTML = toolData.html;
     }

@@ -76,9 +76,9 @@ export const tools = {
     html: `<div class="eVerticalToolsHolder">
       <button class="eTool" tool="pen" tooltip="Pen" module="pen"><div>${penIcon}</div></button>
       <div class="eDivider"></div>
-      <button class="eTool" option="color" tooltip="Color" module="editor/toolbar/color"><div></div></button>
-      <button class="eTool" option="thickness" tooltip="Thickness" module="editor/toolbar/thickness"><div></div></button>
-      <button class="eTool" option="opacity" tooltip="Opacity" module="editor/toolbar/opacity"><div></div></button>
+      <button class="eTool" option="color" tooltip="Color" module="color"><div></div></button>
+      <button class="eTool" option="thickness" tooltip="Thickness" module="thickness"><div></div></button>
+      <button class="eTool" option="opacity" tooltip="Opacity" module="opacity"><div></div></button>
     </div>`
   },
   "markup": {
@@ -86,9 +86,9 @@ export const tools = {
       <button class="eTool" tool="highlighter" tooltip="Highlighter" module="markup/highlighter"><div>${highlighterIcon}</div></button>
       <button class="eTool" tool="understrike" tooltip="Underline" module="markup/understrike"><div>${understrikeIcon}</div></button>
       <div class="eDivider"></div>
-      <button class="eTool" option="color" tooltip="Color" module="editor/toolbar/color"><div></div></button>
-      <button class="eTool" option="thickness" tooltip="Thickness" module="editor/toolbar/thickness"><div></div></button>
-      <button class="eTool" option="opacity" tooltip="Opacity" module="editor/toolbar/opacity"><div></div></button>
+      <button class="eTool" option="color" tooltip="Color" module="color"><div></div></button>
+      <button class="eTool" option="thickness" tooltip="Thickness" module="thickness"><div></div></button>
+      <button class="eTool" option="opacity" tooltip="Opacity" module="opacity"><div></div></button>
     </div>`
   },
   "erase": { id: "erase", type: "tool", module: "eraser" },

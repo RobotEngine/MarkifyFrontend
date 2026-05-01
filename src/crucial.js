@@ -623,7 +623,7 @@ export const getObject = (arr, field) => {
   return returnObj;
 }
 
-let clientPosition = (event, type) => {
+export const clientPosition = (event, type) => {
   switch (type) {
     case "x":
       return Math.floor(event.clientX ?? ((event.changedTouches ?? [])[0] ?? {}).clientX ?? 0);

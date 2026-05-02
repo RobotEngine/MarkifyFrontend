@@ -606,9 +606,12 @@ export class Module {
         
         let cursorHolder = member.elements.cursor;
         if (cursorHolder == null) {
-          this.editor.realtimeHolder.insertAdjacentHTML("beforeend", `<div class="eCursor" member="${memberID}" scale notransition new></div>`);
-          cursorHolder = this.editor.realtimeHolder.querySelector('.eCursor[member="' + memberID + '"][new]');
-          cursorHolder.removeAttribute("new");
+          cursorHolder = document.createElement("div");
+          cursorHolder.className = "eCursor";
+          cursorHolder.setAttribute("member", memberID);
+          cursorHolder.setAttribute("scale", "");
+          cursorHolder.setAttribute("notransition", "");
+          this.editor.realtimeHolder.appendChild(cursorHolder);
           member.elements.cursor = cursorHolder;
           cursorHolder.offsetHeight;
           cursorHolder.style.opacity = 1;

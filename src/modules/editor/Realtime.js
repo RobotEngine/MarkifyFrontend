@@ -483,16 +483,19 @@ export class Module {
     if (this.editor.realtime.observing == memberID) {
       this.exitObserve();
     }
-    if (member == null || member.elements == null) {
+    if (member == null) {
       return;
     }
-    let memberElements = [];
-    let elementKeys = Object.keys(member.elements);
-    for (let i = 0; i < elementKeys.length; i++) {
-      let key = elementKeys[i];
-      memberElements.push(member.elements[key]);
-      delete member.elements[key];
+    
+    clearTimeout(member.timeout);
+
+    if (member.elements == null) {
+      return;
     }
+
+    let memberElements = Object.values(member.elements);
+    member.elements = {};
+
     (async () => {
       for (let i = 0; i < memberElements.length; i++) {
         let elem = memberElements[i];
@@ -508,6 +511,7 @@ export class Module {
         }
       }
     })();
+
     if (member.activeAnno != null) {
       member.activeAnno.remove();
       delete member.activeAnno;
@@ -596,12 +600,15 @@ export class Module {
           }
           return this.removeRealtime(memberID);
         }
-        clearInterval(member.interval);
-        member.interval = setInterval(() => { this.removeRealtime(memberID); }, 120000); // Remove realtime member elements if inactive for 2 minutes
+
+        clearTimeout(member.timeout);
+        member.timeout = setTimeout(() => { this.removeRealtime(memberID); }, 120000); // Remove realtime member elements if inactive for 2 minutes
+        
         let cursorHolder = member.elements.cursor;
         if (cursorHolder == null) {
-          this.editor.realtimeHolder.insertAdjacentHTML("beforeend", `<div class="eCursor" member="${memberID}" scale notransition></div>`);
-          cursorHolder = this.editor.realtimeHolder.querySelector('.eCursor[member="' + memberID + '"]');
+          this.editor.realtimeHolder.insertAdjacentHTML("beforeend", `<div class="eCursor" member="${memberID}" scale notransition new></div>`);
+          cursorHolder = this.editor.realtimeHolder.querySelector('.eCursor[member="' + memberID + '"][new]');
+          cursorHolder.removeAttribute("new");
           member.elements.cursor = cursorHolder;
           cursorHolder.offsetHeight;
           cursorHolder.style.opacity = 1;
@@ -626,64 +633,62 @@ export class Module {
           cursorHolder.setAttribute("hidden", "");
           cursorHolder.style.transform = "translate(" + (member.x + (parseInt(cursorHolder.getAttribute("offsetx") ?? "0")) + this.editor.contentHolder.scrollLeft) + "px," + (member.y + (parseInt(cursorHolder.getAttribute("offsety") ?? "0")) + this.editor.contentHolder.scrollTop) + "px) scale(0)";
           cursorHolder.setAttribute("mode", tool);
-          (async () => {
-            let html = "";
-            let offsetx = 0;
-            let offsety = 0;
-            let origin = "top left";
-            switch (tool) {
-              case 0: // Normal cursor:
-                html = `<div class="pointer" color><div name></div></div>`;
-                break;
-              case 1: // Highlighter 
-                html = `${highlighter}<div class="pointer" color none><div name></div></div>`;
-                offsetx = -15;
-                offsety = -30;
-                origin = "bottom center";
-                break;
-              case 2: // Pen 
-                html = `${pen}<div class="pointer" color none><div name></div></div>`;
-                offsetx = -15;
-                offsety = -30;
-                origin = "bottom center";
-                break;
-              case 3: // Eraser
-                html = `${eraser}<div class="pointer" color none><div name></div></div>`;
-                offsetx = -20;
-                offsety = -20;
-                origin = "center center";
-                break;
-              case 4: // Insert
-                html = `${insert}<div class="pointer" color none><div name></div></div>`;
-                offsetx = -20;
-                offsety = -20;
-                origin = "center center";
-                break;
-              case 5: // Comment
-                html = `${comment}<div class="pointer" color none><div name></div></div>`;
-                offsetx = -12;
-                offsety = -32;
-                origin = "center center";
-            }
-            cursorHolder.innerHTML = html;
-            cursorHolder.setAttribute("offsetx", offsetx);
-            cursorHolder.setAttribute("offsety", offsety);
-            cursorHolder.style.setProperty("--origin", origin);
-            cursorHolder.querySelector("[name]").textContent = memberData.name;
-            let setTextColor = textColorBackground(memberData.color);
-            cursorHolder.style.color = setTextColor;
-            if (setTextColor == "#000") {
-              cursorHolder.style.setProperty("--textColor", "#000");
-            }
-            cursorHolder.style.setProperty("--themeColor", memberData.color);
-            let colorMain = cursorHolder.querySelector("[color]");
-            colorMain.style.width = "fit-content";
-            cursorHolder.style.setProperty("--fullyExtended", colorMain.clientWidth + "px");
-            colorMain.style.removeProperty("width");
-            cursorHolder.style.transform = "translate(" + (member.x + (parseInt(cursorHolder.getAttribute("offsetx") ?? "0")) + this.editor.contentHolder.scrollLeft) + "px," + (member.y + (parseInt(cursorHolder.getAttribute("offsety") ?? "0")) + this.editor.contentHolder.scrollTop) + "px)";
-            cursorHolder.removeAttribute("notransition");
-            cursorHolder.removeAttribute("hidden");
-          })();
+          let html = "";
+          let offsetx = 0;
+          let offsety = 0;
+          let origin = "top left";
+          switch (tool) {
+            case 0: // Normal cursor:
+              html = `<div class="pointer" color><div name></div></div>`;
+              break;
+            case 1: // Highlighter 
+              html = `${highlighter}<div class="pointer" color none><div name></div></div>`;
+              offsetx = -15;
+              offsety = -30;
+              origin = "bottom center";
+              break;
+            case 2: // Pen 
+              html = `${pen}<div class="pointer" color none><div name></div></div>`;
+              offsetx = -15;
+              offsety = -30;
+              origin = "bottom center";
+              break;
+            case 3: // Eraser
+              html = `${eraser}<div class="pointer" color none><div name></div></div>`;
+              offsetx = -20;
+              offsety = -20;
+              origin = "center center";
+              break;
+            case 4: // Insert
+              html = `${insert}<div class="pointer" color none><div name></div></div>`;
+              offsetx = -20;
+              offsety = -20;
+              origin = "center center";
+              break;
+            case 5: // Comment
+              html = `${comment}<div class="pointer" color none><div name></div></div>`;
+              offsetx = -12;
+              offsety = -32;
+              origin = "center center";
+          }
+          cursorHolder.innerHTML = html;
+          cursorHolder.setAttribute("offsetx", offsetx);
+          cursorHolder.setAttribute("offsety", offsety);
+          cursorHolder.style.setProperty("--origin", origin);
+          cursorHolder.querySelector("[name]").textContent = memberData.name;
+          let setTextColor = textColorBackground(memberData.color);
+          cursorHolder.style.color = setTextColor;
+          if (setTextColor == "#000") {
+            cursorHolder.style.setProperty("--textColor", "#000");
+          }
+          cursorHolder.style.setProperty("--themeColor", memberData.color);
+          let colorMain = cursorHolder.querySelector("[color]");
+          colorMain.style.width = "fit-content";
+          cursorHolder.style.setProperty("--fullyExtended", colorMain.clientWidth + "px");
+          colorMain.style.removeProperty("width");
+          cursorHolder.style.transform = "translate(" + (member.x + (parseInt(cursorHolder.getAttribute("offsetx") ?? "0")) + this.editor.contentHolder.scrollLeft) + "px," + (member.y + (parseInt(cursorHolder.getAttribute("offsety") ?? "0")) + this.editor.contentHolder.scrollTop) + "px)";
+          cursorHolder.removeAttribute("notransition");
+          cursorHolder.removeAttribute("hidden");
         } else {
           cursorHolder.style.transform = "translate(" + (member.x + (parseInt(cursorHolder.getAttribute("offsetx") ?? "0")) + this.editor.contentHolder.scrollLeft) + "px," + (member.y + (parseInt(cursorHolder.getAttribute("offsety") ?? "0")) + this.editor.contentHolder.scrollTop) + "px)";
         }

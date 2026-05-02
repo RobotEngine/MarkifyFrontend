@@ -2447,7 +2447,6 @@ export class Selection {
       }
       let originalRender = original.render ?? {};
 
-      //delete selecting.done;
       delete selecting.resizing;
 
       let pushFields = { p: originalRender.p, r: originalRender.r };
@@ -2462,7 +2461,6 @@ export class Selection {
               pushChanges.push(copyObject({
                 ...pushFields,
                 parent: pushFields.parent ?? originalRender.parent ?? null,
-                //parent: pushFields.parent,
                 p: pushFields.p,
                 r: pushFields.r,
                 _id: annoid

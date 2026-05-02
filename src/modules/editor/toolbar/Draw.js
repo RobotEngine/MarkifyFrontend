@@ -252,7 +252,11 @@ export class Draw {
     if (this.annotation == null) {
       return;
     }
-    let annotationRender = this.annotation.render;
+
+    let annotationRender = { ...this.annotation.render };
+
+    this.annotation.render.done = true; // Ensure it doesn't send a cancel realtime event!
+    this.disable();
 
     annotationRender.d = simplifyPath(annotationRender.d, 1 / (2.5 * Math.pow(Math.E, .5 * this.editor.zoom))); //.5 / this.editor.zoom
     if (this.STRAITEN_CHECK == true) {
@@ -306,12 +310,9 @@ export class Draw {
 
     await this.editor.save.push(annotationRender);
     await this.editor.history.push("remove", [{ _id: annotationRender._id }]);
-
-    annotationRender.done = true;
-    this.editor.realtimeSelect[annotationRender._id] = annotationRender;
-    await this.editor.realtime.forceShort();
     
-    this.disable();
+    this.editor.realtimeSelect[annotationRender._id] = { ...annotationRender, done: true };
+    await this.editor.realtime.forceShort();
   }
   touchstart(event) { // Added due to Safari
     if (this.graceful == true) {

@@ -24,7 +24,7 @@ export class Frame {
     ".eEmojiSectionHolder": `margin-top: 8px`,
     ".eEmojiSection": `display: block; margin-bottom: 8px`,
     ".eEmojiSectionTitle": `position: sticky; width: calc(100% - 16px); padding: 4px 8px; top: 0px; background: rgba(var(--background), .7); backdrop-filter: blur(4px); z-index: 2; text-align: left; font-weight: 600; font-size: 18px`,
-    ".eEmojiSectionTiles": `display: flex; flex-wrap: wrap; width: 248px; max-width: calc(100% - 16px); padding: 4px 8px; gap: 4px`,
+    ".eEmojiSectionTiles": `display: flex; flex-wrap: wrap; width: 248px; max-width: calc(100% - 16px); padding: 0 8px; gap: 4px`,
     ".eEmojiSectionTiles button": `display: none; width: 32px; height: 32px; justify-content: center; align-items: center; border-radius: 8px`,
     ".eEmojiSectionTiles button[shown]": `display: flex`,
     ".eEmojiSectionTiles button:hover": `background: var(--hover)`,

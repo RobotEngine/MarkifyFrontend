@@ -701,10 +701,9 @@ export class BaseAnnotation {
     let element = this.getElement();
     this.element = null;
     this.cache = {};
-    if (element == null) {
-      return;
+    if (element != null) {
+      element.remove();
     }
-    element.remove();
     this.parent.pipeline.unsubscribe("annotation_" + (this.cache.originalID ?? this.properties._id));
   }
 

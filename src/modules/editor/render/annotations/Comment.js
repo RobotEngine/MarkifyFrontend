@@ -2,6 +2,8 @@ import { BaseAnnotation } from "../../Render";
 
 import { objectEqual, timeSince } from "@/crucial";
 
+import { Tool as CommentTool } from "../../toolbar/tools/Comment";
+
 export class Annotation extends BaseAnnotation {
   DISABLE_SNAPPING = true;
   CAN_BE_SNAPPED_TO = false;
@@ -20,16 +22,17 @@ export class Annotation extends BaseAnnotation {
     if (this.annotation == null) {
       return;
     }
-    this.commentModule = await this.editor.newModule("editor/toolbar/comment");
+    this.commentModule = await this.editor.newModule(CommentTool);
     if (this.commentModule == null) {
       return;
     }
     this.commentModule.editor = this.editor;
     this.commentModule.toolbar = this.editor.toolbar;
-    await this.commentModule.openCommentFrame(this.annotation, Object.values(this.commentThreads).sort((a, b) => { return (a.time ?? a.sync) - (b.time ?? b.sync); }));
-    this.subscribe("bounds_change", this.commentModule.updateCommentFrame);
+    await this.commentModule.openCommentFrame(this.annotation, Object.values(this.commentThreads).sort((a, b) => {
+      return (a.time ?? a.sync) - (b.time ?? b.sync);
+    }));
+    this.subscribe("bounds_change", () => { this.commentModule.updateCommentFrame(); });
     this.editor.pipeline.publish("comment_select_start", this.properties);
-    //this.subscribe("click_move", this.commentModule.updateCommentFrame);
   }
   SELECTION_END() {
     if (this.commentModule == null) {
@@ -38,7 +41,6 @@ export class Annotation extends BaseAnnotation {
     this.commentModule.closeCommentFrame();
     this.commentModule = null;
     this.unsubscribe("bounds_change");
-    //this.unsubscribe("click_move");
     this.editor.pipeline.publish("comment_select_end", this.properties);
     if (this.properties.resolved == true) {
       return this.remove();
@@ -154,18 +156,6 @@ export class Annotation extends BaseAnnotation {
 
     let comment = this.element.querySelector("div[commentholder] > div[comment]");
     let content = comment.querySelector("div[content]");
-    /*let richText = this.properties.d ?? {};
-    let setHTML = "";
-    for (let i = 0; i < (richText.b ?? []).length; i++) {
-      let addHTML = "";
-      if (richText.b[i] != "\n") {
-        addHTML = "<div>" + cleanString(richText.b[i]) + "</div>";
-      } else {
-        addHTML = "<br>";
-      }
-      setHTML += addHTML;
-    }
-    content.querySelector("div[text]").innerHTML = setHTML;*/
 
     this.replyCount = content.querySelector("div[replycount");
 
@@ -262,10 +252,10 @@ export class Annotation extends BaseAnnotation {
     let element = this.getElement();
     this.element = null;
     this.cache = {};
-    if (element == null) {
-      return;
+    this.quill = null; // Remove Quill because of resolving comments not really discarding the annotation.
+    if (element != null) {
+      element.remove();
     }
-    element.remove();
     this.editor.pipeline.unsubscribe("annotation_" + (this.cache.originalID ?? this.properties._id));
   }
 }

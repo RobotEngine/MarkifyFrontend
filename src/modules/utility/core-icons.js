@@ -4,6 +4,7 @@ import alerts from "@assets/alerts.svg?raw";
 import trash from "@assets/delete.svg?raw";
 import more from "@assets/more.svg?raw";
 import search from "@assets/search.svg?raw";
+import copy from "@assets/copy.svg?raw";
 
 export {
   close,
@@ -11,5 +12,6 @@ export {
   alerts,
   trash,
   more,
-  search
+  search,
+  copy
 };

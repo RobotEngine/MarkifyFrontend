@@ -1,4 +1,5 @@
 import {
+  changeGlobalImports,
   PageFrame,
   fixed,
   favicon,
@@ -28,7 +29,7 @@ import { alert as alertModule } from "@modules/utility/Alert";
 import { preferences } from "@modules/lesson/preferences";
 import { defaultEmojis } from "@modules/lesson/default-emojis";
 
-const lessonPages = import.meta.glob("@modules/lesson/pages/**/*.js");
+const lessonPages = changeGlobalImports(import.meta.glob("@modules/lesson/pages/**/*.js"));
 
 import { PDFJS, QUILL, PDFJS_WORKER, MATHQUILL } from "../../editor/imports";
 

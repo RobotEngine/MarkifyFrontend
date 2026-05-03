@@ -34,7 +34,7 @@ export class LessonFrame {
     ".dTileTitle[contenteditable]": `padding: 2px 4px; margin-bottom: 4px; max-height: 100px; outline: solid 2px var(--themeColor); border-radius: 4px; overflow: auto; cursor: text`,
     ".dTileLastOpened": `width: 100%; color: var(--themeColor); margin-top: 2px; font-size: 14px; font-weight: 600; text-align: left`,
     ".dTileOptions": `display: flex; width: 34px; height: 34px; margin: 4px; flex-shrink: 0; justify-content: center; align-items: center; border-radius: 18px`,
-    ".dTileOptions svg": `flex-shrink: 0; width: 32px; height: 32px`,
+    ".dTileOptions svg": `--secondary: var(--themeColor); flex-shrink: 0; width: 26px; height: 26px`,
     ".dTileOptions:hover": `background: var(--hoverColor)`,
     ".dTileMemberCount": `position: absolute; display: flex; box-sizing: border-box; padding: 6px; right: 0px; top: 0px; align-items: center; background: var(--pageColor); box-shadow: var(--shadow); border-radius: 0 0 0 12px; opacity: 0; transition: .4s`,
     ".dTileMemberCount div[icon]": `width: 22px; height: 22px`,
@@ -165,8 +165,6 @@ export class LessonFrame {
       tile.setAttribute("lesson", record.lesson);
       tile.setAttribute("time", time);
       tile.setAttribute("tool", (lesson.tool ?? ["board"]).join(";"));
-      //setSVG(tile.querySelector(".dTileOptions"), "../images/dashboard/more.svg");
-      //setSVG(tile.querySelector(".dTileMemberCount div[icon]"), "../images/dashboard/membercount.svg");
       let placeholderThumbnail = tile.querySelector(".dTileThumbnail[src]");
       let thumbnail = tile.querySelector(".dTileThumbnail[main]");
       if (lesson.thumbnail != null) {

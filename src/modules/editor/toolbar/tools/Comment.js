@@ -908,6 +908,7 @@ export class Tool {
     commentHead.style.removeProperty("transition");
     commentHead.style.transform = "scale(1)";
   }
+  scroll() { this.updateCommentFrame(); }
   enable() {
     this.toolbar.sidemenu.open(SideMenu);
     this.editor.annotationHolder.removeAttribute("hidecomments");

@@ -486,6 +486,7 @@ export class Selection {
       this.updateSnapLines();
     }
   }
+
   async updateActionBar(options = {}) {
     let removeActionBar = (options.reuseActionBar ?? (this.currentActionModule ?? {}).forceCurrentActionBar) != true;
     let showSelectBox = (
@@ -2528,6 +2529,7 @@ export class Selection {
 
     await this.updateBox({ refreshActionBar: options.refreshActionBar ?? true, redrawActionBar: options.redrawActionBar, transition: false });
   }
+
   async interactRun(target) {
     if (target == null) {
       return;
@@ -2536,14 +2538,26 @@ export class Selection {
     // REACTIONS:
     let reaction = target.closest(".eReaction");
     if (reaction != null) {
+      let annotation = reaction.closest(".eAnnotation").getAttribute("anno");
       if (reaction.hasAttribute("emoji") == false) {
-        dropdownModule.open(reaction, import("@modules/dropdowns/Emojis"), { parent: this.editor });
+        dropdownModule.open(reaction, import("@modules/dropdowns/Emojis"), {
+          parent: this.editor,
+          recent: this.editor.lesson.recentEmojis,
+          callback: async (emoji) => {
+            let path = "lessons/members/reaction";
+            if ((this.editor.parameters ?? []).length > 0) {
+              path += "?" + this.editor.parameters.join("&");
+            }
+            let [code] = await sendRequest("POST", path, { emoji, annotation }, { session: this.editor.session });
+            return [200, 208].includes(code);
+          }
+        });
         return true;
       }
       reaction.setAttribute("disabled", "");
       let body = {
         emoji: reaction.getAttribute("emoji"),
-        annotation: reaction.closest(".eAnnotation").getAttribute("anno")
+        annotation
       };
       if (reaction.hasAttribute("selected") == false) {
         let path = "lessons/members/reaction";
@@ -2625,6 +2639,7 @@ export class Selection {
       return true;
     }
   }
+
   pointInSelectBox(x, y) {
     if (this.selectBox == null) {
       return;
@@ -2635,6 +2650,7 @@ export class Selection {
       return pointInRotatedBounds(x, y, this.lastRect.x, this.lastRect.y, this.lastRect.endX, this.lastRect.endY, this.lastRect.rotation, 10 / this.editor.zoom);
     }
   }
+
   async undo() {
     let event = this.editor.history.history[this.editor.history.location];
     if (event == null) {

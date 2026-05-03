@@ -289,17 +289,17 @@ export const Dropdown = class {
     this.module = await setFrame(template, frame, {
       loadingPlacement: this.element,
 
-      dropdown: this,
       content,
       button: this.button,
       origin: this.origin,
       ...data,
       construct: {
+        dropdown: this,
+        parent: data.parent,
         open: this.open,
         close: this.close
       }
     });
-    //await sleep(5000);
 
     this.cache = {}; // Clear cache
 

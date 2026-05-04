@@ -249,14 +249,14 @@ export class Draw {
     if ((this.passthroughModule ?? {}).clickEnd != null) {
       this.passthroughModule.clickEnd(event);
     }
-    if (this.annotation == null) {
+    let annotation = this.annotation;
+    if (annotation == null) {
       return;
     }
+    this.annotation = null;
+    this.editor.usingStylus = false;
 
-    let annotationRender = { ...this.annotation.render };
-
-    this.annotation.render.done = true; // Ensure it doesn't send a cancel realtime event!
-    this.disable();
+    let annotationRender = { ...annotation.render };
 
     annotationRender.d = simplifyPath(annotationRender.d, 1 / (2.5 * Math.pow(Math.E, .5 * this.editor.zoom))); //.5 / this.editor.zoom
     if (this.STRAITEN_CHECK == true) {
@@ -310,6 +310,8 @@ export class Draw {
 
     await this.editor.save.push(annotationRender);
     await this.editor.history.push("remove", [{ _id: annotationRender._id }]);
+
+    this.editor.render.remove(annotation);
     
     this.editor.realtimeSelect[annotationRender._id] = { ...annotationRender, done: true };
     await this.editor.realtime.forceShort();

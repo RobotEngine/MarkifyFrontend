@@ -12,7 +12,7 @@ export class Annotation extends BaseAnnotation {
   }
 
   css = {
-    ".eAnnotation[media]": `border-radius: 12px`,
+    ".eAnnotation[media][border]": `border-radius: 12px`,
     ".eAnnotation[media] > img": `position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; object-fit: cover; pointer-events: all; user-select: none; border-radius: inherit; transition: all .1s, border-radius 0s`,
     ".eAnnotation[media][border]:before": `content: ""; position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; pointer-events: all; border-radius: inherit; background: var(--backgroundColor); box-shadow: inset 0px 0px 2px 0px var(--secondaryBackgroundColor)`,
     ".eAnnotation[media][border] > img": `width: calc(100% - 16px); height: calc(100% - 16px); left: 8px; top: 8px; border-radius: 4px`

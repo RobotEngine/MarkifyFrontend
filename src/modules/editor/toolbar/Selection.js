@@ -1360,7 +1360,7 @@ export class Selection {
     for (let i = 0; i < visibleAnnotations.length; i++) {
       let annotation = visibleAnnotations[i] ?? {};
       let render = annotation.render;
-      if (render == null) {
+      if (render == null || render.remove == true) {
         continue;
       }
       if (hasCommonParent == true && render.parent != commonParent && render._id != commonParent) {

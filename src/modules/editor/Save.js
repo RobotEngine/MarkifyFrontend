@@ -12,19 +12,19 @@ export class Save {
   timeoutAnnotations = [];
 
   async enableTimeout(anno, collab) {
-    if (anno == null) {
+    if (anno == null || anno.render == null) {
       return;
     }
     anno.collab = collab == true;
     let setExpire = getEpoch();
-    if (anno.render != null && [anno.render.a ?? this.editor.self.modify, anno.render.m].includes(this.editor.self.modify) == true) {
+    if ([anno.render.a ?? this.editor.self.modify, anno.render.m].includes(this.editor.self.modify) == true) {
       setExpire += 30000; // 30 seconds until expire
     } else {
       setExpire += 10000; // 10 seconds until expire
     }
     if (anno.expire == null) {
       anno.expire = setExpire;
-      this.timeoutAnnotations.push(anno);
+      this.timeoutAnnotations.push(anno.render._id);
     }
     if (this.runningTimeout == true) {
       return;
@@ -37,11 +37,18 @@ export class Save {
       //let redrawAction = false;
       let epoch = getEpoch();
       for (let i = 0; i < this.timeoutAnnotations.length; i++) {
-        let annotation = this.timeoutAnnotations[i];
-        if (annotation.expire > epoch) {
+        let annotation = this.editor.annotations[this.timeoutAnnotations[i]];
+        if ((annotation ?? {}).pointer != null) { // If synced is availiable, update to it
+          annotation = this.editor.annotations[annotation.pointer];
+        }
+
+        if ((annotation ?? {}).render == null || (connected == false && annotation.collab != true)) {
+          this.timeoutAnnotations.splice(i, 1);
+          i--;
           continue;
         }
-        if (connected == false && annotation.collab != true) {
+
+        if (annotation.expire > epoch) {
           continue;
         }
         if (this.editor.toolbar != null
@@ -51,10 +58,10 @@ export class Save {
           continue;
         }
         
-        // Remove annotation since it was reset:
-        delete annotation.expire;
         this.timeoutAnnotations.splice(i, 1);
         i--;
+
+        delete annotation.expire;
         delete annotation.collab;
 
         if (annotation.pending != null) {

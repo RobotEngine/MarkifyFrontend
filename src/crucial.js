@@ -293,23 +293,31 @@ export const setFrame = async (modulePromise, frame, extra, parent) => {
       }
       if (loading == null) {
         loadingTimeout = setTimeout(() => {
-          loadingPlacement.insertAdjacentHTML("beforeend", loadingAnim);
-          if (frameSet == app) {
-            loadingPlacement.querySelector(".loading[new]").setAttribute("appload", "");
-          } else if (app.querySelector(".loading[appload]") && frameSet.closest(".dropdown") == null && frameSet.closest(".modal") == null) {
-            loadingPlacement.querySelector(".loading[new]").style.opacity = 0;
+          if (loadingPlacement == null) {
+            return;
           }
+          loadingPlacement.insertAdjacentHTML("beforeend", loadingAnim);
           loading = loadingPlacement.querySelector(".loading[new]");
-          if (loading != null) {
-            loading.removeAttribute("new");
-            if (frameSet == app) {
-              loading.style.position = "fixed";
-              let svgHolder = loading.querySelector(".loadingSvgHolder");
-              svgHolder.style.width = "100vw";
-              svgHolder.style.height = "100vh";
-            } else {
-              loading.querySelector(".loadsvg").style.maxWidth = "75px";
-            }
+          if (loading == null) {
+            return;
+          }
+          if (frameSet == app) {
+            loading.setAttribute("appload", "");
+          } else if (
+            app.querySelector(".loading[appload]") != null
+            && frameSet.closest(".dropdown") == null
+            && frameSet.closest(".modal") == null
+          ) {
+            loading.style.opacity = 0;
+          }
+          loading.removeAttribute("new");
+          if (frameSet == app) {
+            loading.style.position = "fixed";
+            let svgHolder = loading.querySelector(".loadingSvgHolder");
+            svgHolder.style.width = "100vw";
+            svgHolder.style.height = "100vh";
+          } else {
+            loading.querySelector(".loadsvg").style.maxWidth = "75px";
           }
         }, 10);
       }
@@ -1145,7 +1153,7 @@ export const loadScript = (url) => {
 
 let wasConnected = false;
 const movedPages = { dashboard: "app/dashboard", lesson: "app/lesson", join: "app/join", editor: "app/lesson" };
-let initSocket = async () => {
+(async () => {
   if (typeof SimpleSocket == "undefined") { // Backup if static fails
     await loadScript("https://simplesocket.net/static/v2/simplesocket.js");
   }
@@ -1243,8 +1251,7 @@ let initSocket = async () => {
     }
     alertModule.open("warning", `<b>Lost Connection</b>Reconnecting to Markify...`, { id: "connection", time: "never" });
   };
-}
-initSocket();
+})();
 
 body.addEventListener("click", (event) => {
   let element = event.target;

@@ -240,6 +240,10 @@ export class Save {
     }
     let annotation = existingAnnotation ?? { render: {} };
 
+    if (existingAnnotation == null) {
+      this.editor.annotations[annoID] = annotation;
+    }
+
     if (annotation.revert == null && options.timeout != false) {
       annotation.revert = copyObject(annotation.render); // Copy the currents attributes to revert to later
     }
@@ -298,10 +302,6 @@ export class Save {
       options.timeout == false)).component;
     } else {
       await this.editor.render.remove(annotation);
-    }
-
-    if (existingAnnotation == null) {
-      this.editor.annotations[annoID] = annotation;
     }
     
     return { annotation }; //, redrawActionBar: redrawAction

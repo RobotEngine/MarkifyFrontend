@@ -565,11 +565,11 @@ export class Render {
 
 export class BaseAnnotation {
   cache = {};
-  getElement = () => {
+  getElement() {
     return this.element;
   }
 
-  setID = () => {
+  setID() {
     let element = this.getElement();
     if (element == null) {
       return;
@@ -579,7 +579,7 @@ export class BaseAnnotation {
       element.setAttribute("anno", this.properties._id);
     }
   }
-  setParent = () => {
+  setParent() {
     let element = this.getElement();
     if (element == null) {
       return;
@@ -588,7 +588,7 @@ export class BaseAnnotation {
       this.holder.appendChild(element); // Change annotation parent to the new parent
     }
   }
-  setZIndex = () => {
+  setZIndex() {
     let element = this.getElement();
     if (element == null) {
       return;
@@ -610,7 +610,7 @@ export class BaseAnnotation {
       element.style.setProperty("--zIndex", this.properties.l);
     }
   }
-  setTransform = () => {
+  setTransform() {
     let element = this.getElement();
     if (element == null) {
       return;
@@ -652,7 +652,7 @@ export class BaseAnnotation {
       transform += " scale(1,-1)";
     }*/
   }
-  setAnimate = (set) => {
+  setAnimate(set) {
     let element = this.getElement();
     if (element == null) {
       return;
@@ -669,15 +669,15 @@ export class BaseAnnotation {
     }
   }
 
-  subscribe = (event, callback, extra) => {
+  subscribe(event, callback, extra) {
     this.cache.originalID = this.cache.originalID ?? this.properties._id;
     this.parent.pipeline.subscribe("annotation_" + this.cache.originalID, event, callback, extra);
   }
-  unsubscribe = (event) => {
+  unsubscribe(event) {
     this.parent.pipeline.unsubscribe("annotation_" + (this.cache.originalID ?? this.properties._id), event);
   }
 
-  hide = () => {
+  hide() {
     let element = this.getElement();
     if (element == null) {
       return;
@@ -687,7 +687,7 @@ export class BaseAnnotation {
       element.setAttribute("hidden", "");
     }
   }
-  show = () => {
+  show() {
     let element = this.getElement();
     if (element == null) {
       return;
@@ -697,20 +697,21 @@ export class BaseAnnotation {
       element.removeAttribute("hidden");
     }
   }
-  remove = () => {
+  remove() {
     let element = this.getElement();
+    let subID = this.cache.originalID ?? this.properties._id;
     this.element = null;
     this.cache = {};
     if (element != null) {
       element.remove();
     }
-    this.parent.pipeline.unsubscribe("annotation_" + (this.cache.originalID ?? this.properties._id));
+    this.parent.pipeline.unsubscribe("annotation_" + subID);
   }
 
-  getContainer = () => {
+  getContainer() {
     return this.container;
   }
-  setContainer = () => {
+  setContainer() {
     let element = this.getElement();
     if (element == null) {
       return;

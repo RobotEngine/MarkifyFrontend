@@ -20,6 +20,7 @@ import {
   subscribe,
   getLocalStore,
   setLocalStore,
+  getObject,
   copyObject,
   objectUpdate
 } from "@/crucial";

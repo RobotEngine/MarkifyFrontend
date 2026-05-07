@@ -31,14 +31,14 @@ export class Frame {
     ".eEmojiSectionTiles button img": `width: 32px; height: 32px; transform: scale(.8); object-fit: none`
   };
   js = async (frame, extra) => {
+    frame.closest(".dropdownContent").style.padding = "0px";
+
     let recent = extra.recent ?? [];
     let callback = extra.callback;
 
     this.dropdown.maxHeight = this.maxHeight; // Force max height to get set!
 
     let emojiData = await emojis;
-
-    frame.closest(".dropdownContent").style.padding = "0px";
 
     let emojiSectionHolder = frame.querySelector(".eEmojiSectionHolder");
 

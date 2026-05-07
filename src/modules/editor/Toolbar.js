@@ -4,6 +4,8 @@ import { toolbars, mappedToolTypes } from "./toolbar/tools";
 
 import { hexToRGBString } from "./utils/hex-to-rgb-string";
 
+import { rotatedBounds } from "./math";
+
 const toolModules = changeGlobalImports(import.meta.glob("./toolbar/tools/**/*.js"));
 const toolModulePath = "./toolbar/tools/";
 
@@ -603,6 +605,104 @@ export class Module {
 
     return [saveTextData, saveAnnoData];
   }
+  async processPaste(clipboardData) {
+    let html = clipboardData.getData("text/html");
+    let startIndex = html.indexOf("(markify+copypaste)"); // 19 chars
+    let endIndex = html.indexOf("(/markify+copypaste)");
+    if (startIndex < 0 || endIndex < 0) {
+      let text = clipboardData.getData("text");
+      if (isValidURL(text) == true) {
+        await this.toolbar.startTool(toolbar.querySelector('.eTool[tool="media"]'));
+        await this.toolbar.startTool(toolbar.querySelector('.eTool[tool="embed"]'), null, { link: text });
+        return event.preventDefault();
+      }
+      return;
+    }
+    let annotationData = JSON.parse(decodeURIComponent(html.substring(startIndex + 19, endIndex)));
+    if (annotationData.length < 1) {
+      return;
+    }
+
+    let minLeft;
+    let minTop;
+    let maxLeft;
+    let maxTop;
+    let minZIndex;
+    let parentIDs = {};
+    this.editor.selecting = {};
+
+    for (let i = 0; i < annotationData.length; i++) {
+      let newAnno = annotationData[i];
+      if (this.checkSubToolEnabled(newAnno.f) == false) {
+        continue;
+      }
+      let tempID = this.editor.render.tempID();
+      parentIDs[newAnno._id] = tempID;
+      newAnno.old_ID = newAnno._id;
+      newAnno._id = tempID;
+      let annoRect = this.editor.utils.getRect(newAnno);
+      let [topLeftX, topLeftY, bottomRightX, bottomRightY] = rotatedBounds(annoRect.x, annoRect.y, annoRect.endX, annoRect.endY, annoRect.rotation);
+      if (topLeftX < minLeft || minLeft == null) {
+        minLeft = topLeftX;
+      }
+      if (topLeftY < minTop || minTop == null) {
+        minTop = topLeftY;
+      }
+      if (bottomRightX > maxLeft || maxLeft == null) {
+        maxLeft = bottomRightX;
+      }
+      if (bottomRightY > maxTop || maxTop == null) {
+        maxTop = bottomRightY;
+      }
+      minZIndex = Math.min(minZIndex ?? newAnno.l ?? this.editor.minLayer, newAnno.l ?? minZIndex ?? this.editor.minLayer);
+    }
+
+    let { x: centerPageX, y: centerPageY } = this.editor.utils.scaleToDoc(this.editor.page.offsetWidth / 2, this.editor.page.offsetHeight / 2);
+    let centerX = (maxLeft - minLeft) / 2;
+    let centerY = (maxTop - minTop) / 2;
+
+    for (let i = 0; i < annotationData.length; i++) {
+      let newAnno = annotationData[i];
+      if (this.checkSubToolEnabled(newAnno.f) == false) {
+        continue;
+      }
+      let existingAnno = (this.editor.annotations[newAnno.old_ID] ?? {}).render;
+      if (existingAnno != null && this.editor.utils.annotationInViewport(existingAnno) == true) {
+        newAnno.p[0] = (newAnno.p[0] ?? existingAnno.p[0]) + 50;
+        newAnno.p[1] = (newAnno.p[1] ?? existingAnno.p[1]) + 50;
+      } else {
+        newAnno.p[0] += centerPageX + centerX - maxLeft;
+        newAnno.p[1] += centerPageY + centerY - maxTop;
+      }
+      if (newAnno.l != null) {
+        newAnno.l = this.editor.maxLayer + 1 + ((newAnno.l ?? this.editor.maxLayer) - minZIndex);
+      }
+      if (newAnno.parented != null) {
+        let parentCopy = parentIDs[newAnno.parented.parent];
+        if (parentCopy != null) {
+          newAnno.parent = parentCopy;
+          newAnno.p = newAnno.parented.p;
+          newAnno.r = newAnno.parented.r;
+        }
+        delete newAnno.parented;
+      }
+      delete newAnno.old_ID;
+      delete newAnno.m;
+      let setLock = [];
+      let canLock = this.editor.utils.canChangeLock(newAnno);
+      for (let l = 0; l < canLock.length; l++) {
+        let lock = canLock[l];
+        if ((newAnno.lock ?? []).includes(lock) == true) {
+          setLock.push(lock);
+        }
+      }
+      newAnno.lock = setLock;
+      this.editor.selecting[newAnno._id] = newAnno;
+    }
+
+    this.selection.action = "save";
+    await this.selection.endAction();
+  }
 
   getToolbar() {
     if (this.toolbarHolder == null) {
@@ -905,6 +1005,44 @@ export class Module {
     });
     this.editor.pipeline.subscribe("toolbarSelectionZoomChange", "zoom_change", async () => {
       await this.selection.updateBox({ transition: false });
+    });
+    this.editor.pipeline.subscribe("toolbarPaste", "paste", async (data) => {
+      if (this.editor.isPageActive() == false) {
+        return;
+      }
+      if (this.editor.self.access < this.editor.minimumEditingAccess) {
+        return;
+      }
+      if (document.activeElement != null) {
+        if (document.activeElement.closest('[contenteditable="true"]') != null || document.activeElement.closest("input") != null) {
+          return;
+        }
+      }
+      let event = data.event;
+      let clipboardData = event.clipboardData ?? event.originalEvent.clipboardData ?? {};
+
+      if (clipboardData.items.length < 1) {
+        return;
+      }
+      if (this.processFileUpload(clipboardData.items) == true) {
+        return event.preventDefault();
+      }
+      return this.processPaste(clipboardData);
+    });
+    this.editor.pipeline.subscribe("toolbarPaste", "copy", async (data) => {
+      if (this.editor.isPageActive() == false) {
+        return;
+      }
+      let selection = document.getSelection();
+      if (selection.toString().length > 0) {
+        return; // User it selecting text, ignore event
+      }
+      let event = data.event;
+      event.preventDefault();
+      let [saveTextData, saveAnnoData] = await this.processCopy();
+      let clipboardData = event.clipboardData ?? event.originalEvent.clipboardData ?? {};
+      clipboardData.setData("text/html", `<meta charset="utf-8"><html><head></head><body><span data-meta="<!--(markify+copypaste)${encodeURIComponent(JSON.stringify(saveAnnoData))}(/markify+copypaste)-->"></span><div>${saveTextData}</div></body></html>`);
+      clipboardData.setData("text/plain", saveTextData);
     });
 
     this.editor.toolbar = this;

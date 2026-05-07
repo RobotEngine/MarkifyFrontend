@@ -1,3 +1,5 @@
+import { alert as alertModule } from "@modules/utility/Alert";
+
 export class Tool {
   async clickStart(event) {
     if (event.which === 3 || event.button === 2 || this.editor.pinching == true) {

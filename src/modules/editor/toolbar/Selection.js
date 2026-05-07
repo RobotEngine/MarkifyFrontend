@@ -681,19 +681,21 @@ export class Selection {
             }
           }*/
           if (actionModule.ADD_DIVIDE_BEFORE == true) {
-            if (elementBefore != null && elementBefore.className != "eVerticalDivider") {
-              let newDivider = document.createElement("div");
-              newDivider.className = "eVerticalDivider";
-              newDivider.setAttribute("before", "");
-              actionButtonHolder.insertBefore(newDivider, newAction);
-              elementBefore = newDivider;
-              i++;
-            }
-            if (elementBefore.className == "eVerticalDivider" && elementBefore.hasAttribute("before") == true) {
-              if (isVisible != false) {
-                elementBefore.removeAttribute("hidden");
-              } else {
-                elementBefore.setAttribute("hidden", "");
+            if (elementBefore != null) {
+              if (elementBefore.className != "eVerticalDivider") {
+                let newDivider = document.createElement("div");
+                newDivider.className = "eVerticalDivider";
+                newDivider.setAttribute("before", "");
+                actionButtonHolder.insertBefore(newDivider, newAction);
+                elementBefore = newDivider;
+                i++;
+              }
+              if (elementBefore.className == "eVerticalDivider" && elementBefore.hasAttribute("before") == true) {
+                if (isVisible != false) {
+                  elementBefore.removeAttribute("hidden");
+                } else {
+                  elementBefore.setAttribute("hidden", "");
+                }
               }
             }
           }

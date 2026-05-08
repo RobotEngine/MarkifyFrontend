@@ -555,6 +555,7 @@ export class Tool {
         } else {
           commentSendButton.setAttribute("disabled", "");
         }
+        this.updateCommentFrame();
       });
       commentSendButton.addEventListener("click", async () => {
         if (commentText.textContent == "") {

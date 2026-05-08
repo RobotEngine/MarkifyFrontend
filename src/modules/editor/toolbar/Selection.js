@@ -1,4 +1,4 @@
-import { account, mouseDown, sleep, sendRequest, copyObject, getObject } from "@/crucial";
+import { account, mouseDown, sleep, sendRequest, copyObject, getObject, cleanString } from "@/crucial";
 
 import { rotatedBounds, rotatePoint, rotatePointOrigin, round, pointInRotatedBounds } from "../math";
 

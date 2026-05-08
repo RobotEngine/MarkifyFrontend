@@ -5,7 +5,7 @@ import { cleanString } from "@/crucial";
 import linkIcon from "../../icons/actions/link.svg?raw";
 
 export class Annotation extends BaseAnnotation {
-  ACTION_BAR_TOOLS = ["openlink", "enlarge", "setembed", "unlock", "delete"];
+  ACTION_BAR_TOOLS = ["media/embed/openlink", "media/embed/enlarge", "media/embed/set", "unlock", "delete"];
 
   css = {
     ".eAnnotation[embed]": `display: flex; background: var(--pageColor); border-radius: 16px; box-shadow: 0px 0px 8px rgba(0, 0, 0, .2); pointer-events: all; text-align: left`,

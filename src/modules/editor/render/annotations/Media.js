@@ -3,7 +3,7 @@ import { BaseAnnotation } from "../../Render";
 import { assetURL } from "@/crucial";
 
 export class Annotation extends BaseAnnotation {
-  ACTION_BAR_TOOLS = ["imageborder", "unlock", "delete"];
+  ACTION_BAR_TOOLS = ["media/border", "unlock", "delete"];
 
   SELECTION_FUNCTION(selection) {
     if (["bottomright", "topleft", "topright", "bottomleft"].includes(selection.handle) == true) {

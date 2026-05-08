@@ -1,7 +1,7 @@
 import { Placement } from "../../Placement";
 
 export class Tool extends Placement {
-  TARGET_QUERY = '.eActionBar:not([remove]) .eTool[module="embed/set"]';
+  TARGET_QUERY = '.eActionBar:not([remove]) .eTool[module="media/embed/set"]';
   
   enable = (extra) => {
     this.PROPERTIES = {

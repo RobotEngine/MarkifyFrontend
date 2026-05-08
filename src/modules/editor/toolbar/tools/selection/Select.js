@@ -39,7 +39,7 @@ export class Tool {
         if (render.f == "embed" && target.closest("div[input]") != null && annotation.querySelector("div[input]").closest(".eAnnotation") == annotation && this.editor.utils.isLocked(render) != true) {
           if (render.embed == null) {
             this.toolbar.selection.clickAction({
-              target: this.editor.page.querySelector('.eActionBar:not([remove]) .eTool[module="embed/set"]')
+              target: this.editor.page.querySelector('.eActionBar:not([remove]) .eTool[module="media/embed/set"]')
             });
           }
           return;

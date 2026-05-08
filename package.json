@@ -10,10 +10,11 @@
   },
   "devDependencies": {
     "@vitejs/plugin-legacy": "^8.0.1",
+    "rollup-plugin-visualizer": "^7.0.1",
     "terser": "^5.46.1",
     "vite": "^8.0.4"
   },
   "dependencies": {
-    "quill": "^2.0.3"
+    "quill": "^2.0.2"
   }
 }

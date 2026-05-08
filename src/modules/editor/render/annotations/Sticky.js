@@ -1,4 +1,4 @@
-import { BaseAnnotation } from "../../Render";
+import { BaseAnnotation } from "../BaseAnnotation";
 
 import { objectEqual, cleanString, getObject } from "@/crucial";
 

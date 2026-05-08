@@ -6,7 +6,7 @@ import { hexToRGBString } from "./utils/hex-to-rgb-string";
 
 import { rotatedBounds } from "./math";
 
-const toolModules = changeGlobalImports(import.meta.glob("./toolbar/tools/**/*.js"));
+const toolModules = changeGlobalImports(import.meta.glob("./toolbar/tools/**/*.js", { eager: true }));
 const toolModulePath = "./toolbar/tools/";
 
 import moveCursorIcon from "./icons/cursors/move.svg?raw";
@@ -269,11 +269,16 @@ export class Module {
     }
   }
   async getModule(path) {
-    let moduleLoadFunction = toolModules[toolModulePath + path + ".js"];
-    if (moduleLoadFunction == null) {
+    let moduleLoad = toolModules[toolModulePath + path + ".js"];
+    if (moduleLoad == null) {
       return;
     }
-    return (await moduleLoadFunction()).Tool;
+    if (typeof moduleLoad == "function") {
+      moduleLoad = await moduleLoad();
+    }
+    if (moduleLoad != null) {
+      return moduleLoad.Tool;
+    }
   }
   async loadModule(path) {
     let module = await this.getModule(path ?? this.currentToolModulePath);

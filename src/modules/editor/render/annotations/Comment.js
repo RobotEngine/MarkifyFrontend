@@ -1,4 +1,4 @@
-import { BaseAnnotation } from "../../Render";
+import { BaseAnnotation } from "../BaseAnnotation";
 
 import { objectEqual, timeSince } from "@/crucial";
 

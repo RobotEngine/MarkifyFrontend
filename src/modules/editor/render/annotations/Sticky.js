@@ -10,8 +10,7 @@ export class Annotation extends BaseAnnotation {
   ALLOW_SELECT_OVERFLOW = true;
   ALLOW_RICHTEXT_COLOR = false;
 
-  //ACTION_BAR_TOOLS = ["textedit", "color", "fontsize", "bold", "italic", "underline", "strikethrough", "textalign", "unlock", "reactions", "delete"];
-  ACTION_BAR_TOOLS = ["textedit", "color", "font", "fontsize", "format", "list", "link", "textalign", "formula", "unlock", "reactions", "delete"];
+  ACTION_BAR_TOOLS = ["text/edit", "color", "text/font", "text/fontsize", "text/format", "text/list", "text/link", "text/align", "text/formula", "unlock", "reactions", "delete"];
 
   DEFAULT_FONT_SIZE = 16;
 
@@ -35,7 +34,7 @@ export class Annotation extends BaseAnnotation {
     ".eAnnotation[sticky][selected] button": `pointer-events: all`
   };
 
-  render() {
+  async render() {
     if (this.element == null) {
       this.element = document.createElement("div");
       this.element.className = "eAnnotation";
@@ -93,7 +92,10 @@ export class Annotation extends BaseAnnotation {
           //placeholder: "Double click to type...",
           readOnly: true
         });
-        this.quill.on("editor-change", (type, delta) => { this.editor.text.checkFonts(type, delta); });
+        this.quill.on("editor-change", (type, delta) => {
+          this.cache.textContent = this.quill.getContents();
+          this.editor.text.checkFonts(type, delta);
+        });
       }
       if (this.quill.isEnabled() == false) {
         let setContent = this.editor.text.uncleanQuill(this.properties.d ?? []);
@@ -104,7 +106,7 @@ export class Annotation extends BaseAnnotation {
       }
     }
     if (this.editor.exporting != true) {
-      loadText();
+      await loadText();
     } else {
       this.editor.exportPromises.push(new Promise(async (resolve) => { resolve(await loadText()); }));
     }

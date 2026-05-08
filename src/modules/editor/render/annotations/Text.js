@@ -8,7 +8,7 @@ export class Annotation extends BaseAnnotation {
   AUTO_SET_HEIGHT = true;
   REMOVE_IF_NO_TEXT = true;
 
-  ACTION_BAR_TOOLS = ["textedit", "color", "opacity", "font", "fontsize", "format", "list", "link", "textalign", "formula", "unlock", "delete"];
+  ACTION_BAR_TOOLS = ["text/edit", "color", "opacity", "text/font", "text/fontsize", "text/format", "text/list", "text/link", "text/align", "text/formula", "unlock", "delete"];
 
   DEFAULT_FONT_SIZE = 18;
 
@@ -17,7 +17,7 @@ export class Annotation extends BaseAnnotation {
     ".eAnnotation[text] div[text][placeborder]": `width: max-content; margin: 0px; border: solid 3px var(--themeColor); border-radius: 8px`
   };
 
-  render() {
+  async render() {
     if (this.element == null) {
       this.element = document.createElement("div");
       this.element.className = "eAnnotation";
@@ -76,7 +76,10 @@ export class Annotation extends BaseAnnotation {
           readOnly: true
           //placeholder: "Double click to type..."
         }); //formats
-        this.quill.on("editor-change", (type, delta) => { this.editor.text.checkFonts(type, delta); });
+        this.quill.on("editor-change", (type, delta) => {
+          this.cache.textContent = this.quill.getContents();
+          this.editor.text.checkFonts(type, delta);
+        });
       }
       if (this.quill.isEnabled() == false) {
         let setContent = this.editor.text.uncleanQuill(this.properties.d ?? []);
@@ -95,7 +98,7 @@ export class Annotation extends BaseAnnotation {
       }
     }
     if (this.editor.exporting != true) {
-      loadText();
+      await loadText();
     } else {
       this.editor.exportPromises.push(new Promise(async (resolve) => { resolve(await loadText()); }));
     }

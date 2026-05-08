@@ -124,7 +124,7 @@ export class Tooltip {
       return;
     }
 
-    if (actionRect.top + actionContainer.offsetHeight + this.tooltipText.offsetHeight + 6 < page.offsetHeight - this.editor.scrollOffset - 8) {
+    if (actionRect.top + actionContainer.offsetHeight + this.tooltipText.offsetHeight + 6 < this.editor.page.offsetHeight - this.editor.scrollOffset - 8) {
       this.tooltipText.style.transformOrigin = "center top";
       this.tooltipText.style.top = this.tooltipText.parentElement.offsetHeight + actionContainer.offsetHeight + 6 + "px";
     } else {

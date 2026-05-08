@@ -221,7 +221,10 @@ export class Annotation extends BaseAnnotation {
           },
           readOnly: true
         });
-        this.quill.on("editor-change", (type, delta) => { this.editor.text.checkFonts(type, delta); });
+        this.quill.on("editor-change", (type, delta) => {
+          this.cache.textContent = this.quill.getContents();
+          this.editor.text.checkFonts(type, delta);
+        });
       }
       if (this.quill.isEnabled() == false) {
         let setContent = this.editor.text.uncleanQuill(this.properties.d ?? []);

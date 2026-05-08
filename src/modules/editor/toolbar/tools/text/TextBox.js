@@ -1,7 +1,7 @@
 import { Placement } from "../../Placement";
 
 export class Tool extends Placement {
-  TARGET_QUERY = '.eActionBar:not([remove]) .eTool[module="editor/toolbar/textedit"]';
+  TARGET_QUERY = '.eActionBar:not([remove]) .eTool[module="text/edit"]';
 
   enable = () => {
     let toolPreference = this.toolbar.getToolPreference();

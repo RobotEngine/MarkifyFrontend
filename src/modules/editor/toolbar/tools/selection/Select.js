@@ -31,7 +31,7 @@ export class Tool {
         if (target.closest("div[label]") != null && annotation.querySelector("div[label]").closest(".eAnnotation") == annotation && this.editor.utils.isLocked(render) != true) {
           if (target.closest("div[label]").getAttribute("contenteditable") != "true") {
             this.toolbar.selection.clickAction({
-              target: this.editor.page.querySelector('.eActionBar:not([remove]) .eTool[module="editor/toolbar/settitle"]')
+              target: this.editor.page.querySelector('.eActionBar:not([remove]) .eTool[module="page/settitle"]')
             });
           }
           return;
@@ -39,7 +39,7 @@ export class Tool {
         if (render.f == "embed" && target.closest("div[input]") != null && annotation.querySelector("div[input]").closest(".eAnnotation") == annotation && this.editor.utils.isLocked(render) != true) {
           if (render.embed == null) {
             this.toolbar.selection.clickAction({
-              target: this.editor.page.querySelector('.eActionBar:not([remove]) .eTool[module="editor/toolbar/setembed"]')
+              target: this.editor.page.querySelector('.eActionBar:not([remove]) .eTool[module="embed/set"]')
             });
           }
           return;
@@ -119,7 +119,7 @@ export class Tool {
       }
       if (this.wasSelected == null && annotation.querySelector("div[edit]") != null && annotation.querySelector("div[edit]").closest(".eAnnotation") == annotation && annotation.querySelector('div[contenteditable="true"]') == null) {
         this.toolbar.selection.clickAction({
-          target: this.editor.page.querySelector('.eActionBar:not([remove]) .eTool[module="editor/toolbar/textedit"]'),
+          target: this.editor.page.querySelector('.eActionBar:not([remove]) .eTool[module="text/edit"]'),
           setCaretPosition: true,
           clientX: event.clientX,
           clientY: event.clientY

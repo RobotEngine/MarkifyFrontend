@@ -17,7 +17,7 @@ export class Annotation extends BaseAnnotation {
   CAN_FLIP = false;
   SELECT_BOX_COVER = true;
 
-  ACTION_BAR_TOOLS = ["page/uploadpage", "page/resize", "page/type", "page/rotate", "page/settitle", "page/hide", "color", "unlock", "delete"];
+  ACTION_BAR_TOOLS = ["page/upload", "page/resize", "page/type", "page/rotate", "page/settitle", "page/hide", "color", "unlock", "delete"];
 
   SELECTION_FUNCTION(selection, render) {
     if (render.source != null && ["bottomright", "topleft", "topright", "bottomleft"].includes(selection.handle) == true) {

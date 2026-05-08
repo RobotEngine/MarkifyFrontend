@@ -508,12 +508,12 @@ export class Save {
             anno.render.m = this.editor.self.modify;
             if (connected == true) {
               this.pendingSaves[setChildAnno._id] = {
-                ...(this.save.pendingSaves[setChildAnno._id] ?? {}),
+                ...(this.pendingSaves[setChildAnno._id] ?? {}),
                 ...setChildAnno,
                 sync: getEpoch()
               };
               this.editor.realtimeSelect[setChildAnno._id] = {
-                ...(this.realtimeSelect[setChildAnno._id] ?? {}),
+                ...(this.editor.realtimeSelect[setChildAnno._id] ?? {}),
                 ...setChildAnno
               };
             }

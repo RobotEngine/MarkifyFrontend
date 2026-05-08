@@ -33,7 +33,7 @@ export class Tool extends ResizePlacement {
     let reset = () => {
       this.annotation = null;
       this.imageBlob = null;
-      let button = this.toolbar.toolbarHolder.querySelector('.eTool[module="editor/toolbar/upload"]');
+      let button = this.toolbar.toolbarHolder.querySelector('.eTool[module="media/upload"]');
       if (button != null) {
         button.removeAttribute("selected");
       }

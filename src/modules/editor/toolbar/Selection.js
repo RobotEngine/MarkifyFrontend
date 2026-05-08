@@ -1109,12 +1109,7 @@ export class Selection {
         this.toolbar.updateMouse({ type: "svg", svg: rotateCursorIcon, translate: { x: 22, y: 22 }, rotate: this.rotation });
       }
     } else { // Duplicate
-      let moreModule = (await this.toolbar.loadModule("more")) ?? {};
-      if (moreModule.duplicate != null) {
-        moreModule.editor = this.editor;
-        moreModule.toolbar = this.toolbar;
-        return await moreModule.duplicate(this.handle);
-      }
+      return await this.toolbar.processDuplicate(this.handle);
     }
     event.preventDefault();
   }

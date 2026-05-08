@@ -704,6 +704,161 @@ export class Module {
     await this.selection.endAction();
   }
 
+  async processDuplicate(handle, fromKeybind) {
+    let selectKeys = Object.keys(this.editor.selecting);
+    let checkChunks = {};
+    let saveAnnoData = [];
+    let parentIDs = {};
+    let maxZIndex;
+    let minZIndex;
+    let offsetX = 50;
+    let offsetY = 50;
+
+    if (handle != null) {
+      offsetX = 0;
+      offsetY = 0;
+      if (this.selection.rotation == 0) {
+        switch (handle) {
+          case "duplicateleft":
+            offsetX -= (this.selection.maxX - this.selection.minX) + 34;
+            break;
+          case "duplicateright":
+            offsetX += (this.selection.maxX - this.selection.minX) + 34;
+            break;
+          case "duplicatetop":
+            offsetY -= (this.selection.maxY - this.selection.minY) + 34;
+            break;
+          case "duplicatebottom":
+            offsetY += (this.selection.maxY - this.selection.minY) + 34;
+        }
+      } else {
+        switch (handle) {
+          case "duplicateleft":
+            offsetX -= (this.selection.lastRect.endX - this.selection.lastRect.x) + 34;
+            break;
+          case "duplicateright":
+            offsetX += (this.selection.lastRect.endX - this.selection.lastRect.x) + 34;
+            break;
+          case "duplicatetop":
+            offsetY -= (this.selection.lastRect.endY - this.selection.lastRect.y) + 34;
+            break;
+          case "duplicatebottom":
+            offsetY += (this.selection.lastRect.endY - this.selection.lastRect.y) + 34;
+        }
+        [offsetX, offsetY] = rotatePoint(offsetX, offsetY, this.selection.rotation);
+      }
+    }
+
+    let minLeft;
+    let minTop;
+    let maxLeft;
+    let maxTop;
+    for (let i = 0; i < selectKeys.length; i++) {
+      let annoID = selectKeys[i];
+      let annotation = this.editor.annotations[annoID] ?? {};
+      let render = annotation.render;
+      if (render == null || this.checkSubToolEnabled(render.f) == false) {
+        continue;
+      }
+      if (fromKeybind == true) {
+        let annoModule = (await this.editor.render.getModule(annotation, render.f)) ?? {};
+        if (annoModule.KEYBINDS_ENABLED == false) {
+          continue;
+        }
+      }
+      let addChunks = this.editor.utils.chunksFromAnnotation(render);
+      for (let c = 0; c < addChunks.length; c++) {
+        checkChunks[addChunks[c]] = true;
+      }
+      let annoRect = this.editor.utils.getRect(render);
+      let [topLeftX, topLeftY, bottomRightX, bottomRightY] = rotatedBounds(annoRect.x, annoRect.y, annoRect.endX, annoRect.endY, annoRect.rotation);
+      if (topLeftX < minLeft || minLeft == null) {
+        minLeft = topLeftX;
+      }
+      if (topLeftY < minTop || minTop == null) {
+        minTop = topLeftY;
+      }
+      if (bottomRightX > maxLeft || maxLeft == null) {
+        maxLeft = bottomRightX;
+      }
+      if (bottomRightY > maxTop || maxTop == null) {
+        maxTop = bottomRightY;
+      }
+      maxZIndex = Math.max(maxZIndex ?? render.l ?? this.editor.utils.maxLayer, render.l ?? maxZIndex ?? this.editor.utils.maxLayer);
+      minZIndex = Math.min(minZIndex ?? render.l ?? this.editor.utils.minLayer, render.l ?? minZIndex ?? this.editor.utils.minLayer);
+      let tempID = this.editor.render.tempID();
+      parentIDs[annoID] = tempID;
+      saveAnnoData.push({ ...copyObject(render), _id: tempID });
+    }
+
+    let annotations = this.editor.utils.annotationsInChunks(Object.keys(checkChunks));
+    for (let i = 0; i < annotations.length; i++) {
+      let annotation = annotations[i] ?? {};
+      if (annotation.pointer != null) {
+        annotation = this.editor.annotations[annotation.pointer];
+      }
+      let render = annotation.render;
+      if (render == null || this.editor.selecting[render._id] != null || this.checkSubToolEnabled(render.f) == false) {
+        continue;
+      }
+      let annoModule = (await this.editor.render.getModule(annotation, render.f)) ?? {};
+      if (annoModule.KEEP_ON_PARENT_DELETE == true) {
+        continue;
+      }
+      let { selectingParent } = this.editor.utils.getRect(render);
+      if (selectingParent == false) {
+        continue;
+      }
+      maxZIndex = Math.max(maxZIndex ?? render.l ?? this.editor.utils.maxLayer, render.l ?? maxZIndex ?? this.editor.utils.maxLayer);
+      minZIndex = Math.min(minZIndex ?? render.l ?? this.editor.utils.minLayer, render.l ?? minZIndex ?? this.editor.utils.minLayer);
+      let tempID = this.editor.render.tempID();
+      parentIDs[render._id] = tempID;
+      saveAnnoData.push({ ...copyObject(render), _id: tempID });
+    }
+
+    let { x: centerPageX, y: centerPageY } = this.editor.utils.scaleToDoc(this.editor.page.offsetWidth / 2, this.editor.page.offsetHeight / 2);
+    let centerX = (maxLeft - minLeft) / 2;
+    let centerY = (maxTop - minTop) / 2;
+    
+    maxZIndex++;
+    this.editor.selecting = {};
+    for (let i = 0; i < saveAnnoData.length; i++) {
+      let newAnno = saveAnnoData[i];
+      let checkParent = parentIDs[newAnno.parent];
+      if (checkParent != null) {
+        newAnno.parent = checkParent;
+      } else {
+        let { annoX, annoY, rotation } = this.editor.utils.getRect(newAnno);
+        let inViewport = this.editor.utils.annotationInViewport(newAnno);
+        if (handle != null || inViewport == true) {
+          delete newAnno.parent;
+          newAnno.p = [annoX + offsetX, annoY + offsetY];
+          newAnno.r = rotation;
+        } else {
+          newAnno.p[0] += centerPageX + centerX - maxLeft;
+          newAnno.p[1] += centerPageY + centerY - maxTop;
+        }
+      }
+      if (newAnno.l != null) {
+        newAnno.l = maxZIndex + ((newAnno.l ?? this.editor.utils.maxLayer) - minZIndex);
+      }
+      delete newAnno.m;
+      let setLock = [];
+      let canLock = this.editor.utils.canChangeLock(newAnno);
+      for (let l = 0; l < canLock.length; l++) {
+        let lock = canLock[l];
+        if ((newAnno.lock ?? []).includes(lock) == true) {
+          setLock.push(lock);
+        }
+      }
+      newAnno.lock = setLock;
+      this.editor.selecting[newAnno._id] = newAnno;
+    }
+
+    this.selection.action = "save";
+    await this.selection.endAction();
+  }
+
   getToolbar() {
     if (this.toolbarHolder == null) {
       return;
@@ -837,9 +992,9 @@ export class Module {
       }
       if (event.keyCode == 32 && event.target == document.body) {
         event.preventDefault();
-        if (this.currentToolModulePath != "editor/toolbar/pan") {
+        if (this.currentToolModulePath != "selection/pan") {
           this.previousToolModule = this.currentToolModulePath;
-          this.currentToolModulePath = "editor/toolbar/pan";
+          this.currentToolModulePath = "selection/pan";
           await this.activateTool(null, { resetSelection: false });
         }
         return;
@@ -954,12 +1109,7 @@ export class Module {
 
       if (event.keyCode == 68 && meta == true) { // Handle Duplicate
         event.preventDefault();
-        let moreModule = (await this.newModule("editor/toolbar/more")) ?? {};
-        if (moreModule.duplicate != null) {
-          moreModule.editor = editor;
-          moreModule.toolbar = this;
-          return await moreModule.duplicate(null, true);
-        }
+        return this.processDuplicate(null, true);
       }
       
       if (event.keyCode == 65 && meta == true) { // Handle Select All

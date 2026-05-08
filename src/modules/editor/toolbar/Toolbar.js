@@ -159,10 +159,6 @@ export class Toolbar {
       let div = tool.querySelector("div");
       if (tool.hasAttribute("tool") == true) {
         let toolType = tool.getAttribute("tool");
-        /*if (div.hasAttribute("loaded") == false) {
-          setSVG(div, "../images/editor/toolbar/" + toolType + ".svg");
-          div.setAttribute("loaded", "");
-        }*/
         let toolPreference = this.editor.preferences.tools[toolType] ?? this.editor.preferences.tools[this.toolbar.currentTool] ?? {};
         if (toolPreference.color != null) {
           div.style.setProperty("--toolColor", "#" + toolPreference.color.selected);

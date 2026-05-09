@@ -32,7 +32,7 @@ export class Module {
     ".eToolbarHolder": `position: relative; display: block; flex: 1; visibility: visible`,
     ".eToolbar": `position: absolute; display: block; width: 50px; height: fit-content; max-height: var(--maxToolbarHeight); top: 50%; transform: translateY(-50%); z-index: 2; background: var(--pageColor); box-shadow: var(--lightShadow); pointer-events: all; transition: transform .4s, opacity .4s, border-radius .2s`,
     ".eToolbar[hidden]": `transform: translate(var(--translate), -50%) !important; z-index: 1 !important`,
-    ".eToolbarContent": `position: relative; box-sizing: border-box; max-height: var(--maxToolbarHeight); background: var(--pageColor); overflow: auto; z-index: 3; border-radius: inherit`,
+    ".eToolbarContent": `position: relative; box-sizing: border-box; max-height: var(--maxToolbarHeight); background: var(--pageColor); overflow-x: hidden; overflow-y: auto; z-index: 3; border-radius: inherit`,
     ".eToolbarHolder[left] .eToolbar": `--translate: -100%; left: 0px; border-radius: 0 12px 12px 0; transform-origin: left center`,
     ".eToolbarHolder[right] .eToolbar": `--translate: 100%; right: 0px; border-radius: 12px 0 0 12px; transform-origin: right center`,
     ".eToolbarTooltip": `position: absolute; display: flex; width: max-content; padding: 3px 6px; z-index: 5; background: var(--pageColor); border-radius: 6px; box-shadow: var(--lightShadow); pointer-events: none; user-select: none; text-wrap: nowrap; font-size: 16px; font-weight: 600; transform: scale(0); opacity: 0`,
@@ -136,7 +136,7 @@ export class Module {
     '.eSelectSnap div[marker="snapybottom"]': `width: 16px; height: 2px; bottom: 0px; left: 50%; transform: translateX(-50%)`,
 
     ".eActionBar": `position: absolute; display: flex; height: 50px; box-shadow: var(--lightShadow); z-index: 102; border-radius: 12px; transform: translate(-50%, -10%); opacity: 0; transition: transform .2s, opacity .2s, border-radius .2s`,
-    ".eActionToolbar": `display: flex; width: 100%; height: 100%; background: var(--pageColor); overflow: auto; border-radius: inherit; z-index: 2`,
+    ".eActionToolbar": `display: flex; width: 100%; height: 100%; background: var(--pageColor); overflow-x: auto; overflow-y: hidden; border-radius: inherit; z-index: 2`,
     ".eActionToolbar[locked] > *": `display: none`,
     //".eActionToolbar .eTool[stayonlock]": `display: flex`,
     ".eActionHolder[top]": `position: absolute; width: fit-content; height: fit-content; padding: 12px; left: -12px; bottom: calc(100% - 12px); z-index: 1; overflow: hidden; pointer-events: none`,

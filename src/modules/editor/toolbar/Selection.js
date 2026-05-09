@@ -536,6 +536,7 @@ export class Selection {
       this.actionBar = this.editor.content.querySelector(".eActionBar[new]");
       this.actionBar.removeAttribute("new");
       newActionBar = true;
+      this.actionBar.querySelector(".eActionToolbar").addEventListener("scroll", () => { this.updateActionBar(); });
     }
 
     if (newActionBar == true || options.refreshActionBar == true) {

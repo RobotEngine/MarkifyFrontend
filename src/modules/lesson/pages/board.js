@@ -26,36 +26,54 @@ import {
 import { Editor } from "@modules/editor/Editor";
 import { REALTIME, TOOLBAR } from "../../editor/imports";
 
+import leftArrowIcon from "@assets/lesson/navigation/leftarrow.svg?raw";
+import rightArrowIcon from "@assets/lesson/navigation/rightarrow.svg?raw";
+import boardLogoIcon from "@assets/icon.svg?raw";
+import undoIcon from "@assets/lesson/history/undo.svg?raw";
+import redoIcon from "@assets/lesson/history/redo.svg?raw";
+import fullStatusIcon from "@assets/lesson/status/full.svg?raw";
+import weakStatusIcon from "@assets/lesson/status/weak.svg?raw";
+import noneStatusIcon from "@assets/lesson/status/none.svg?raw";
+import endEditorsIcon from "@assets/lesson/share/endeditors.svg?raw";
+import settingsIcon from "@assets/lesson/share/settings.svg?raw";
+import increasePageIcon from "@assets/lesson/navigation/plus.svg?raw";
+import decreasePageIcon from "@assets/lesson/navigation/minus.svg?raw";
+
 export class Page {
   html = `
   <div class="boPage" main>
     <div class="eInterface customScroll">
       <div class="eTopHolder">
-        <button class="eTopScroll" left style="left: 7px"></button>
-        <button class="eTopScroll" right style="right: 7px"></button>
+        <button class="eTopScroll" left style="left: 7px">${leftArrowIcon}</button>
+        <button class="eTopScroll" right style="right: 7px">${rightArrowIcon}</button>
         <div class="eTop">
           <div class="eTopSection" left>
-            <a class="eLogo" href="/app/dashboard" draggable="false"></a>
+            <a class="eLogo" href="/app/dashboard" draggable="false">${boardLogoIcon}</a>
             <div class="eFileNameHolder border"><div class="eFileName" spellcheck="false"></div></div>
             <button class="eFileDropdown">File</button>
             <button class="eCreateCopy">Create Copy</button>
             <div class="eTopDivider"></div>
-            <button class="eSaveProgress eUndo" disabled></button>
-            <button class="eSaveProgress eRedo" disabled></button>
+            <button class="eSaveProgress eUndo" disabled>${undoIcon}</button>
+            <button class="eSaveProgress eRedo" disabled>${redoIcon}</button>
             <div class="eStatusHolder"><div class="eStatus">
-              <div strength="3" title="Strong Connection | All features seamlessly synced to the cloud."></div>
-              <div strength="2" title="Weak Connection | Cloud-saved annotations, limited real-time features."></div>
-              <div strength="1" title="No Connection | Changes stored on-device, synced to cloud upon reconnecting."></div>
+              <div strength="3" title="Strong Connection | All features seamlessly synced to the cloud.">${fullStatusIcon}</div>
+              <div strength="2" title="Weak Connection | Cloud-saved annotations, limited real-time features.">${weakStatusIcon}</div>
+              <div strength="1" title="No Connection | Changes stored on-device, synced to cloud upon reconnecting.">${noneStatusIcon}</div>
             </div></div>
           </div>
           <div class="eTopSection" scroll>
             <div class="eTopDivider"></div>
           </div>
           <div class="eTopSection" right>
-            <button class="eMembers"><span class="eMemberHandCount" membercount title="Number of hands raised."></span><span class="eMemberIdleCount" membercount title="Number of idle members."></span><span class="eMemberCount" membercount title="Number of members."></span>Members</button>
-            <button class="eEndSession" title="End Session | Disable all editing access making everyone a viewer."></button>
+            <button class="eMembers">
+              <span class="eMemberHandCount" membercount title="Number of hands raised."></span>
+              <span class="eMemberIdleCount" membercount title="Number of idle members.">
+              </span><span class="eMemberCount" membercount title="Number of members.">
+              </span>Members
+            </button>
+            <button class="eEndSession" title="End Session | Disable all editing access making everyone a viewer.">${endEditorsIcon}</button>
             <button class="eShare">Share</button>
-            <button class="eMemberOptions" dropdowntitle="Member Options" title="Member Options | Configure various member settings and available tools."></button>
+            <button class="eMemberOptions" dropdowntitle="Member Options" title="Member Options | Configure various member settings and available tools.">${settingsIcon}</button>
             <button class="eSharePin"></button>
             <div class="eTopDivider"></div>
             <button class="eZoom">100%</button>
@@ -78,9 +96,9 @@ export class Page {
           </div>
           <div class="eBottomSectionSpacer"></div>
           <div class="eBottomSection" right>
-            <button class="ePageNav" down></button>
+            <button class="ePageNav" down>${increasePageIcon}</button>
             <div class="eCurrentPage border" contenteditable></div>
-            <button class="ePageNav" up></button>
+            <button class="ePageNav" up>${decreasePageIcon}</button>
           </div>
         </div>
       </div>
@@ -176,6 +194,37 @@ export class Page {
     ".eBottomSection[breakout] button svg": `width: 32px; height: 32px; transition: .2s`,
     ".eBottomSection[breakout] button:hover svg": `transform: scale(.9)`
   };
+  
+  updateTopBar(ignoreAttr) {
+    if (ignoreAttr != true) {
+      this.topHolder.removeAttribute("scroll");
+    }
+    if (this.top.scrollWidth > this.top.clientWidth) {
+      if (ignoreAttr != true) {
+        this.topHolder.setAttribute("scroll", "");
+      }
+      if (Math.floor(this.top.scrollLeft) > 0) {
+        this.topScrollLeft.style.opacity = 1;
+        this.topScrollLeft.style.pointerEvents = "all";
+      } else {
+        this.topScrollLeft.style.opacity = 0;
+        this.topScrollLeft.style.pointerEvents = "none";
+      }
+      if (Math.floor(this.top.scrollWidth - this.top.scrollLeft) > Math.floor(this.top.clientWidth)) {
+        this.topScrollRight.style.opacity = 1;
+        this.topScrollRight.style.pointerEvents = "all";
+      } else {
+        this.topScrollRight.style.opacity = 0;
+        this.topScrollRight.style.pointerEvents = "none";
+      }
+    } else {
+      this.topScrollLeft.style.opacity = 0;
+      this.topScrollLeft.style.pointerEvents = "none";
+      this.topScrollRight.style.opacity = 0;
+      this.topScrollRight.style.pointerEvents = "none";
+    }
+  }
+
   async js(frame, extra) {
     frame.style.position = "relative";
     frame.style.width = "100%";
@@ -184,55 +233,55 @@ export class Page {
     this.lesson = this.parent.lesson;
     this.session = this.parent.session;
 
-    let page = frame.closest(".content");
-    let mainPage = page.querySelector(".boPage[main]");
-    let timelinePage = page.querySelector(".boPage[timeline]");
+    this.page = frame.closest(".content");
+    this.mainPage = this.page.querySelector(".boPage[main]");
+    this.timelinePage = this.page.querySelector(".boPage[timeline]");
 
-    let eTopHolder = mainPage.querySelector(".eTopHolder");
-    let eTop = eTopHolder.querySelector(".eTop");
-    let eBottom = mainPage.querySelector(".eBottom");
+    this.topHolder = this.mainPage.querySelector(".eTopHolder");
+    this.top = this.topHolder.querySelector(".eTop");
+    this.bottom = this.mainPage.querySelector(".eBottom");
 
-    let leftTop = eTop.querySelector(".eTopSection[left]");
-    let icon = leftTop.querySelector(".eLogo");
-    let lessonName = leftTop.querySelector(".eFileName");
-    let fileButton = leftTop.querySelector(".eFileDropdown");
-    let createCopyButton = leftTop.querySelector(".eCreateCopy");
-    let undoButton = leftTop.querySelector(".eUndo");
-    let redoButton = leftTop.querySelector(".eRedo");
-    let status = leftTop.querySelector(".eStatus");
+    this.leftTop = this.top.querySelector(".eTopSection[left]");
+    this.icon = this.leftTop.querySelector(".eLogo");
+    this.lessonName = this.leftTop.querySelector(".eFileName");
+    this.fileButton = this.leftTop.querySelector(".eFileDropdown");
+    this.createCopyButton = this.leftTop.querySelector(".eCreateCopy");
+    this.undoButton = this.leftTop.querySelector(".eUndo");
+    this.redoButton = this.leftTop.querySelector(".eRedo");
+    this.status = this.leftTop.querySelector(".eStatus");
 
-    let rightTop = eTop.querySelector(".eTopSection[right]");
-    let membersButton = rightTop.querySelector(".eMembers");
-    let endSessionButton = rightTop.querySelector(".eEndSession");
-    let shareButton = rightTop.querySelector(".eShare");
-    let optionsButton = rightTop.querySelector(".eMemberOptions");
-    let sharePinButton = rightTop.querySelector(".eSharePin");
-    let zoomButton = rightTop.querySelector(".eZoom");
-    let accountButton = rightTop.querySelector(".eAccount");
-    let loginButton = rightTop.querySelector(".eLogin");
+    this.rightTop = this.top.querySelector(".eTopSection[right]");
+    this.membersButton = this.rightTop.querySelector(".eMembers");
+    this.endSessionButton = this.rightTop.querySelector(".eEndSession");
+    this.shareButton = this.rightTop.querySelector(".eShare");
+    this.optionsButton = this.rightTop.querySelector(".eMemberOptions");
+    this.sharePinButton = this.rightTop.querySelector(".eSharePin");
+    this.zoomButton = this.rightTop.querySelector(".eZoom");
+    this.accountButton = this.rightTop.querySelector(".eAccount");
+    this.loginButton = this.rightTop.querySelector(".eLogin");
 
-    let eTopScrollLeft = eTopHolder.querySelector(".eTopScroll[left]");
-    let eTopScrollRight = eTopHolder.querySelector(".eTopScroll[right]");
+    this.topScrollLeft = this.topHolder.querySelector(".eTopScroll[left]");
+    this.topScrollRight = this.topHolder.querySelector(".eTopScroll[right]");
 
-    let contentHolder = mainPage.querySelector(".eContentHolder");
+    this.contentHolder = this.mainPage.querySelector(".eContentHolder");
 
-    let toolbarHolder = page.querySelector(".eToolbarHolder");
-    let editorToolbar = toolbarHolder.querySelector('.eToolbar[type="editor"]');
-    let viewerToolbar = toolbarHolder.querySelector('.eToolbar[type="viewer"]');
-    let handButton = viewerToolbar.querySelector('.eTool[tool="raisehand"]');
-    let selectButton = viewerToolbar.querySelector('.eTool[tool="select"]');
-    let panButton = viewerToolbar.querySelector('.eTool[tool="pan"]');
+    this.toolbarHolder = this.page.querySelector(".eToolbarHolder");
+    this.editorToolbar = this.toolbarHolder.querySelector('.eToolbar[type="editor"]');
+    this.viewerToolbar = this.toolbarHolder.querySelector('.eToolbar[type="viewer"]');
+    this.handButton = this.viewerToolbar.querySelector('.eTool[tool="raisehand"]');
+    this.selectButton = this.viewerToolbar.querySelector('.eTool[tool="select"]');
+    this.panButton = this.viewerToolbar.querySelector('.eTool[tool="pan"]');
 
-    let currentPageHolder = eBottom.querySelector(".eBottomSection[right]");
-    let pageTextBox = currentPageHolder.querySelector(".eCurrentPage");
-    let increasePageButton = currentPageHolder.querySelector(".ePageNav[down]");
-    let decreasePageButton = currentPageHolder.querySelector(".ePageNav[up]");
+    this.currentPageHolder = this.bottom.querySelector(".eBottomSection[right]");
+    this.pageTextBox = this.currentPageHolder.querySelector(".eCurrentPage");
+    this.increasePageButton = this.currentPageHolder.querySelector(".ePageNav[down]");
+    this.decreasePageButton = this.currentPageHolder.querySelector(".ePageNav[up]");
 
     let stringPref = JSON.stringify(this.parent.preferences); // Must be duplicated
 
-    this.editor = await this.setFrame(Editor, contentHolder, {
+    this.editor = await this.setFrame(Editor, this.contentHolder, {
       construct: {
-        page: mainPage,
+        page: this.mainPage,
         pageID: this.pageID,
         pageType: this.pageType,
         id: this.parent.id,
@@ -253,20 +302,20 @@ export class Page {
     });
     this.pipeline = this.editor.pipeline;
 
-    page.addEventListener("pointerdown", (event) => {
+    this.page.addEventListener("pointerdown", (event) => {
       this.pipeline.publish("pointerdown", { event: event });
       this.pipeline.publish("click_start", { type: "pointerdown", event: event });
     }, { passive: false });
-    page.addEventListener("touchstart", (event) => {
+    this.page.addEventListener("touchstart", (event) => {
       this.pipeline.publish("touchstart", { event: event });
     }, { passive: false });
-    page.addEventListener("click", (event) => {
+    this.page.addEventListener("click", (event) => {
       this.pipeline.publish("click", { event: event });
     }, { passive: false });
-    page.addEventListener("mouseleave", (event) => {
+    this.page.addEventListener("mouseleave", (event) => {
       this.pipeline.publish("mouseleave", { event: event });
     });
-    page.addEventListener("contextmenu", (event) => {
+    this.page.addEventListener("contextmenu", (event) => {
       this.pipeline.publish("contextmenu", { event: event });
     });
 
@@ -282,7 +331,7 @@ export class Page {
         return alertModule.open("error", `<b>Error Loading Annotations</b>Please try again later...`);
       }
       await this.editor.loadAnnotations(annoBody, { pageID: pageParam, jumpID: checkForJumpLink });
-      contentHolder.removeAttribute("disabled");
+      this.contentHolder.removeAttribute("disabled");
     })();
 
     // Load additional editor modules:
@@ -290,12 +339,28 @@ export class Page {
       this.editor.register(REALTIME());
 
       await this.editor.register(TOOLBAR());
-      editorToolbar.removeAttribute("notransition");
-      viewerToolbar.removeAttribute("notransition");
+      this.editorToolbar.removeAttribute("notransition");
+      this.viewerToolbar.removeAttribute("notransition");
     })();
 
+    // Top bar events:
+    this.topScrollLeft.addEventListener("click", () => {
+      this.top.scrollTo({ left: this.top.scrollLeft - 200, behavior: "smooth" });
+      this.updateTopBar();
+    });
+    this.topScrollRight.addEventListener("click", () => {
+      this.top.scrollTo({ left: this.top.scrollLeft + 200, behavior: "smooth" });
+      this.updateTopBar();
+    });
+    this.pipeline.subscribe("topbarResize", "resize", () => { this.updateTopBar(); });
+    this.pipeline.subscribe("topbarVisibilityChange", "visibilitychange", () => { this.updateTopBar(); });
+    this.pipeline.subscribe("topbarScroll", "topbar_scroll", () => { this.updateTopBar(true); });
+    this.top.addEventListener("scroll", (event) => {
+      this.pipeline.publish("topbar_scroll", { event });
+    });
+
     // TEMPORARY FOR TOOLBAR TESTING (DELETE LATER):
-    toolbarHolder.setAttribute("left", "");
-    editorToolbar.removeAttribute("hidden");
+    this.toolbarHolder.setAttribute("left", "");
+    this.editorToolbar.removeAttribute("hidden");
   }
 }

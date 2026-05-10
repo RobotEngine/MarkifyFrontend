@@ -20,11 +20,16 @@ import {
   setLocalStore,
   objectUpdate,
   copyObject,
-  getObject
+  getObject,
+  textBoxError,
+  clipBoardRead
 } from "@/crucial";
 
+import { dropdown as dropdownModule } from "@modules/utility/Dropdown";
+import { alert as alertModule } from "@modules/utility/Alert";
+
 import { Editor } from "@modules/editor/Editor";
-import { REALTIME, TOOLBAR } from "../../editor/imports";
+import { REALTIME, TOOLBAR } from "@modules/editor/imports";
 
 import leftArrowIcon from "@assets/lesson/navigation/leftarrow.svg?raw";
 import rightArrowIcon from "@assets/lesson/navigation/rightarrow.svg?raw";
@@ -225,6 +230,122 @@ export class Page {
     }
   }
 
+  updateInterface() {
+    let access = this.editor.self.access;
+    if (access < 1) {
+      this.contentHolder.setAttribute("viewer", "");
+      this.lessonName.removeAttribute("contenteditable");
+
+      if (this.editor.settings.allowExport != false) {
+        this.createCopyButton.style.removeProperty("display");
+      } else {
+        this.createCopyButton.style.display = "none";
+      }
+
+      this.undoButton.style.display = "none";
+      this.redoButton.style.display = "none";
+      this.viewerToolbar.removeAttribute("hidden");
+      this.editorToolbar.setAttribute("hidden", "");
+    } else {
+      this.contentHolder.removeAttribute("viewer");
+      
+      if (access > 3) {
+        this.lessonName.setAttribute("contenteditable", "");
+      }
+      
+      this.createCopyButton.style.display = "none";
+      this.undoButton.style.removeProperty("display");
+      this.redoButton.style.removeProperty("display");
+      this.editorToolbar.removeAttribute("hidden");
+      this.viewerToolbar.setAttribute("hidden", "");
+    }
+    if (access < 4) {
+      this.shareButton.style.removeProperty("display");
+      this.optionsButton.style.removeProperty("display");
+    } else {
+      this.shareButton.style.display = "flex";
+      this.optionsButton.style.display = "flex";
+    }
+    
+    let toolbarSetting = (account.settings ?? {}).toolbar ?? "left";
+    if (this.toolbarHolder.hasAttribute(toolbarSetting) == false) {
+      if (toolbarSetting != "right") {
+        this.toolbarHolder.setAttribute("left", "");
+        this.toolbarHolder.removeAttribute("right");
+      } else {
+        this.toolbarHolder.setAttribute("right", "");
+        this.toolbarHolder.removeAttribute("left");
+      }
+
+      if (this.editor.toolbar != null) {
+        this.editor.toolbar.toolbar.update();
+      }
+    }
+
+    this.updateTopBar();
+  }
+
+  updateStatus(saving) {
+    if (this.currentStatusStrength != this.parent.signalStrength) {
+      for (let i = 0; i < this.status.children.length; i++) {
+        let child = this.status.children[i];
+        if (parseInt(child.getAttribute("strength")) != this.parent.signalStrength) {
+          child.setAttribute("hidden", "");
+        } else {
+          child.removeAttribute("hidden");
+        }
+      }
+      this.currentStatusStrength = this.parent.signalStrength;
+    }
+    this.currentStatusSaving = saving ?? this.currentStatusSaving;
+    if (this.currentStatusSaving == true) {
+      this.status.setAttribute("saving", "");
+    } else {
+      this.status.removeAttribute("saving");
+    }
+  }
+
+  updateMemberCount(button) {
+    button = button ?? this.membersButton;
+
+    let memberCountTx = button.querySelector(".eMemberCount");
+    let handCountTx = button.querySelector(".eMemberHandCount");
+    let idleCountTx = button.querySelector(".eMemberIdleCount");
+
+    memberCountTx.textContent = this.parent.memberCount;
+    if (this.parent.memberCount > 1) {
+      memberCountTx.style.display = "flex";
+      memberCountTx.parentElement.style.padding = "4px 10px 4px 4px";
+    } else {
+      memberCountTx.style.removeProperty("display");
+      memberCountTx.parentElement.style.removeProperty("padding");
+    }
+    
+    handCountTx.textContent = this.parent.handCount;
+    if (this.parent.handCount > 0) {
+      handCountTx.style.display = "flex";
+      handCountTx.parentElement.style.padding = "4px 10px 4px 4px";
+    } else {
+      handCountTx.style.removeProperty("display");
+    }
+    
+    idleCountTx.textContent = this.parent.idleCount;
+    if (this.parent.idleCount > 0 && this.parent.memberCount > 1) {
+      idleCountTx.style.display = "flex";
+      idleCountTx.parentElement.style.padding = "4px 10px 4px 4px";
+    } else {
+      idleCountTx.style.removeProperty("display");
+    }
+
+    if (this.editor.self.access > 3 && this.parent.editorCount > 0) {
+      this.endSessionButton.style.display = "flex";
+    } else {
+      this.endSessionButton.style.removeProperty("display");
+    }
+
+    this.updateTopBar();
+  }
+
   async js(frame, extra) {
     frame.style.position = "relative";
     frame.style.width = "100%";
@@ -268,9 +389,6 @@ export class Page {
     this.toolbarHolder = this.page.querySelector(".eToolbarHolder");
     this.editorToolbar = this.toolbarHolder.querySelector('.eToolbar[type="editor"]');
     this.viewerToolbar = this.toolbarHolder.querySelector('.eToolbar[type="viewer"]');
-    this.handButton = this.viewerToolbar.querySelector('.eTool[tool="raisehand"]');
-    this.selectButton = this.viewerToolbar.querySelector('.eTool[tool="select"]');
-    this.panButton = this.viewerToolbar.querySelector('.eTool[tool="pan"]');
 
     this.currentPageHolder = this.bottom.querySelector(".eBottomSection[right]");
     this.pageTextBox = this.currentPageHolder.querySelector(".eCurrentPage");
@@ -337,8 +455,11 @@ export class Page {
     // Load additional editor modules:
     (async () => {
       this.editor.register(REALTIME());
-
       await this.editor.register(TOOLBAR());
+
+      this.handButton = this.viewerToolbar.querySelector('.eTool[tool="raisehand"]');
+      this.selectButton = this.viewerToolbar.querySelector('.eTool[tool="select"]');
+
       this.editorToolbar.removeAttribute("notransition");
       this.viewerToolbar.removeAttribute("notransition");
     })();
@@ -357,6 +478,236 @@ export class Page {
     this.pipeline.subscribe("topbarScroll", "topbar_scroll", () => { this.updateTopBar(true); });
     this.top.addEventListener("scroll", (event) => {
       this.pipeline.publish("topbar_scroll", { event });
+    });
+
+    // Interface events:
+    this.pipeline.subscribe("interfaceUpdate", "refresh_interface", () => { this.updateInterface(); });
+    this.pipeline.subscribe("boardLessonSet", "set", (body) => {
+      if (body.hasOwnProperty("name") == true && (document.activeElement == null || document.activeElement.closest(".eFileName") != this.lessonName)) {
+        let name = this.lesson.name ?? "Untitled Lesson";
+        this.lessonName.textContent = name;
+        this.lessonName.title = name;
+      }
+
+      if (this.parent.lesson.pin != null) {
+        this.sharePinButton.textContent = this.parent.lesson.pin;
+        this.sharePinButton.style.display = "unset";
+      } else {
+        this.sharePinButton.style.removeProperty("display");
+      }
+
+      if (body.hasOwnProperty("tool") == true) {
+        this.updateSplitScreenButton();
+      }
+      
+      this.updateInterface();
+    });
+    this.pipeline.subscribe("accountUpdate", "account_settings", (event) => {
+      if (event.settings.hasOwnProperty("toolbar") == true) {
+        this.updateInterface();
+      }
+      if (event.settings.hasOwnProperty("actionbar") == true) {
+        this.pipeline.publish("redraw_selection", { redraw: true });
+      }
+    });
+    this.updateInterface();
+
+    // Exit button event:
+    this.icon.addEventListener("click", (event) => {
+      event.preventDefault();
+      this.editor.save.syncSave(true);
+      setPage("pages/app/dashboard");
+    });
+
+    // Lesson name events:
+    let name = this.lesson.name ?? "Untitled Lesson";;
+    this.lessonName.textContent = name;
+    this.lessonName.title = name;
+    this.lessonName.addEventListener("keydown", (event) => {
+      if (event.keyCode == 13) {
+        event.preventDefault();
+        this.lessonName.blur();
+      }
+    });
+    this.lessonName.addEventListener("input", () => { this.updateTopBar(); });
+    this.lessonName.addEventListener("focusout", async () => {
+      this.lessonName.scrollTo(0, 0);
+      this.lessonName.parentElement.style.setProperty("--borderWidth", "0px");
+      this.updateTopBar();
+
+      let name = this.lessonName.textContent.substring(0, 100).replace(/[^A-Za-z0-9.,_|/\-+!?@#$%^&*()\[\]{}'":;~` ]/g, "");
+      if (name.replace(/ /g, "").length < 1) {
+        this.lessonName.textContent = this.lesson.name;
+        return;
+      }
+      if (this.lessonName.textContent == this.lesson.name) {
+        this.lessonName.textContent = this.lesson.name;
+        return;
+      }
+      let oldName = this.lesson.name;
+      this.lesson.name = name;
+      this.lessonName.textContent = name;
+      this.lessonName.title = name;
+      let [code] = await sendRequest("POST", "lessons/name", { name: name }, { session: this.session });
+      if (code != 200) {
+        this.lesson.name = oldName;
+        this.lessonName.textContent = oldName;
+        this.lessonName.title = oldName;
+      }
+    });
+    this.lessonName.addEventListener("focus", async () => {
+      this.lessonName.parentElement.style.setProperty("--borderWidth", "4px");
+      this.updateTopBar();
+    });
+    this.lessonName.addEventListener("paste", clipBoardRead);
+
+    // History events:
+    this.pipeline.subscribe("updateHistory", "history_update", (data) => {
+      if (data.history.length > 0 && data.location > -1 && this.editor.self.access > 0) {
+        this.undoButton.removeAttribute("disabled");
+      } else {
+        this.undoButton.setAttribute("disabled", "");
+      }
+      if (data.history.length > data.location + 1 && this.editor.self.access > 0) {
+        this.redoButton.removeAttribute("disabled");
+      } else {
+        this.redoButton.setAttribute("disabled", "");
+      }
+    });
+    this.undoButton.addEventListener("click", () => { this.editor.history.undo(); });
+    this.redoButton.addEventListener("click", () => { this.editor.history.redo(); });
+
+    // Status events:
+    this.pipeline.subscribe("statusSignalStrengthUpdate", "signal_strength", () => { this.updateStatus(); });
+    this.pipeline.subscribe("statusSavingUpdate", "save_status", (event) => { this.updateStatus(event.saving); });
+    this.updateStatus();
+
+    // Member count events:
+    this.pipeline.subscribe("boardMemberJoin", "join", () => { this.updateMemberCount(); });
+    this.pipeline.subscribe("boardMemberLeave", "leave", () => { this.updateMemberCount(); });
+    this.pipeline.subscribe("boardMemberUpdate", "update", async (body) => {
+      let member = this.parent.members[body._id];
+
+      if (this.editor.realtime.module != null) {
+        if (body.observe == this.editor.sessionID) { // Being observed:
+          this.editor.realtime.observed++;
+          this.editor.realtime.module.publishShort(null, "observe", true);
+        } else if (body.hasOwnProperty("observe") == true && body.observe != this.editor.sessionID) {
+          this.editor.realtime.observed--;
+        }
+        if (body.weak == true) {
+          this.editor.realtime.module.removeRealtime(body._id);
+          if (this.editor.realtime.observing == body._id) {
+            this.editor.realtime.module.exitObserve();
+            alertModule.open("warning", "<b>Observing Ended</b>The member you where observing has too weak a connection, try again later...");
+          }
+        }
+        if (body.observe != null && this.editor.realtime.observing == body._id) {
+          this.editor.realtime.module.exitObserve();
+          alertModule.open("warning", "<b>Observing Ended</b>The member your observing started watching someone.");
+        }
+        if (this.editor.realtime.observing == body._id) {
+          this.editor.realtime.module.setObserveFrame(member);
+        }
+      }
+
+      if (body._id == this.parent.sessionID) {
+        this.updateInterface();
+
+        if (body.access != null && this.editor.toolbar != null) {
+          if (body.access == 0) {
+            if (this.selectButton != null) {
+              this.editor.toolbar.toolbar.startTool(this.selectButton);
+            }
+          } else {
+            this.editor.toolbar.toolbar.startTool(editorToolbar.querySelector('.eTool[tool="selection"]'), true);
+            alertModule.open("info", "<b>You're Now an Editor</b>You have been granted editing access to the lesson!");
+          }
+        }
+
+        if (this.handButton != null) {
+          if (member.hand == null) {
+            this.handButton.removeAttribute("selected");
+            this.handButton.setAttribute("tooltip", "Raise Hand");
+          } else {
+            this.handButton.setAttribute("selected", "");
+            this.handButton.setAttribute("tooltip", "Lower Hand");
+          }
+        }
+      }
+
+      this.updateMemberCount();
+    });
+    this.updateMemberCount();
+
+    // Page changer events:
+    this.pipeline.subscribe("pageTextUpdate", "page_change", (event) => {
+      if (this.editor.currentPage > 0) {
+        this.currentPageHolder.style.display = "flex";
+        modifyParams("page", event.pageId);
+      } else {
+        this.currentPageHolder.style.display = "none";
+        modifyParams("page");
+        return;
+      }
+
+      this.pageTextBox.innerHTML = "<b>" + this.editor.currentPage + "</b> / " + this.editor.annotationPages.length;
+
+      if (this.editor.currentPage > this.editor.annotationPages.length - 1) {
+        this.increasePageButton.setAttribute("disabled", "");
+      } else {
+        this.increasePageButton.removeAttribute("disabled");
+      }
+      if (this.editor.currentPage < 2) {
+        this.decreasePageButton.setAttribute("disabled", "");
+      } else {
+        this.decreasePageButton.removeAttribute("disabled");
+      }
+    });
+    this.increasePageButton.addEventListener("click", () => {
+      this.editor.setCurrentPage(this.editor.currentPage + 1);
+    });
+    this.decreasePageButton.addEventListener("click", () => {
+      this.editor.setCurrentPage(this.editor.currentPage - 1);
+    });
+    let alreadyRunningFocus = false;
+    this.pageTextBox.addEventListener("focus", async () => {
+      if (alreadyRunningFocus == true) {
+        return;
+      }
+      alreadyRunningFocus = true;
+      this.pageTextBox.blur();
+      this.pageTextBox.innerHTML = "";
+      this.pageTextBox.focus();
+      alreadyRunningFocus = false;
+    });
+    this.pageTextBox.addEventListener("keydown", (event) => {
+      if (event.keyCode == 13) {
+        event.preventDefault();
+        return this.pageTextBox.blur();
+      }
+      if (String.fromCharCode(event.keyCode).match(/(\w|\s)/g) && event.key.length == 1) {
+        let textInt = parseInt(this.pageTextBox.textContent + event.key);
+        if (parseInt(event.key) != event.key) {
+          event.preventDefault();
+          textBoxError(this.pageTextBox, "Must be a number");
+        } else if (textInt > this.editor.annotationPages.length) {
+          event.preventDefault();
+          textBoxError(this.pageTextBox, "Maximum of page number " + this.editor.annotationPages.length);
+        } else if (textInt < 1) {
+          event.preventDefault();
+          textBoxError(this.pageTextBox, "Minimum of the first page");
+        }
+      }
+    });
+    this.pageTextBox.addEventListener("focusout", () => {
+      if (this.pageTextBox.textContent == "") {
+        this.pageTextBox.innerHTML = "<b>" + this.editor.currentPage + "</b> / " + this.editor.annotationPages.length;
+        return;
+      }
+      let setPage = parseInt(this.pageTextBox.textContent) ?? 1;
+      this.pageTextBox.innerHTML = "<b>" + setPage + "</b> / " + this.editor.annotationPages.length;
+      this.editor.setCurrentPage(setPage, false);
     });
 
     // TEMPORARY FOR TOOLBAR TESTING (DELETE LATER):

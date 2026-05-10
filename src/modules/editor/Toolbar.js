@@ -1,4 +1,4 @@
-import { sleep, copyObject, changeGlobalImports } from "@/crucial";
+import { changeGlobalImports, sleep, copyObject, isValidURL } from "@/crucial";
 
 import { toolbars, mappedToolTypes } from "./toolbar/tools";
 

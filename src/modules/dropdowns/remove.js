@@ -1,6 +1,4 @@
-import {
-  sendRequest
-} from "@/crucial";
+import { sendRequest, setPage } from "@/crucial";
 
 import { alert as alertModule } from "@modules/utility/Alert";
 
@@ -135,7 +133,7 @@ export class Frame {
             }
           }
         } else if (option == "deletelesson") {
-          setFrame("pages/app/dashboard");
+          setPage("pages/app/dashboard");
         }
       }
     });

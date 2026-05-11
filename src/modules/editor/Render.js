@@ -374,6 +374,9 @@ export class Render {
 
     if (annotation.component.render != null) {
       await annotation.component.render();
+      if (annotation.component == null) {
+        return annotation;
+      }
     }
 
     if (annotation.component.getContainer != null) {

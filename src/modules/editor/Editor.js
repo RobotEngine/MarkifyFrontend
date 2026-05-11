@@ -1,5 +1,9 @@
 import { userID, sendRequest, getLocalStore, getObject, copyObject, objectUpdate } from "@/crucial";
 
+import { dropdown as dropdownModule } from "@modules/utility/Dropdown";
+import { modal as modalModule } from "@modules/utility/Modal";
+import { alert as alertModule } from "@modules/utility/Alert";
+
 import { contrastCheck } from "./utils/contrast-check";
 import { darkenHex } from "./utils/darken-hex";
 import { lightenHex } from "./utils/lighten-hex";
@@ -12,7 +16,7 @@ import { History } from "./History";
 import { Text } from "./Text";
 
 export class Editor {
-  constructor () {
+  constructor() {
     this.pipeline = new Pipeline;
     this.utils = new Utility(this);
     this.render = new Render(this);
@@ -785,6 +789,27 @@ export class Editor {
     }
   }
 
+  openDropdown(button, template, extra) {
+    return dropdownModule.open(button, template, { ...(extra ?? {}), editor: this });
+  }
+  closeDropdown() {
+    return dropdownModule.close();
+  }
+
+  openModal(template, button, extra) {
+    return modalModule.open(template, button, { ...(extra ?? {}), editor: this });
+  }
+  closeModal() {
+    return modalModule.close();
+  }
+
+  openAlert(type, message, data) {
+    return alertModule.open(type, message, data);
+  }
+  closeAlert(alert) {
+    return alertModule.close(alert);
+  }
+
   setElements(frame) {
     if (frame == null) {
       frame = this.frame;
@@ -1077,7 +1102,7 @@ export class Editor {
     });
     this.pipeline.subscribe("editorMemberLeave", "leave", (data) => {
       if (this.realtime.observing == data._id) {
-        alertModule.open("warning", "<b>Member Left</b>The member you were observing left.");
+        this.openAlert("warning", "<b>Member Left</b>The member you were observing left.");
       }
       this.removeRealtime(data._id);
       //delete this.realtime.module.members[data._id];

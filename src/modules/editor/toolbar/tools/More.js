@@ -1,7 +1,5 @@
 import { copyObject, copyClipboardData, copyClipboardText } from "@/crucial";
 
-import { dropdown as dropdownModule } from "@modules/utility/Dropdown";
-
 import { rotatePoint } from "../../math";
 import { rotatedBounds } from "../../math";
 
@@ -355,6 +353,6 @@ export class Tool {
   }
 
   js = async () => {
-    dropdownModule.open(this.button, MoreDropdown, { parent: this });
+    this.editor.openDropdown(this.button, MoreDropdown, { parent: this });
   }
 }

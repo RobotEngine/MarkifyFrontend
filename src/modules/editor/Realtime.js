@@ -9,8 +9,6 @@ import {
   copyObject
 } from "@/crucial";
 
-import { alert as alertModule } from "../utility/Alert";
-
 import { textColorBackground } from "./utils/text-color-background";
 import { hexToRGBString } from "./utils/hex-to-rgb-string";
 
@@ -296,7 +294,8 @@ export class Module {
   }
 
   setObserveFrame(member) {
-    let observeCursor = this.editor.page.querySelector("div[observebottomsection] div[observecursor]");
+    let observeHolder = this.editor.page.querySelector("div[observebottomsection]");
+    let observeCursor = observeHolder.querySelector("div[observecursor]");
     if (observeCursor == null) {
       return;
     }
@@ -308,7 +307,7 @@ export class Module {
     this.editor.page.style.boxShadow = "0px 0px 8px 0px " + hexToRGBString(member.color, "var(--shadowOpacity)");
   }
   async enableObserve(member) {
-    alertModule.close(this.editor.realtime.observeLoading);
+    this.editor.closeAlert(this.editor.realtime.observeLoading);
     this.editor.realtime.observeLoading = null;
 
     clearTimeout(this.editor.realtime.observeTimeout);
@@ -326,7 +325,8 @@ export class Module {
 
     this.editor.realtime.observing = null;
     
-    alertModule.close(this.editor.realtime.observeLoading);
+    this.editor.closeAlert(this.editor.realtime.observeLoading);
+    
     clearTimeout(this.editor.realtime.observeTimeout);
 
     let observeHolder = this.editor.page.querySelector("div[observebottomsection]");
@@ -382,8 +382,8 @@ export class Module {
     }
   }
   startScroll(targetX, targetY) {
-    this.targetScrollPositionX = this.targetX;
-    this.targetScrollPositionY = this.targetY;
+    this.targetScrollPositionX = targetX;
+    this.targetScrollPositionY = targetY;
     this.animationFrameId = requestAnimationFrame(() => { this.smoothScroll(); });
   }
 
@@ -998,10 +998,10 @@ export class Module {
           await this.editor.setZoom(zoom, true);
         }
         let annotationRect = this.editor.utils.annotationsRect();
-        let setX = (contentHolder.scrollLeft + annotationRect.left) + (scrollX * this.editor.zoom) - (this.editor.pageOffsetWidth / 2);
-        let setY = (contentHolder.scrollTop + annotationRect.top) + (scrollY * this.editor.zoom) - (this.editor.pageOffsetHeight / 2);
+        let setX = (this.editor.contentHolder.scrollLeft + annotationRect.left) + (scrollX * this.editor.zoom) - (this.editor.pageOffsetWidth / 2);
+        let setY = (this.editor.contentHolder.scrollTop + annotationRect.top) + (scrollY * this.editor.zoom) - (this.editor.pageOffsetHeight / 2);
         if (this.editor.realtime.observeLoading == null) {
-          startScroll(setX, setY);
+          this.startScroll(setX, setY);
         } else {
           this.editor.contentHolder.scrollTo({ left: setX, top: setY });
         }

@@ -40,8 +40,6 @@ import mediaIcon from "../icons/toolbar/media.svg?raw";
 import uploadIcon from "../icons/toolbar/upload.svg?raw";
 import embedIcon from "../icons/toolbar/embed.svg?raw";
 
-import raisehandIcon from "../icons/toolbar/raisehand.svg?raw";
-
 export const toolbars = {
   editor: `<div class="eToolbarContent eVerticalToolsHolder hideScroll">
     <button class="eTool" tool="selection" tooltip="Selection" selected><div>${selectIcon}</div></button>
@@ -57,8 +55,6 @@ export const toolbars = {
   </div>`,
 
   viewer: `<div class="eToolbarContent eVerticalToolsHolder">
-    <button class="eTool" tool="raisehand" tooltip="Raise Hand" noselect style="--theme: var(--green); --hoverColor: rgba(var(--greenRGB), .3)"><div>${raisehandIcon}</div></button>
-    <div class="eDivider"></div>
     <button class="eTool" tool="select" tooltip="Select" selected><div>${selectIcon}</div></button>
     <button class="eTool" tool="pan" tooltip="Pan"><div>${panIcon}</div></button>
   </div>`

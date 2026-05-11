@@ -2,8 +2,6 @@ import { getObject, copyObject, sendRequest } from "@/crucial";
 
 import { emojis, sheetSize } from "@modules/utility/emojis";
 
-import { dropdown as dropdownModule } from "@modules/utility/Dropdown";
-
 import reactionsIcon from "../../icons/toolbar/reactions.svg?raw";
 import { trash as trashIcon } from "@modules/utility/core-icons";
 
@@ -315,6 +313,6 @@ export class Tool {
   SUPPORTS_MULTIPLE_SELECT = false;
 
   js() {
-    dropdownModule.open(this.button, ReactionsDropdown, { title: "Reactions", parent: this });
+    this.editor.openDropdown(this.button, ReactionsDropdown, { title: "Reactions", parent: this });
   }
 }

@@ -2,8 +2,6 @@ import { sleep } from "@/crucial";
 
 import { tools } from "./tools";
 
-import { alert as alertModule } from "@modules/utility/Alert";
-
 import { hexToRGBString } from "../utils/hex-to-rgb-string";
 
 export class Toolbar {
@@ -401,7 +399,7 @@ export class Toolbar {
     }
     let toolID = button.getAttribute("tool");
     if (this.toolbar.checkToolEnabled(toolID) == false) {
-      return alertModule.open("warning", "<b>Tool Toggle</b>The lesson owner has disabled this tool.");
+      return this.editor.openAlert("warning", "<b>Tool Toggle</b>The lesson owner has disabled this tool.");
     }
 
     if (targetButton != null) {
@@ -456,7 +454,7 @@ export class Toolbar {
       }
     }
     if (disabledTools.includes(this.toolbar.currentTool) == true && this.editor.self.access > 0) {
-      alertModule.open("warning", "<b>Tool Toggle</b>Your current tool was disabled by the lesson owner.");
+      this.editor.openAlert("warning", "<b>Tool Toggle</b>Your current tool was disabled by the lesson owner.");
       this.setTool(this.toolbar.getToolbar().querySelector('.eToolbar:not([hidden]) .eTool[tool="selection"]'), true);
       this.setTool();
     }

@@ -1,7 +1,5 @@
 import { sendRequest, addS } from "@/crucial";
 
-import { alert as alertModule } from "../../../../utility/Alert";
-
 import uploadPageIcon from "../../../icons/toolbar/uploadpage.svg?raw";
 import removePageIcon from "../../../icons/toolbar/removepage.svg?raw";
 
@@ -65,7 +63,7 @@ export class Tool {
         return;
       }
       if (files.length > 50) {
-        return alertModule.open("warning", "<b>File Overload</b>Woah there! Markify only supports bulk uploads of up to 50 files at once.", { time: 10 });
+        return this.editor.openAlert("warning", "<b>File Overload</b>Woah there! Markify only supports bulk uploads of up to 50 files at once.", { time: 10 });
       }
       let sendFormData = new FormData();
       let fileSize = 0;
@@ -79,25 +77,25 @@ export class Tool {
           if (file.type == "application/pdf") {
             fileSize += file.size;
             if (fileSize >= this.maxFileSize) {
-              return alertModule.open("error", "<b>Exceeded Size Limit</b><div>Uploads are limited to a max size of <u>5 GB</u> total</div>", { time: 10 });
+              return this.editor.openAlert("error", "<b>Exceeded Size Limit</b><div>Uploads are limited to a max size of <u>5 GB</u> total</div>", { time: 10 });
             }
             sendFormData.append("file" + i, file);
             passedFiles++;
           } else {
-            alertModule.open("warning", "<b>" + file.name + " Failed to Upload</b>Only PDF files are currently supported", { time: 10 });
+            this.editor.openAlert("warning", "<b>" + file.name + " Failed to Upload</b>Only PDF files are currently supported", { time: 10 });
           }
         }
       }
       input.value = "";
       if (passedFiles > 0) {
         this.button.setAttribute("disabled", "");
-        let uploadAlert = await alertModule.open("info", `<b>Uploading Document${addS(passedFiles)}</b>Uploading your PDF${addS(passedFiles)} and inserting into the lesson!`, { time: "never" });
+        let uploadAlert = await this.editor.openAlert("info", `<b>Uploading Document${addS(passedFiles)}</b>Uploading your PDF${addS(passedFiles)} and inserting into the lesson!`, { time: "never" });
         let path = "lessons/save/file?annotation=" + preference._id;
         if ((this.editor.parameters ?? []).length > 0) {
           path += "&" + this.editor.parameters.join("&");
         }
         let [code, body] = await sendRequest("POST", path, sendFormData, { session: this.editor.session, noFileType: true });
-        alertModule.close(uploadAlert);
+        this.editor.closeAlert(uploadAlert);
         this.button.removeAttribute("disabled");
         if (code == 200) {
           let historyUpdate = body.historyUpdate ?? [];

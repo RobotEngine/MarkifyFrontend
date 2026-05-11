@@ -105,11 +105,6 @@ export class Annotation extends BaseAnnotation {
         }
       }
     }
-    if (this.editor.exporting != true) {
-      await loadText();
-    } else {
-      this.editor.exportPromises.push(new Promise(async (resolve) => { resolve(await loadText()); }));
-    }
 
     let reactionHolder = this.element.querySelector("div[reactions]");
     if (this.editor.utils.isLocked(this.properties) == false) {
@@ -197,6 +192,12 @@ export class Annotation extends BaseAnnotation {
     } else {
       reactionHolder.style.width = "unset";
       reactionHolder.style.flex = "1";
+    }
+
+    if (this.editor.exporting != true) {
+      await loadText();
+    } else {
+      this.editor.exportPromises.push(new Promise(async (resolve) => { resolve(await loadText()); }));
     }
   }
 }

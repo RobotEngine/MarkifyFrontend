@@ -1,5 +1,3 @@
-import { modal as modalModule } from "@modules/utility/Modal";
-
 import enlargeIcon from "../../../../icons/toolbar/enlarge.svg?raw";
 
 class EmbedModal {
@@ -14,7 +12,7 @@ class EmbedModal {
       frame.querySelector(".emFrame iframe").src = extra.preference.embed.url;
     }
     frame.closest(".fixedItemHolder").addEventListener("click", () => {
-      modalModule.close();
+      this.close();
     });
   }
 }
@@ -35,7 +33,7 @@ export class Tool {
 
   js() {
     let preference = this.toolbar.getPreferenceTool();
-    modalModule.open(EmbedModal, this.button, {
+    this.editor.openModal(EmbedModal, this.button, {
       title: (preference.embed ?? {}).title ?? (new URL(preference.d ?? "")).hostname,
       preference: preference
     });

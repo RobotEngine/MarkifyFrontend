@@ -2,8 +2,6 @@ import { connected, supportedImageTypes, assetURL, sendRequest } from "@/crucial
 
 import { ResizePlacement } from "../../ResizePlacement";
 
-import { alert as alertModule } from "@modules/utility/Alert";
-
 export class Tool extends ResizePlacement {
   ACTIVE = false;
   MINIMUM_SIZE = 100;
@@ -43,7 +41,7 @@ export class Tool extends ResizePlacement {
     let startImagePlace = async (file) => {
       if (connected == false) {
         reset();
-        return alertModule.open("error", "<b>No Connection</b>Connect to the internet to upload media.");
+        return this.editor.openAlert("error", "<b>No Connection</b>Connect to the internet to upload media.");
       }
       if (file == null) {
         return;
@@ -104,15 +102,15 @@ export class Tool extends ResizePlacement {
               }
             } else {
               reset();
-              alertModule.open("error", "<b>Image Too Large</b>10 MB is the file size limit.");
+              this.editor.openAlert("error", "<b>Image Too Large</b>10 MB is the file size limit.");
             }
           } else {
             reset();
-            alertModule.open("error", `<b>Invalid Image Type</b>The following image types are supported: <i style='color: var(--darkGray)'>${(supportedImageTypes.join(", "))}</i>`);
+            this.editor.openAlert("error", `<b>Invalid Image Type</b>The following image types are supported: <i style='color: var(--darkGray)'>${(supportedImageTypes.join(", "))}</i>`);
           }
         } else {
           reset();
-          alertModule.open("error", "<b>Invalid File Type</b>Only images are currently supported.");
+          this.editor.openAlert("error", "<b>Invalid File Type</b>Only images are currently supported.");
         }
       }
       uploadInput.value = null;

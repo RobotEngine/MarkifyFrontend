@@ -1,5 +1,3 @@
-import { alert as alertModule } from "@modules/utility/Alert";
-
 import formulaIcon from "../../../icons/toolbar/formula/formula.svg?raw";
 
 export class Tool {
@@ -23,7 +21,7 @@ export class Tool {
       return;
     }
     if (quill.isEnabled() == false) {
-      return alertModule.open("warning", "<b>Start Editing Text</b>Place your cursor inside the text box to insert a formula.");
+      return this.editor.openAlert("warning", "<b>Start Editing Text</b>Place your cursor inside the text box to insert a formula.");
     }
     let selection = quill.getSelection() ?? {};
     let index = selection.index ?? 0;

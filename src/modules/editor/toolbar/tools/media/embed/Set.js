@@ -1,7 +1,5 @@
 import { sleep, isValidURL, connected } from "@/crucial";
 
-import { alert as alertModule } from "@modules/utility/Alert";
-
 import setEmbedIcon from "../../../../icons/toolbar/setembed.svg?raw";
 
 export class Tool {
@@ -100,7 +98,7 @@ export class Tool {
       if (isValidURL(annoTx.value) == false) {
         annoTx.value = lastText;
         annoTx.select();
-        return alertModule.open("error", "<b>Invalid Link</b>That link is invalid, check it and try again.");
+        return this.editor.openAlert("error", "<b>Invalid Link</b>That link is invalid, check it and try again.");
       }
       await this.toolbar.saveSelecting(() => { return { d: annoTx.value, embed: null }; }, { reuseActionBar: false, redrawActionBar: true });
       if (connected == true) {

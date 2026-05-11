@@ -1,5 +1,3 @@
-import { alert as alertModule } from "@modules/utility/Alert";
-
 export class Tool {
   async clickStart(event) {
     if (event.which === 3 || event.button === 2 || this.editor.pinching == true) {
@@ -104,8 +102,8 @@ export class Tool {
       }
       let annoModule = (await this.editor.render.getModule(component, render.f)) ?? {};
       if (this.editor.utils.canMemberModify(render) == false && this.editor.self.access > 0 && annoModule.IGNORE_LOCKED_WARNING != true) {
-        alertModule.close(this.toolbar.someoneElsesAnnoWarning);
-        this.toolbar.someoneElsesAnnoWarning = await alertModule.open("warning", "<b>Annotation is Locked</b>Only the author may edit collaborator locked annotations.");
+        this.editor.closeAlert(this.toolbar.someoneElsesAnnoWarning);
+        this.toolbar.someoneElsesAnnoWarning = await this.editor.openAlert("warning", "<b>Annotation is Locked</b>Only the author may edit collaborator locked annotations.");
       }
       if (event.shiftKey == true) {
         if (this.wasSelected != annoID && this.editor.selecting[annoID] != null) {

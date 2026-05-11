@@ -2,8 +2,6 @@ import { account, mouseDown, sleep, sendRequest, copyObject, getObject, cleanStr
 
 import { rotatedBounds, rotatePoint, rotatePointOrigin, round, pointInRotatedBounds } from "../math";
 
-import { dropdown as dropdownModule } from "@modules/utility/Dropdown";
-
 import topLeftSelectHandle from "../icons/selection/topleft.svg?raw";
 import topRightSelectHandle from "../icons/selection/topright.svg?raw";
 import bottomLeftSelectHandle from "../icons/selection/bottomleft.svg?raw";
@@ -2532,13 +2530,16 @@ export class Selection {
     if (target == null) {
       return;
     }
+    if (this.editor.isEditorContent(target) == false) {
+      return;
+    }
 
     // REACTIONS:
     let reaction = target.closest(".eReaction");
     if (reaction != null) {
       let annotation = reaction.closest(".eAnnotation").getAttribute("anno");
       if (reaction.hasAttribute("emoji") == false) {
-        dropdownModule.open(reaction, import("@modules/dropdowns/Emojis"), {
+        this.editor.openDropdown(reaction, import("@modules/dropdowns/Emojis"), {
           parent: this.editor,
           recent: this.editor.lesson.recentEmojis,
           callback: async (emoji) => {

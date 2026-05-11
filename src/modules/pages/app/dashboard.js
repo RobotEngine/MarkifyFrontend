@@ -382,7 +382,7 @@ export class Page extends PageFrame {
     username.textContent = account.user;
     username.title = account.user;
     accountButton.addEventListener("click", () => {
-      dropdown.open(accountButton, import("@modules/dropdowns/AccountOptions"), { parent: this });
+      dropdown.open(accountButton, import("@modules/dropdowns/Account"), { parent: this });
     });
 
     this.updateScrollShadows = () => {

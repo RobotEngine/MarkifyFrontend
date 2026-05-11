@@ -1,7 +1,5 @@
 import { sleep, getEpoch, timeSince, formatFullDate, copyClipboardText, account } from "@/crucial";
 
-import { dropdown as dropdownModule } from "../../../utility/Dropdown";
-
 import { round } from "../../math";
 
 import commentCursor from "../../icons/cursors/comment.svg?raw";
@@ -721,7 +719,7 @@ export class Tool {
       let comment = button.closest(".eCommentItem");
       if (comment != null && button.hasAttribute("more") == true) {
         button.setAttribute("dropdowntitle", "Options");
-        return dropdownModule.open(button, MoreDropdown, { parent: this, comment: comment, root: holder.firstElementChild == comment });
+        return this.editor.openDropdown(button, MoreDropdown, { parent: this, comment: comment, root: holder.firstElementChild == comment });
       }
       if (comment != null && button.hasAttribute("resolve") == true) {
         return this.toolbar.saveSelecting(() => { return { resolved: !button.hasAttribute("selected") }; });

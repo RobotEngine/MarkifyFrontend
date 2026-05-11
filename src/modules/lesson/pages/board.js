@@ -1,35 +1,11 @@
-import {
-  fixed,
-  favicon,
-
-  userID,
-  account,
-
-  mouseDown,
-  setPage,
-  setFrame,
-  sleep,
-  getParam,
-  modifyParams,
-  getEpoch,
-  sendRequest,
-  socket,
-  connected,
-  subscribe,
-  getLocalStore,
-  setLocalStore,
-  objectUpdate,
-  copyObject,
-  getObject,
-  textBoxError,
-  clipBoardRead
-} from "@/crucial";
-
-import { dropdown as dropdownModule } from "@modules/utility/Dropdown";
-import { alert as alertModule } from "@modules/utility/Alert";
+import { userID, account, setPage, getParam, modifyParams, sendRequest, connected, textBoxError, clipBoardRead, promptLogin, hasFeatureEnabled } from "@/crucial";
 
 import { Editor } from "@modules/editor/Editor";
 import { REALTIME, TOOLBAR } from "@modules/editor/imports";
+
+import { Frame as FileDropdown } from "@modules/lesson/board/FileDropdown";
+import { Frame as MembersDropdown } from "@modules/lesson/board/MembersDropdown";
+import { Frame as ZoomDropdown } from "@modules/lesson/dropdowns/Zoom";
 
 import leftArrowIcon from "@assets/lesson/navigation/leftarrow.svg?raw";
 import rightArrowIcon from "@assets/lesson/navigation/rightarrow.svg?raw";
@@ -43,6 +19,8 @@ import endEditorsIcon from "@assets/lesson/share/endeditors.svg?raw";
 import settingsIcon from "@assets/lesson/share/settings.svg?raw";
 import increasePageIcon from "@assets/lesson/navigation/plus.svg?raw";
 import decreasePageIcon from "@assets/lesson/navigation/minus.svg?raw";
+import breakoutLogoIcon from "@assets/breakout.svg?raw";
+import raisehandIcon from "@assets/lesson/share/raisehand.svg?raw";
 
 export class Page {
   html = `
@@ -346,6 +324,92 @@ export class Page {
     this.updateTopBar();
   }
 
+  async updateSplitScreenButton() {
+    this.breakoutEnabled = this.lesson.tool.includes("breakout");
+    this.breakoutOpen = this.parent.pages["breakout"] != null;
+    this.breakoutVisible = this.parent.maximized != true || this.parent.activePageID == "breakout";
+
+    let showBreakoutButton = false;
+    if (this.breakoutEnabled == true) {
+      if (this.breakoutOpen == false || this.breakoutVisible == false) {
+        showBreakoutButton = true;
+      }
+    } else {
+      if (this.parent.self.access > 3 && hasFeatureEnabled("breakout") == true) {
+        if (this.breakoutOpen == false || this.breakoutVisible == false) {
+          showBreakoutButton = true;
+        }
+      }
+    }
+
+    if (showBreakoutButton == true) {
+      if (this.breakoutButton == null) {
+        this.bottom.insertAdjacentHTML("beforeend", `<div class="eBottomSection" breakout title="Open Markify Breakout" new><button class="eBreakoutOpen">${breakoutLogoIcon}</button></div>`);
+        this.breakoutButton = this.bottom.querySelector(".eBottomSection[new]");
+        this.breakoutButton.removeAttribute("new");
+        this.breakoutButton.querySelector("button").addEventListener("click", async () => {
+          this.breakoutButton.remove();
+          this.breakoutButton = null;
+          
+          if (this.breakoutOpen == false) {
+            await this.parent.addPage("breakout", "breakout", { percent: .5 });
+          }
+          if (this.breakoutVisible == false) {
+            this.parent.activePageID = "breakout";
+            this.parent.pushToPipelines(null, "page_switch", { pageID: "breakout" });
+          }
+        });
+      }
+    } else {
+      if (this.breakoutButton != null) {
+        this.breakoutButton.remove();
+        this.breakoutButton = null;
+      }
+    }
+  }
+
+  async openTimeline(options = {}) {
+    this.mainPage.setAttribute("hidden", "");
+
+    this.timelinePage.innerHTML = "";
+
+    let construct = {
+      page: this.timelinePage,
+      close: () => { this.closeTimeline(); },
+      parentPipeline: this.editor.pipeline,
+
+      lesson: this.parent,
+      self: this.parent.self,
+      session: this.parent.session,
+      sessionID: this.parent.sessionID,
+      sources: this.parent.sources,
+      collaborators: this.parent.collaborators,
+      backgroundColor: this.editor.backgroundColor,
+      preferences: this.editor.preferences
+    };
+    if (options.includeAnnotations != false) {
+      construct.annotations = this.editor.annotations;
+    }
+    this.timeline = await this.setFrame(import("@modules/lesson/subpages/Timeline"), this.timelinePage, { construct });
+    this.pipeline = this.timeline.pipeline;
+
+    this.timelinePage.removeAttribute("hidden");
+  }
+  closeTimeline() {
+    this.pipeline = this.editor.pipeline;
+    delete this.timeline;
+
+    this.timelinePage.setAttribute("hidden", "");
+    this.mainPage.removeAttribute("hidden");
+
+    let timelineContent = this.timelinePage.querySelector(".content");
+    setTimeout(() => {
+      if (timelineContent != null) {
+        timelineContent.remove();
+      }
+    }, 200);
+  }
+
   async js(frame, extra) {
     frame.style.position = "relative";
     frame.style.width = "100%";
@@ -397,6 +461,7 @@ export class Page {
 
     let stringPref = JSON.stringify(this.parent.preferences); // Must be duplicated
 
+    // Create editor:
     this.editor = await this.setFrame(Editor, this.contentHolder, {
       construct: {
         page: this.mainPage,
@@ -420,6 +485,7 @@ export class Page {
     });
     this.pipeline = this.editor.pipeline;
 
+    // Main events:
     this.page.addEventListener("pointerdown", (event) => {
       this.pipeline.publish("pointerdown", { event: event });
       this.pipeline.publish("click_start", { type: "pointerdown", event: event });
@@ -446,7 +512,7 @@ export class Page {
       }
       let [annoCode, annoBody] = await sendRequest("GET", "lessons/join/annotations", null, { session: this.parent.session });
       if (annoCode != 200 && connected == true) {
-        return alertModule.open("error", `<b>Error Loading Annotations</b>Please try again later...`);
+        return this.editor.openAlert("error", `<b>Error Loading Annotations</b>Please try again later...`);
       }
       await this.editor.loadAnnotations(annoBody, { pageID: pageParam, jumpID: checkForJumpLink });
       this.contentHolder.removeAttribute("disabled");
@@ -457,8 +523,36 @@ export class Page {
       this.editor.register(REALTIME());
       await this.editor.register(TOOLBAR());
 
-      this.handButton = this.viewerToolbar.querySelector('.eTool[tool="raisehand"]');
-      this.selectButton = this.viewerToolbar.querySelector('.eTool[tool="select"]');
+      // Handle adding hand tool:
+      this.viewerToolbar.querySelector(".eToolbarContent").insertAdjacentHTML("afterbegin", `
+        <button class="eTool" tool="hand" tooltip="Raise Hand" noselect style="--theme: var(--green); --hoverColor: rgba(var(--greenRGB), .3)"><div>${raisehandIcon}</div></button>
+        <div class="eDivider"></div>
+      `);
+      this.handButton = this.viewerToolbar.querySelector('.eTool[tool="hand"]');
+      this.handButton.addEventListener("click", async () => {
+        if (this.editor.self.access != 0) {
+          raiseHand.setAttribute("hidden", "");
+          return;
+        }
+        this.handButton.setAttribute("disabled", "");
+        if (this.handButton.hasAttribute("selected") == false) {
+          let [code] = await sendRequest("PUT", "lessons/members/hand/raise", null, { session: this.editor.session });
+          if (code == 200) {
+            this.handButton.setAttribute("selected", "");
+            this.handButton.setAttribute("tooltip", "Lower Hand");
+          }
+        } else {
+          let [code] = await sendRequest("DELETE", "lessons/members/hand/lower", null, { session: this.editor.session });
+          if (code == 200) {
+            this.handButton.removeAttribute("selected");
+            this.handButton.setAttribute("tooltip", "Raise Hand");
+          }
+        }
+        if (this.editor.toolbar != null) {
+          this.editor.toolbar.toolbar.update();
+        }
+        this.handButton.removeAttribute("disabled", "");
+      });
 
       this.editorToolbar.removeAttribute("notransition");
       this.viewerToolbar.removeAttribute("notransition");
@@ -510,7 +604,6 @@ export class Page {
         this.pipeline.publish("redraw_selection", { redraw: true });
       }
     });
-    this.updateInterface();
 
     // Exit button event:
     this.icon.addEventListener("click", (event) => {
@@ -561,7 +654,27 @@ export class Page {
     });
     this.lessonName.addEventListener("paste", clipBoardRead);
 
-    // History events:
+    // File dropdown:
+    this.fileButton.addEventListener("click", () => {
+      this.editor.openDropdown(this.fileButton, FileDropdown, { parent: this });
+    });
+
+    // Create copy button:
+    this.createCopyButton.addEventListener("click", async () => {
+      if (userID == null) {
+        return promptLogin();
+      }
+      this.createCopyButton.setAttribute("disabled", "");
+      let copyAlert = await this.editor.openAlert("info", "<b>Creating Copy</b><div>Creating a copy of this lesson.", { time: "never" });
+      let [code, body] = await sendRequest("POST", "lessons/copy", null, { session: this.editor.session });
+      this.createCopyButton.removeAttribute("disabled");
+      this.editor.closeAlert(copyAlert);
+      if (code == 200) {
+        setPage("pages/app/lesson", { params: { lesson: body.lesson } });
+      }
+    });
+
+    // Undo/Redo history events:
     this.pipeline.subscribe("updateHistory", "history_update", (data) => {
       if (data.history.length > 0 && data.location > -1 && this.editor.self.access > 0) {
         this.undoButton.removeAttribute("disabled");
@@ -582,7 +695,7 @@ export class Page {
     this.pipeline.subscribe("statusSavingUpdate", "save_status", (event) => { this.updateStatus(event.saving); });
     this.updateStatus();
 
-    // Member count events:
+    // Member counter events:
     this.pipeline.subscribe("boardMemberJoin", "join", () => { this.updateMemberCount(); });
     this.pipeline.subscribe("boardMemberLeave", "leave", () => { this.updateMemberCount(); });
     this.pipeline.subscribe("boardMemberUpdate", "update", async (body) => {
@@ -599,12 +712,12 @@ export class Page {
           this.editor.realtime.module.removeRealtime(body._id);
           if (this.editor.realtime.observing == body._id) {
             this.editor.realtime.module.exitObserve();
-            alertModule.open("warning", "<b>Observing Ended</b>The member you where observing has too weak a connection, try again later...");
+            this.editor.openAlert("warning", "<b>Observing Ended</b>The member you where observing has too weak a connection, try again later...");
           }
         }
         if (body.observe != null && this.editor.realtime.observing == body._id) {
           this.editor.realtime.module.exitObserve();
-          alertModule.open("warning", "<b>Observing Ended</b>The member your observing started watching someone.");
+          this.editor.openAlert("warning", "<b>Observing Ended</b>The member your observing started watching someone.");
         }
         if (this.editor.realtime.observing == body._id) {
           this.editor.realtime.module.setObserveFrame(member);
@@ -616,12 +729,10 @@ export class Page {
 
         if (body.access != null && this.editor.toolbar != null) {
           if (body.access == 0) {
-            if (this.selectButton != null) {
-              this.editor.toolbar.toolbar.startTool(this.selectButton);
-            }
+            this.editor.toolbar.toolbar.startTool(this.viewerToolbar.querySelector('.eTool[tool="select"]'));
           } else {
-            this.editor.toolbar.toolbar.startTool(editorToolbar.querySelector('.eTool[tool="selection"]'), true);
-            alertModule.open("info", "<b>You're Now an Editor</b>You have been granted editing access to the lesson!");
+            this.editor.toolbar.toolbar.startTool(this.editorToolbar.querySelector('.eTool[tool="selection"]'), true);
+            this.editor.openAlert("info", "<b>You're Now an Editor</b>You have been granted editing access to the lesson!");
           }
         }
 
@@ -639,6 +750,57 @@ export class Page {
       this.updateMemberCount();
     });
     this.updateMemberCount();
+
+    // Members dropdown:
+    this.membersButton.addEventListener("click", () => {
+      this.editor.openDropdown(this.membersButton, MembersDropdown, { parent: this });
+    });
+
+    // Share dropdowns:
+    this.shareButton.addEventListener("click", () => {
+      this.editor.openDropdown(this.shareButton, import("@modules/lesson/dropdowns/share/Share"), { parent: this });
+    });
+    this.sharePinButton.addEventListener("click", () => {
+      this.editor.openDropdown(this.sharePinButton, import("@modules/lesson/dropdowns/share/Pin"), { parent: this });
+    });
+    if (this.lesson.pin != null) {
+      this.sharePinButton.style.display = "unset";
+      this.sharePinButton.textContent = this.lesson.pin;
+    }
+    this.optionsButton.addEventListener("click", () => {
+      this.editor.openDropdown(this.optionsButton, import("@modules/lesson/dropdowns/share/Options"), { title: "Options", parent: this });
+    });
+    
+    // End session button:
+    this.endSessionButton.addEventListener("click", async () => {
+      this.endSessionButton.setAttribute("disabled", "");
+      await sendRequest("DELETE", "lessons/members/reset", null, { session: this.editor.session });
+      this.endSessionButton.removeAttribute("disabled");
+    });
+
+    // Zoom event:
+    this.pipeline.subscribe("zoomTextUpdate", "zoom_change", (event) => {
+      this.zoomButton.textContent = Math.round(event.zoom * 100) + "%";
+      this.updateTopBar();
+    });
+    this.zoomButton.addEventListener("click", () => {
+      this.editor.openDropdown(this.zoomButton, ZoomDropdown);
+    });
+
+    // Account setup:
+    if (userID != null) {
+      this.accountButton.querySelector("div").textContent = account.user;
+      if (account.image != null) {
+       this.accountButton.querySelector("img").src = account.image;
+      }
+      this.accountButton.addEventListener("click", () => {
+        this.editor.openDropdown(this.accountButton, import("@modules/dropdowns/Account"), { parent: this });
+      });
+    } else {
+      this.accountButton.remove();
+      this.loginButton.style.display = "block";
+      this.loginButton.addEventListener("click", () => { promptLogin(); });
+    }
 
     // Page changer events:
     this.pipeline.subscribe("pageTextUpdate", "page_change", (event) => {
@@ -710,8 +872,84 @@ export class Page {
       this.editor.setCurrentPage(setPage, false);
     });
 
-    // TEMPORARY FOR TOOLBAR TESTING (DELETE LATER):
-    this.toolbarHolder.setAttribute("left", "");
-    this.editorToolbar.removeAttribute("hidden");
+    // Splitscreen update events:
+    this.pipeline.subscribe("pageAdd", "page_add", () => { this.updateSplitScreenButton(); });
+    this.pipeline.subscribe("pageRemove", "page_remove", () => { this.updateSplitScreenButton(); });
+    this.pipeline.subscribe("pageSwitch", "page_switch", () => { this.updateSplitScreenButton(); });
+    this.pipeline.subscribe("pageMaximize", "maximize", () => { this.updateSplitScreenButton(); });
+    this.updateSplitScreenButton();
+
+    // Handle spotlight:
+    this.pipeline.subscribe("spotlightStart", "spotlight", async (body) => {
+      if (this.editor.realtime.module == null || this.parent.signalStrength < 3) {
+        return;
+      }
+      if (body.member == this.editor.sessionID || body.member == this.editor.realtime.observing) {
+        return;
+      }
+      let member = this.parent.members[body.member];
+      if (member == null) {
+        return;
+      }
+      if (member.observe != null) {
+        member.observe = null;
+      }
+      if (member.weak == true) {
+        return;
+      }
+      let prevObserve = this.editor.realtime.observing;
+      this.editor.realtime.observing = body.member;
+      this.editor.realtime.module.setShortSub(this.editor.visibleChunks);
+      this.pipeline.publish("observe_enable", { memberID: body.member });
+      this.editor.closeAlert(this.editor.realtime.observeLoading);
+      clearTimeout(this.editor.realtime.observeTimeout);
+      let [code] = await sendRequest("GET", "lessons/members/observe?member=" + body.member, null, { session: this.editor.session });
+      if (code == 200) {
+        this.editor.realtime.observeLoading = await this.editor.openAlert("info", `<b>Connecting to Member</b>Connecting to ${member.name}'s screen from spotlight!`, { time: "never" });
+        this.editor.realtime.observeTimeout = setTimeout(() => {
+          this.editor.closeAlert(this.editor.realtime.observeLoading);
+          this.editor.openAlert("error", `<b>Observe Timeout</b>Failed to connect to their screen, please try again later...`);
+          this.editor.realtime.module.exitObserve();
+        }, 20000);
+      } else {
+        if (prevObserve != null) {
+          this.editor.realtime.observing = prevObserve;
+          this.editor.realtime.module.exitObserve();
+        }
+        this.editor.realtime.observing = null;
+        this.editor.realtime.module.setShortSub(this.visibleChunks);
+        this.pipeline.publish("observe_exit", { memberID: body.member });
+      }
+    });
+    
+    // Handle new lesson setup:
+    if (this.lesson.tool.includes("board") == false) {
+      this.contentHolder.removeAttribute("disabled");
+      this.mainPage.insertAdjacentHTML("beforeend", `<div class="eCreateBoardHolder"></div>`);
+      this.editor.openModal(
+        import("@modules/lesson/board/NewBoard"),
+        this.mainPage.querySelector(".eCreateBoardHolder"),
+        {
+          title: "Create Board",
+          parent: this,
+          callback: ({ modal }) => {
+            if (this.lesson.tool.includes("board") == false) {
+              this.lesson.tool.unshift("board");
+            }
+            modifyParams("lesson", this.parent.id);
+            if (this.editor.annotationPages.length > 0) {
+              this.editor.utils.updateAnnotationScroll([this.editor.annotationPages[0][0]], false);
+            } else {
+              this.editor.utils.centerWindowWithPage();
+            }
+            modal.close();
+            modifyParams("folder");
+            modifyParams("type");
+          }
+        }
+      );
+    }
+
+    this.updateInterface();
   }
 }

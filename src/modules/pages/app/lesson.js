@@ -22,7 +22,8 @@ import {
   setLocalStore,
   getObject,
   copyObject,
-  objectUpdate
+  objectUpdate,
+  getTheme
 } from "@/crucial";
 
 import { alert as alertModule } from "@modules/utility/Alert";

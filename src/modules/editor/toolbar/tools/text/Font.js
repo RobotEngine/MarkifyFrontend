@@ -53,7 +53,7 @@ export class Tool {
   html = `<div class="eSubToolFontContainer"></div>`;
   css = {
     ".eSubToolFontContainer": `box-sizing: border-box; display: flex; flex-direction: column; gap: 6px; max-width: 100%; padding: 6px; align-items: center`,
-    ".eFontOption": `display: flex; max-width: 100%; width: 154px; height: 36px; padding: 4px; border-radius: 6px; font-weight: 600; transition: .15s`,
+    ".eFontOption": `display: flex; max-width: 100%; width: 154px; height: 36px; padding: 4px; justify-content: center; border-radius: 6px; font-weight: 600; transition: .15s`,
     ".eFontOption svg": `height: 100%; transition: .1s`,
     ".eFontOption:hover": `background: var(--hover)`,
     ".eFontOption[selected]": `background: var(--theme) !important`,

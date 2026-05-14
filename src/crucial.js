@@ -289,7 +289,6 @@ export const setFrame = async (modulePromise, frame, extra, parent) => {
           remContent.style.top = "0px";
           remContent.style.position = "absolute";
         }
-        //frameSet.innerHTML = "";
       }
       if (loading == null) {
         loadingTimeout = setTimeout(() => {
@@ -305,8 +304,7 @@ export const setFrame = async (modulePromise, frame, extra, parent) => {
             loading.setAttribute("appload", "");
           } else if (
             app.querySelector(".loading[appload]") != null
-            && frameSet.closest(".dropdown") == null
-            && frameSet.closest(".modal") == null
+            && frameSet.closest(".fixed") == null
           ) {
             loading.style.opacity = 0;
           }
@@ -329,7 +327,6 @@ export const setFrame = async (modulePromise, frame, extra, parent) => {
       }
       oldContent[i].style.opacity = 0;
     }
-    //frameSet.innerHTML = "";
   }
 
   let module;
@@ -1295,6 +1292,11 @@ window.addEventListener("wheel", (event) => {
   }
 }, { passive: false });
 
+let currentLoading = app.querySelector(".loading[new]");
+if (currentLoading != null) {
+  currentLoading.setAttribute("appload", "");
+}
+
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => {
     try {
@@ -1310,3 +1312,39 @@ window.addEventListener("beforeinstallprompt", (event) => {
 });
 
 appendCSS(coreStyles);
+
+/* FULL IMPORT:
+
+import {
+  head,
+  body,
+  app,
+  PageFrame,
+  fixed,
+  favicon,
+
+  userID,
+  account,
+
+  changeGlobalImports,
+  mouseDown,
+  appendCSS,
+  setPage,
+  setFrame,
+  sleep,
+  getParam,
+  modifyParams,
+  getEpoch,
+  sendRequest,
+  socket,
+  connected,
+  subscribe,
+  getLocalStore,
+  setLocalStore,
+  getObject,
+  copyObject,
+  objectUpdate,
+  getTheme
+} from "@/crucial";
+
+*/

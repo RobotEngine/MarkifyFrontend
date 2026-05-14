@@ -1,44 +1,19 @@
-import {
-  changeGlobalImports,
-  PageFrame,
-  fixed,
-  favicon,
-
-  userID,
-  account,
-
-  mouseDown,
-  appendCSS,
-  setPage,
-  setFrame,
-  sleep,
-  getParam,
-  modifyParams,
-  getEpoch,
-  sendRequest,
-  socket,
-  connected,
-  subscribe,
-  getLocalStore,
-  setLocalStore,
-  getObject,
-  copyObject,
-  objectUpdate,
-  getTheme
-} from "@/crucial";
+import { changeGlobalImports, PageFrame, fixed, favicon, userID, account, mouseDown, setPage, setFrame, sleep, getParam, modifyParams, getEpoch, sendRequest, socket, connected, subscribe, getLocalStore, setLocalStore, getObject, copyObject, objectUpdate, getTheme } from "@/crucial";
 
 import { alert as alertModule } from "@modules/utility/Alert";
 
 import { preferences } from "@modules/lesson/preferences";
 import { defaultEmojis } from "@modules/lesson/default-emojis";
 
-const lessonPages = changeGlobalImports(import.meta.glob("@modules/lesson/pages/**/*.js"));
-
 import { PDFJS, QUILL, PDFJS_WORKER, MATHQUILL } from "../../editor/imports";
+
+const lessonPages = changeGlobalImports(import.meta.glob("@modules/lesson/pages/**/*.js"));
+const lessonPagesPath = "/src/modules/lesson/pages/";
 
 export class Page extends PageFrame {
   title = "Lesson";
   allowBackgroundChange = true;
+  
   html = `<div class="lPageHolder"></div>`;
   css = {
     ".lPageHolder": `position: fixed; display: flex; box-sizing: border-box; width: 100vw; width: 100dvw; height: 100vh; height: 100dvh; padding: 8px; left: 0px; top: 0px; contain: strict; justify-content: center; touch-action: none`,
@@ -143,7 +118,7 @@ export class Page extends PageFrame {
     holder.setAttribute("pagetype", type);
     holder.setAttribute("dropdownholder", "");
     let newPage = await this.setFrame(new Promise(async (resolve) => {
-      let loadModuleFunction = lessonPages["/src/modules/lesson/pages/" + type + ".js"];
+      let loadModuleFunction = lessonPages[lessonPagesPath + type + ".js"];
       if (loadModuleFunction == null) {
         return resolve();
       }
@@ -1048,7 +1023,7 @@ export class Page extends PageFrame {
 
     for (let i = 0 ; i < addPageTools.length; i++) {
       let tool = addPageTools[i];
-      await this.addPage(tool, tool, { totalPages: addPageTools.length });
+      this.addPage(tool, tool, { totalPages: addPageTools.length });
     }
     
     if (this.active != sendBody.active || this.signalStrength == 2) {

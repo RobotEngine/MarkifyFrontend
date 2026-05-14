@@ -177,6 +177,16 @@ export class Page {
     ".eBottomSection[breakout] button svg": `width: 32px; height: 32px; transition: .2s`,
     ".eBottomSection[breakout] button:hover svg": `transform: scale(.9)`
   };
+
+  updateActivePage() {
+    this.active = this.parent.activePageID == this.pageID;
+    this.editor.active = this.active;
+    if (this.active == false) {
+      this.pageHolder.removeAttribute("active");
+    } else {
+      this.pageHolder.setAttribute("active", "");
+    }
+  }
   
   updateTopBar(ignoreAttr) {
     if (ignoreAttr != true) {
@@ -370,8 +380,8 @@ export class Page {
 
   async openTimeline(options = {}) {
     this.mainPage.setAttribute("hidden", "");
-
     this.timelinePage.innerHTML = "";
+    this.timelinePage.removeAttribute("hidden");
 
     let construct = {
       page: this.timelinePage,
@@ -392,8 +402,6 @@ export class Page {
     }
     this.timeline = await this.setFrame(import("@modules/lesson/subpages/Timeline"), this.timelinePage, { construct });
     this.pipeline = this.timeline.pipeline;
-
-    this.timelinePage.removeAttribute("hidden");
   }
   closeTimeline() {
     this.pipeline = this.editor.pipeline;
@@ -484,6 +492,16 @@ export class Page {
       }
     });
     this.pipeline = this.editor.pipeline;
+
+    // Handle page events:
+    this.pipeline.subscribe("checkActivePage", "click_start", () => {
+      if (this.parent.activePageID != this.pageID) {
+        this.parent.activePageID = this.pageID;
+        this.parent.pushToPipelines(null, "page_switch", { pageType: this.pageType, pageID: this.pageID });
+      }
+    });
+    this.pipeline.subscribe("checkPageSwitch", "page_switch", () => { this.updateActivePage(); }, { sort: 1 });
+    this.updateActivePage();
 
     // Main events:
     this.page.addEventListener("pointerdown", (event) => {

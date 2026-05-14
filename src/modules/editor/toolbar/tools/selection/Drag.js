@@ -77,9 +77,9 @@ export class Tool {
     }
     this.scrollIntervalRunning = true;
     while (this.selection != null && (this.scrollIntervalX != 0 || this.scrollIntervalY != 0)) {
-      this.editor.contentHolder.scrollTo(
-        this.editor.contentHolder.scrollLeft + this.scrollIntervalX,
-        this.editor.contentHolder.scrollTop + this.scrollIntervalY
+      this.editor.scrollTo(
+        this.editor.scrollLeft + this.scrollIntervalX,
+        this.editor.scrollTop + this.scrollIntervalY
       );
       await this.clickMove(this.scrollLastEvent, true);
       await sleep(10);
@@ -161,11 +161,11 @@ export class Tool {
         this.selection.style.borderRadius = "0px 10px 10px 10px";
       }
     }
-    let annotationRect = this.editor.utils.localBoundingRect(this.editor.annotationHolder);
+    let annotationRect = this.editor.utils.annotationsRect();
     this.selection.style.width = (selectWidth * this.editor.zoom) + "px";
     this.selection.style.height = (selectHeight * this.editor.zoom) + "px";
-    this.selection.style.left = annotationRect.left + (topLeftX * this.editor.zoom) + this.editor.contentHolder.scrollLeft + "px";
-    this.selection.style.top = annotationRect.top + (topLeftY * this.editor.zoom) + this.editor.contentHolder.scrollTop + "px";
+    this.selection.style.left = annotationRect.left + (topLeftX * this.editor.zoom) + this.editor.scrollLeft + "px";
+    this.selection.style.top = annotationRect.top + (topLeftY * this.editor.zoom) + this.editor.scrollTop + "px";
 
     let selectionChange = false;
     let currentSelections = Object.keys(this.editor.selecting);

@@ -28,10 +28,10 @@ export class Tool {
       this.endY = mouseY;
     }
     let annotationRect = this.editor.utils.localBoundingRect(this.editor.annotationHolder);
-    this.editor.contentHolder.scrollTo({
-      left: this.editor.contentHolder.scrollLeft - ((((this.endX - annotationRect.left) / this.editor.zoom) - this.startX) * this.editor.zoom),
-      top: this.editor.contentHolder.scrollTop - ((((this.endY - annotationRect.top) / this.editor.zoom) - this.startY) * this.editor.zoom)
-    });
+    this.editor.scrollTo(
+      this.editor.scrollLeft - ((((this.endX - annotationRect.left) / this.editor.zoom) - this.startX) * this.editor.zoom),
+      this.editor.scrollTop - ((((this.endY - annotationRect.top) / this.editor.zoom) - this.startY) * this.editor.zoom)
+    );
     this.toolbar.selection.updateActionBar();
   }
   clickEnd() {

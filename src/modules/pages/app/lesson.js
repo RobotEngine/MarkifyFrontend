@@ -8,6 +8,7 @@ import {
   account,
 
   mouseDown,
+  appendCSS,
   setPage,
   setFrame,
   sleep,
@@ -311,8 +312,7 @@ export class Page extends PageFrame {
     })();
 
     this.exporting = getParam("export_browser") == "true";
-    if (this.exporting == true) {
-      addCSS({ ".loading": `display: none` });
+    if (this.exporting == true) { // Preload Exporting:
       import("@modules/lesson/pages/export.js");
     }
 

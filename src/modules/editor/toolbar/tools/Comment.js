@@ -475,8 +475,8 @@ export class Tool {
     let centerY = y - ((this.commentHeight / 2) * zoom);
 
     let frameWidth = this.frame.offsetWidth;
-    let setLeft = annotationRect.left + (centerX * this.editor.zoom) + this.offsetX + this.editor.contentHolder.scrollLeft;
-    let setRight = annotationRect.left + (centerX * this.editor.zoom) - this.offsetX - frameWidth + this.editor.contentHolder.scrollLeft;
+    let setLeft = annotationRect.left + (centerX * this.editor.zoom) + this.offsetX + this.editor.scrollLeft;
+    let setRight = annotationRect.left + (centerX * this.editor.zoom) - this.offsetX - frameWidth + this.editor.scrollLeft;
     let setTransformOrigin = "";
     let sidemenuLeftOffset = this.editor.scrollOffset;
     let sidemenuRightOffset = 8;
@@ -486,8 +486,8 @@ export class Tool {
     if ((account.settings ?? {}).toolbar == "right") {
       [sidemenuLeftOffset, sidemenuRightOffset] = [sidemenuRightOffset, sidemenuLeftOffset];
     }
-    let leftPageOffset = (this.editor.contentHolder.scrollLeft + this.editor.contentHolder.clientWidth) - (setLeft + frameWidth + sidemenuRightOffset);
-    let rightPageOffset = (setRight - sidemenuLeftOffset) - (this.editor.contentHolder.scrollLeft);
+    let leftPageOffset = (this.editor.scrollLeft + this.editor.contentHolder.clientWidth) - (setLeft + frameWidth + sidemenuRightOffset);
+    let rightPageOffset = (setRight - sidemenuLeftOffset) - (this.editor.scrollLeft);
     if (leftPageOffset > 0) {
       this.frame.style.left = setLeft + "px";
       setTransformOrigin += "left";
@@ -504,13 +504,13 @@ export class Tool {
     let annoY = annotationRect.top + (centerY * this.editor.zoom);
     let setTop;
     if (annoY + this.offsetY < this.editor.contentHolder.clientHeight - this.editor.scrollOffset) {
-      setTop = annoY + this.editor.contentHolder.scrollTop - this.offsetY;
-      setTop += Math.min(this.editor.contentHolder.scrollTop + this.editor.contentHolder.clientHeight - this.editor.scrollOffset - setTop - frameHeight, 0);
+      setTop = annoY + this.editor.scrollTop - this.offsetY;
+      setTop += Math.min(this.editor.scrollTop + this.editor.contentHolder.clientHeight - this.editor.scrollOffset - setTop - frameHeight, 0);
     } else {
-      setTop = annoY - frameHeight + this.editor.contentHolder.scrollTop + this.offsetY;
+      setTop = annoY - frameHeight + this.editor.scrollTop + this.offsetY;
     }
     this.frame.style.top = setTop + "px";
-    this.frame.style.transformOrigin = setTransformOrigin + " " + (this.editor.contentHolder.scrollTop + annoY - setTop) + "px";
+    this.frame.style.transformOrigin = setTransformOrigin + " " + (this.editor.scrollTop + annoY - setTop) + "px";
 
     if (this.updateReplyShadow != null) {
       this.updateReplyShadow();

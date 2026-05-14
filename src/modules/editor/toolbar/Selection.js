@@ -116,8 +116,8 @@ export class Selection {
     let selectionChange = false;
 
     let annotationRect = this.editor.utils.annotationsRect();
-    let scrollLeft = this.editor.contentHolder.scrollLeft;
-    let scrollTop = this.editor.contentHolder.scrollTop;
+    let scrollLeft = this.editor.scrollLeft;
+    let scrollTop = this.editor.scrollTop;
 
     let selections = Object.keys(this.editor.selecting);
     if (this.toolbar.currentToolModule != null) {
@@ -781,8 +781,8 @@ export class Selection {
       }
       let maxActionBarWidth = this.editor.contentHolder.clientWidth - this.editor.scrollOffset - 8;
       this.actionBar.style.maxWidth = maxActionBarWidth + "px";
-      this.actionBar.style.left = (pxCenter + this.editor.contentHolder.scrollLeft) + "px";
-      this.actionBar.style.top = (yPos + this.editor.contentHolder.scrollTop) + "px";
+      this.actionBar.style.left = (pxCenter + this.editor.scrollLeft) + "px";
+      this.actionBar.style.top = (yPos + this.editor.scrollTop) + "px";
 
       if (isBottom == false) { // Is at top
         if (yPos - 32 < this.editor.scrollOffset) {
@@ -1219,8 +1219,8 @@ export class Selection {
 
       snapElement.style.width = Math.max(Math.round(snap.width * this.editor.zoom), 2) + "px";
       snapElement.style.height = Math.max(Math.round(snap.height * this.editor.zoom), 2) + "px";
-      snapElement.style.left = Math.round(annotationRect.left + (snap.x * this.editor.zoom) + this.editor.contentHolder.scrollLeft + offsetWidth) + "px";
-      snapElement.style.top = Math.round(annotationRect.top + (snap.y * this.editor.zoom) + this.editor.contentHolder.scrollTop + offsetHeight) + "px";
+      snapElement.style.left = Math.round(annotationRect.left + (snap.x * this.editor.zoom) + this.editor.scrollLeft + offsetWidth) + "px";
+      snapElement.style.top = Math.round(annotationRect.top + (snap.y * this.editor.zoom) + this.editor.scrollTop + offsetHeight) + "px";
     }
     for (let i = 0; i < currentSnaps.length; i++) {
       let checkSnap = currentSnaps[i];
@@ -1764,10 +1764,10 @@ export class Selection {
     }
     this.scrollIntervalRunning = true;
     while (this.action != null && (this.scrollIntervalX != 0 || this.scrollIntervalY != 0)) {
-      this.editor.contentHolder.scrollTo({
-        left: this.editor.contentHolder.scrollLeft + this.scrollIntervalX,
-        top: this.editor.contentHolder.scrollTop + this.scrollIntervalY
-      });
+      this.editor.scrollTo(
+        this.editor.scrollLeft + this.scrollIntervalX,
+        this.editor.scrollTop + this.scrollIntervalY
+      );
       await this.moveAction(this.scrollLastEvent, null, null, true);
       await sleep(10);
     }

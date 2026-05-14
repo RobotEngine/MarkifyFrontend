@@ -107,25 +107,25 @@ export class Render {
     let contentTop = this.marginTop ?? 0;
 
     if (this.marginLeft != setMarginLeft) {
-      scrollPosX = this.editor.contentHolder.scrollLeft;
+      scrollPosX = this.editor.scrollLeft;
       this.marginLeft = setMarginLeft;
       this.editor.editorContent.style.marginLeft = setMarginLeft + "px";
       checkWidth = true;
     }
     if (this.marginRight != setMarginRight) {
-      scrollPosX = scrollPosX ?? this.editor.contentHolder.scrollLeft;
+      scrollPosX = scrollPosX ?? this.editor.scrollLeft;
       this.marginRight = setMarginRight;
       this.editor.editorContent.style.marginRight = setMarginRight + "px";
       checkWidth = true;
     }
     if (this.marginTop != setMarginTop) {
-      scrollPosY = this.editor.contentHolder.scrollTop;
+      scrollPosY = this.editor.scrollTop;
       this.marginTop = setMarginTop;
       this.editor.editorContent.style.marginTop = setMarginTop + "px";
       checkHeight = true;
     }
     if (this.marginBottom != setMarginBottom) {
-      scrollPosY = scrollPosY ?? this.editor.contentHolder.scrollTop;
+      scrollPosY = scrollPosY ?? this.editor.scrollTop;
       this.marginBottom = setMarginBottom;
       this.editor.editorContent.style.marginBottom = setMarginBottom + "px";
       checkHeight = true;
@@ -135,14 +135,15 @@ export class Render {
       (checkWidth == true && this.editor.content.offsetWidth != this.lastOffsetWidth)
       || (checkHeight == true && this.editor.content.offsetHeight != this.lastOffsetHeight)
     ) {
-      let updateScroll = {};
+      let scrollLeft;
+      let scrollTop;
       if (scrollPosX != null) {
-        updateScroll.left = scrollPosX + (this.marginLeft - contentLeft);
+        scrollLeft = scrollPosX + (this.marginLeft - contentLeft);
       }
       if (scrollPosY != null) {
-        updateScroll.top = scrollPosY + (this.marginTop - contentTop);
+        scrollTop = scrollPosY + (this.marginTop - contentTop);
       }
-      this.editor.contentHolder.scrollTo(updateScroll);
+      this.editor.scrollTo(scrollLeft, scrollTop);
       this.editor.adjustRealtimeHolder();
       await this.editor.pipeline.publish("redraw_selection", { transition: false });
       this.lastOffsetWidth = this.editor.content.offsetWidth;

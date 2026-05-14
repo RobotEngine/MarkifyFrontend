@@ -362,8 +362,8 @@ export class Module {
       cancelAnimationFrame(this.animationFrameId);
     }
 
-    let distanceX = (this.targetScrollPositionX - this.editor.contentHolder.scrollLeft) / 10; // Divide the distance into steps
-    let distanceY = (this.targetScrollPositionY - this.editor.contentHolder.scrollTop) / 10; // Divide the distance into steps
+    let distanceX = (this.targetScrollPositionX - this.editor.scrollLeft) / 10; // Divide the distance into steps
+    let distanceY = (this.targetScrollPositionY - this.editor.scrollTop) / 10; // Divide the distance into steps
     
     let changeX = Math.min(distanceX, 50);
     if (distanceX < 0) {
@@ -374,10 +374,10 @@ export class Module {
       changeY = Math.max(distanceY, -50);
     }
     if (Math.abs(distanceY) > 1 || Math.abs(distanceX) > 1) {
-      this.editor.contentHolder.scrollTo({
-        left: this.editor.contentHolder.scrollLeft + changeX,
-        top: this.editor.contentHolder.scrollTop + changeY
-      });
+      this.editor.scrollTo(
+        this.editor.scrollLeft + changeX,
+        this.editor.scrollTop + changeY
+      );
       this.animationFrameId = requestAnimationFrame(() => { this.smoothScroll(); });
     }
   }
@@ -389,8 +389,8 @@ export class Module {
 
   refreshRealtimeSelections(transition, cache = {}) {
     let annotationRect = cache.annotationRect ?? this.editor.utils.annotationsRect();
-    let scrollLeft = cache.scrollLeft ?? this.editor.contentHolder.scrollLeft;
-    let scrollTop = cache.scrollTop ?? this.editor.contentHolder.scrollTop;
+    let scrollLeft = cache.scrollLeft ?? this.editor.scrollLeft;
+    let scrollTop = cache.scrollTop ?? this.editor.scrollTop;
     let isTransitionFunction = typeof transitionFunction == "function";
     
     let allRealtimeSelections = this.editor.realtimeHolder.querySelectorAll(".eCollabSelect");
@@ -446,8 +446,8 @@ export class Module {
   }
   adjustRealtimeHolder() {
     let annotationRect = this.editor.utils.annotationsRect();
-    let scrollLeft = this.editor.contentHolder.scrollLeft;
-    let scrollTop = this.editor.contentHolder.scrollTop;
+    let scrollLeft = this.editor.scrollLeft;
+    let scrollTop = this.editor.scrollTop;
 
     this.refreshRealtimeSelections(false, { annotationRect, scrollLeft, scrollTop });
     
@@ -634,7 +634,7 @@ export class Module {
         member.y = y;
         if (parseInt(cursorHolder.getAttribute("mode") ?? "-1") != tool) {
           cursorHolder.setAttribute("hidden", "");
-          cursorHolder.style.transform = "translate(" + (member.x + (parseInt(cursorHolder.getAttribute("offsetx") ?? "0")) + this.editor.contentHolder.scrollLeft) + "px," + (member.y + (parseInt(cursorHolder.getAttribute("offsety") ?? "0")) + this.editor.contentHolder.scrollTop) + "px) scale(0)";
+          cursorHolder.style.transform = "translate(" + (member.x + (parseInt(cursorHolder.getAttribute("offsetx") ?? "0")) + this.editor.scrollLeft) + "px," + (member.y + (parseInt(cursorHolder.getAttribute("offsety") ?? "0")) + this.editor.scrollTop) + "px) scale(0)";
           cursorHolder.setAttribute("mode", tool);
           let html = "";
           let offsetx = 0;
@@ -689,11 +689,11 @@ export class Module {
           colorMain.style.width = "fit-content";
           cursorHolder.style.setProperty("--fullyExtended", colorMain.clientWidth + "px");
           colorMain.style.removeProperty("width");
-          cursorHolder.style.transform = "translate(" + (member.x + (parseInt(cursorHolder.getAttribute("offsetx") ?? "0")) + this.editor.contentHolder.scrollLeft) + "px," + (member.y + (parseInt(cursorHolder.getAttribute("offsety") ?? "0")) + this.editor.contentHolder.scrollTop) + "px)";
+          cursorHolder.style.transform = "translate(" + (member.x + (parseInt(cursorHolder.getAttribute("offsetx") ?? "0")) + this.editor.scrollLeft) + "px," + (member.y + (parseInt(cursorHolder.getAttribute("offsety") ?? "0")) + this.editor.scrollTop) + "px)";
           cursorHolder.removeAttribute("notransition");
           cursorHolder.removeAttribute("hidden");
         } else {
-          cursorHolder.style.transform = "translate(" + (member.x + (parseInt(cursorHolder.getAttribute("offsetx") ?? "0")) + this.editor.contentHolder.scrollLeft) + "px," + (member.y + (parseInt(cursorHolder.getAttribute("offsety") ?? "0")) + this.editor.contentHolder.scrollTop) + "px)";
+          cursorHolder.style.transform = "translate(" + (member.x + (parseInt(cursorHolder.getAttribute("offsetx") ?? "0")) + this.editor.scrollLeft) + "px," + (member.y + (parseInt(cursorHolder.getAttribute("offsety") ?? "0")) + this.editor.scrollTop) + "px)";
         }
 
         if (extra == null) {
@@ -921,7 +921,7 @@ export class Module {
               }
               selection.style.width = ((width * this.editor.zoom) - 3) + "px";
               selection.style.height = ((height * this.editor.zoom) - 3) + "px";
-              selection.style.transform = "translate(" + (annotationRect.left + (x * this.editor.zoom) + this.editor.contentHolder.scrollLeft - 1.5) + "px," + (annotationRect.top + (y * this.editor.zoom) + this.editor.contentHolder.scrollTop - 1.5) + "px) rotate(" + rotate + "deg)";
+              selection.style.transform = "translate(" + (annotationRect.left + (x * this.editor.zoom) + this.editor.scrollLeft - 1.5) + "px," + (annotationRect.top + (y * this.editor.zoom) + this.editor.scrollTop - 1.5) + "px) rotate(" + rotate + "deg)";
               selection.offsetHeight;
               selection.style.transition = "all .25s, opacity .15s";
               selection.style.opacity = 1;
@@ -969,7 +969,7 @@ export class Module {
             select.setAttribute("y", selectData[3]);
             select.style.width = (selectData[0] * this.editor.zoom) + "px";
             select.style.height = (selectData[1] * this.editor.zoom) + "px";
-            select.style.transform = "translate(" + ((selectData[2] * this.editor.zoom) + annotationRect.left + this.editor.contentHolder.scrollLeft) + "px," + ((selectData[3] * this.editor.zoom) + annotationRect.top + this.editor.contentHolder.scrollTop) + "px)";
+            select.style.transform = "translate(" + ((selectData[2] * this.editor.zoom) + annotationRect.left + this.editor.scrollLeft) + "px," + ((selectData[3] * this.editor.zoom) + annotationRect.top + this.editor.scrollTop) + "px)";
           }
           textSelectHolder.style.opacity = 1;
         } else if (textSelectHolder != null) {
@@ -996,14 +996,15 @@ export class Module {
         }
         if (this.editor.zoom != zoom) {
           await this.editor.setZoom(zoom, true);
+          this.editor.updatePageScroll();
         }
         let annotationRect = this.editor.utils.annotationsRect();
-        let setX = (this.editor.contentHolder.scrollLeft + annotationRect.left) + (scrollX * this.editor.zoom) - (this.editor.pageOffsetWidth / 2);
-        let setY = (this.editor.contentHolder.scrollTop + annotationRect.top) + (scrollY * this.editor.zoom) - (this.editor.pageOffsetHeight / 2);
+        let setX = (this.editor.scrollLeft + annotationRect.left) + (scrollX * this.editor.zoom) - (this.editor.pageOffsetWidth / 2);
+        let setY = (this.editor.scrollTop + annotationRect.top) + (scrollY * this.editor.zoom) - (this.editor.pageOffsetHeight / 2);
         if (this.editor.realtime.observeLoading == null) {
           this.startScroll(setX, setY);
         } else {
-          this.editor.contentHolder.scrollTo({ left: setX, top: setY });
+          this.editor.scrollTo(setX, setY);
         }
       }
     });

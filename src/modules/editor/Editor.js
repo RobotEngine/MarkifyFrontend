@@ -280,6 +280,10 @@ export class Editor {
     this.utils.updateAnnotationScroll(this.annotationPages[this.currentPage - 1], animate);
   }
 
+  updatePageScroll() {
+    this.scrollLeft = this.contentHolder.scrollLeft;
+    this.scrollTop = this.contentHolder.scrollTop;
+  }
   updatePageSize() {
     let rect = this.page.getBoundingClientRect();
     this.pageOffsetWidth = rect.width;
@@ -299,7 +303,16 @@ export class Editor {
       top: rect.top - halfScaleHeight,
       bottom: rect.bottom + halfScaleHeight
     };
+    this.updatePageScroll();
     this.frame.style.setProperty("--interfacePadding", this.scrollOffset + "px");
+  }
+
+  scrollTo(left, top, animate) {
+    let options = { left, top };
+    if (animate == true) {
+      options.behavior = "smooth";
+    }
+    this.contentHolder.scrollTo(options);
   }
 
   getCenterPosition() {
@@ -311,14 +324,11 @@ export class Editor {
   }
   goToCenterPosition(x, y, animate) {
     let annotationRect = this.utils.annotationsRect();
-    let options = {
-      left: (this.contentHolder.scrollLeft + annotationRect.left) + (x * this.zoom) - (this.pageOffsetWidth / 2),
-      top: (this.contentHolder.scrollTop + annotationRect.top) + (y * this.zoom) - (this.pageOffsetHeight / 2)
-    };
-    if (animate == true) {
-      options.behavior = "smooth";
-    }
-    this.contentHolder.scrollTo(options);
+    this.scrollTo(
+      (this.scrollLeft + annotationRect.left) + (x * this.zoom) - (this.pageOffsetWidth / 2),
+      (this.scrollTop + annotationRect.top) + (y * this.zoom) - (this.pageOffsetHeight / 2),
+      animate
+    );
   }
 
   updateBackground(setColor) {
@@ -464,20 +474,29 @@ export class Editor {
     let annotationRect = this.utils.annotationsRect();
     let originCorrectX = (annotationRect.left - (backgroundWidth / 2)) % scaledDotSize;
     let originCorrectY = (annotationRect.top - (backgroundHeight / 2)) % scaledDotSize;
-    this.background.style.transform = "matrix(1,0,0,1," + (this.contentHolder.scrollLeft + originCorrectX - backgroundPaddingWidth) + "," + (this.contentHolder.scrollTop + originCorrectY - backgroundPaddingHeight) + ") scale(var(--zoom))";
+    this.background.style.transform = "matrix(1,0,0,1," + (this.scrollLeft + originCorrectX - backgroundPaddingWidth) + "," + (this.scrollTop + originCorrectY - backgroundPaddingHeight) + ") scale(var(--zoom))";
 
     if (this.zooming == true) {
       return;
     }
 
-    let beforeChunks = JSON.stringify(this.visibleChunks);
-    this.visibleChunks = this.utils.regionInChunks(
+    let newVisibleChunks = this.utils.regionInChunks(
       ((this.pageOffsetWidth / -2) - annotationRect.left) / this.zoom,
       ((this.pageOffsetHeight / -2) - annotationRect.top) / this.zoom,
       ((this.pageOffsetWidth + (this.pageOffsetWidth / 2)) - annotationRect.left) / this.zoom,
       ((this.pageOffsetHeight + (this.pageOffsetHeight / 2)) - annotationRect.top) / this.zoom
     );
-    if (beforeChunks != JSON.stringify(this.visibleChunks)) {
+    let hasChanged = newVisibleChunks.length != this.visibleChunks.length; // Check array length first!
+    if (hasChanged == false) {
+      for (let i = 0; i < newVisibleChunks.length; i++) { // If same length, check each chunk is the same:
+        if (this.visibleChunks[i] != newVisibleChunks[i]) {
+          hasChanged = true;
+          break;
+        }
+      }
+    }
+    if (hasChanged == true) {
+      this.visibleChunks = newVisibleChunks;
       await this.runUpdateCycle();
     }
     
@@ -528,6 +547,8 @@ export class Editor {
 
     this.content.style.setProperty("--zoom", this.zoom);
 
+    this.updatePageScroll();
+
     await this.render.setMarginSize();
 
     if (observe != true) {
@@ -535,13 +556,11 @@ export class Editor {
       let annotationHolderRect = this.utils.annotationsRect();
       let addScrollX = (this.mouseBeforeX * this.zoom) - (mouseX - annotationHolderRect.left);
       let addScrollY = (this.mouseBeforeY * this.zoom) - (mouseY - annotationHolderRect.top);
-
-      //changeScrollX
       
       // Set the new scroll position
-      this.contentHolder.scrollTo(
-        this.contentHolder.scrollLeft + addScrollX + (mouse.changeScrollX ?? 0),
-        this.contentHolder.scrollTop + addScrollY + (mouse.changeScrollY ?? 0)
+      this.scrollTo(
+        this.scrollLeft + addScrollX + (mouse.changeScrollX ?? 0),
+        this.scrollTop + addScrollY + (mouse.changeScrollY ?? 0)
       );
     }
 
@@ -864,11 +883,12 @@ export class Editor {
     this.updatePageSize();
 
     // Handle scroll or resize change for rendering:
-    this.pipeline.subscribe("boundChange", "bounds_change", () => { this.updateChunks(); }, { sort: 1 });
+    this.pipeline.subscribe("boundChange", "bounds_change", () => { this.updatePageScroll(); this.updateChunks(); }, { sort: 1 });
     this.contentHolder.addEventListener("scroll", (event) => {
       this.pipeline.publish("scroll", { event: event });
       this.pipeline.publish("bounds_change", { type: "scroll", event: event });
     });
+    this.updatePageScroll();
 
     // Handle scroll wheel zooming:
     this.pipeline.subscribe("zoomWheel", "wheel", (data) => {

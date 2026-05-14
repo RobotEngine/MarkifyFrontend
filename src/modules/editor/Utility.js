@@ -44,8 +44,8 @@ export class Utility {
       height: frameRect.height,
       left: diffX,
       top: diffY,
-      x: diffX + this.editor.contentHolder.scrollLeft,
-      y: diffY + this.editor.contentHolder.scrollTop
+      x: diffX + this.editor.scrollLeft,
+      y: diffY + this.editor.scrollTop
     }
   }
   localBoundingRect(frame) {
@@ -57,8 +57,8 @@ export class Utility {
     return {
       x,
       y,
-      left: x - this.editor.contentHolder.scrollLeft,
-      top: y - this.editor.contentHolder.scrollTop,
+      left: x - this.editor.scrollLeft,
+      top: y - this.editor.scrollTop,
       width: this.editor.render.marginLeft + this.editor.render.marginRight,
       height: this.editor.render.marginTop + this.editor.render.marginBottom
     };
@@ -737,16 +737,16 @@ export class Utility {
 
   centerWindowWithPage() {
     let annotationRect = this.annotationsRect();
-    this.editor.contentHolder.scrollTo(
-      this.editor.contentHolder.scrollLeft + annotationRect.left - (this.editor.pageOffsetWidth / 2),
-      this.editor.contentHolder.scrollTop + annotationRect.top - this.editor.scrollOffset
+    this.editor.scrollTo(
+      this.editor.scrollLeft + annotationRect.left - (this.editor.pageOffsetWidth / 2),
+      this.editor.scrollTop + annotationRect.top - this.editor.scrollOffset
     );
   }
   scrollToElement(element) {
     let jumpRect = this.localBoundingRect(element);
-    this.editor.contentHolder.scrollTo(
-      this.editor.contentHolder.scrollLeft + jumpRect.left - ((this.editor.page.offsetWidth - element.offsetWidth) / 2),
-      this.editor.contentHolder.scrollTop + jumpRect.top - ((this.editor.page.offsetHeight - element.offsetHeight) / 2)
+    this.editor.scrollTo(
+      this.editor.scrollLeft + jumpRect.left - ((this.editor.page.offsetWidth - element.offsetWidth) / 2),
+      this.editor.scrollTop + jumpRect.top - ((this.editor.page.offsetHeight - element.offsetHeight) / 2)
     );
   }
   scrollToAnnotation(render, options = {}) {
@@ -758,34 +758,32 @@ export class Utility {
     let [topLeftX, topLeftY, bottomRightX] = rotatedBounds(annoRect.x, annoRect.y, annoRect.endX, annoRect.endY, annoRect.rotation);
     
     let annotationRect = this.annotationsRect();
-    let scrollOptions = {};
+    let scrollLeft;
+    let scrollTop;
     let sideScrollOffset = this.editor.sideScrollOffset ?? this.editor.scrollOffset;
     if (annoRect.width * this.editor.zoom < this.editor.pageOffsetWidth - (sideScrollOffset * 2)) {
       // Position page to center:
-      scrollOptions.left = annotationRect.left + this.editor.contentHolder.scrollLeft - (this.editor.pageOffsetWidth / 2) + (annoRect.centerX * this.editor.zoom);
+      scrollLeft = annotationRect.left + this.editor.scrollLeft - (this.editor.pageOffsetWidth / 2) + (annoRect.centerX * this.editor.zoom);
     } else {
       // Position page to left corner:
       if ((account.settings ?? {}).toolbar != "right") {
-        scrollOptions.left = annotationRect.left + this.editor.contentHolder.scrollLeft - sideScrollOffset + (topLeftX * this.editor.zoom);
+        scrollLeft = annotationRect.left + this.editor.scrollLeft - sideScrollOffset + (topLeftX * this.editor.zoom);
       } else {
-        scrollOptions.left = annotationRect.left + this.editor.contentHolder.scrollLeft - 8 + (topLeftX * this.editor.zoom);
-        //scrollOptions.left = annotationRect.left + this.editor.contentHolder.scrollLeft - this.editor.pageOffsetWidth + sideScrollOffset + (bottomRightX * this.editor.zoom);
+        scrollLeft = annotationRect.left + this.editor.scrollLeft - 8 + (topLeftX * this.editor.zoom);
+        //scrollLeft = annotationRect.left + this.editor.scrollLeft - this.editor.pageOffsetWidth + sideScrollOffset + (bottomRightX * this.editor.zoom);
       }
     }
     if (annoRect.height * this.editor.zoom < this.editor.pageOffsetHeight - (this.editor.scrollOffset * 2)) {
       // Position page to center:
-      scrollOptions.top = annotationRect.top + this.editor.contentHolder.scrollTop - (this.editor.pageOffsetHeight / 2) + (annoRect.centerY * this.editor.zoom);
+      scrollTop = annotationRect.top + this.editor.scrollTop - (this.editor.pageOffsetHeight / 2) + (annoRect.centerY * this.editor.zoom);
     } else {
       // Position page to top:
-      scrollOptions.top = annotationRect.top + this.editor.contentHolder.scrollTop - this.editor.scrollOffset + (topLeftY * this.editor.zoom);
+      scrollTop = annotationRect.top + this.editor.scrollTop - this.editor.scrollOffset + (topLeftY * this.editor.zoom);
     }
     if (options.duration == null || options.animation == false) {
-      if (options.animation != false) {
-        scrollOptions.behavior = "smooth";
-      }
-      this.editor.contentHolder.scrollTo(scrollOptions);
+      this.editor.scrollTo(scrollLeft, scrollTop, options.animation != false);
     } else {
-      smoothScrollTo(this.editor.contentHolder, scrollOptions.left, scrollOptions.top, options.duration);
+      smoothScrollTo(this.editor.contentHolder, scrollLeft, scrollTop, options.duration);
     }
   }
   updateAnnotationScroll(pageData, animation) {

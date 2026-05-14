@@ -599,6 +599,7 @@ export class Page {
     this.pipeline.subscribe("accountUpdate", "account_settings", (event) => {
       if (event.settings.hasOwnProperty("toolbar") == true) {
         this.updateInterface();
+        this.pipeline.publish("redraw_selection", { redraw: true });
       }
       if (event.settings.hasOwnProperty("actionbar") == true) {
         this.pipeline.publish("redraw_selection", { redraw: true });

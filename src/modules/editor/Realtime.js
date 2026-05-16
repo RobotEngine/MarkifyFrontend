@@ -387,60 +387,108 @@ export class Module {
     this.animationFrameId = requestAnimationFrame(() => { this.smoothScroll(); });
   }
 
+  selections = {};
+  addSelection(annoID, memberID, member, element) {
+    member.elements["selection_" + annoID] = { element, annotation: annoID };
+
+    let selectionStore = this.selections[annoID];
+    if (selectionStore == null) {
+      selectionStore = {};
+      this.selections[annoID] = selectionStore;
+    }
+    selectionStore[memberID] = { element };
+  }
+  removeSelection(annoID, memberID, member) {
+    let selectionStore = this.selections[annoID];
+    if (selectionStore != null) {
+      if (memberID == null) {
+        let selectionKeys = Object.keys(selectionStore);
+        for (let i = 0; i < selectionKeys.length; i++) {
+          let element = (selectionStore[selectionKeys[i]] ?? {}).element;
+          if (element != null) {
+            element.remove();
+          }
+        }
+        delete this.selections[annoID];
+      } else {
+        delete selectionStore[memberID];
+        if (Object.keys(selectionStore).length < 1) {
+          delete this.selections[annoID];
+        }
+        if (member == null) {
+          member = this.members[memberID];
+        }
+      }
+    }
+    if (member != null && member.elements != null) {
+      delete member.elements["selection_" + annoID];
+    }
+  }
+
   refreshRealtimeSelections(transition, cache = {}) {
     let annotationRect = cache.annotationRect ?? this.editor.utils.annotationsRect();
     let scrollLeft = cache.scrollLeft ?? this.editor.scrollLeft;
     let scrollTop = cache.scrollTop ?? this.editor.scrollTop;
     let isTransitionFunction = typeof transitionFunction == "function";
     
-    let allRealtimeSelections = this.editor.realtimeHolder.querySelectorAll(".eCollabSelect");
-    for (let i = 0; i < allRealtimeSelections.length; i++) {
-      let selection = allRealtimeSelections[i];
-      let annoID = selection.getAttribute("anno");
-      let render = {};
-      if (annoID != "cursor") {
-        if (this.editor.annotations[annoID] == null) {
-          selection.remove();
+    let selectionKeys = Object.keys(this.selections);
+    for (let i = 0; i < selectionKeys.length; i++) {
+      let annoID = selectionKeys[i];
+      let annoSelections = this.selections[annoID];
+      let annoSelectionKeys = Object.keys(annoSelections);
+      for (let s = 0; s < annoSelectionKeys.length; s++) {
+        let memberID = annoSelectionKeys[s];
+        let { element: selection } = annoSelections[memberID] ?? {};
+        if (selection == null) {
           continue;
         }
-        render = {
-          ...((this.editor.annotations[annoID]).render ?? {}),
-          ...(this.editor.selecting[annoID] ?? {})
-        };
-      } else {
-        let member = this.members[selection.getAttribute("member")];
-        if (member == null || member.cursorRender == null) {
+        let render = {};
+        if (annoID != "cursor") {
+          let annotation = this.editor.annotations[annoID] ?? {};
+          render = {
+            ...(annotation.render ?? { remove: true }),
+            ...(this.editor.selecting[annoID] ?? {})
+          };
+          if (render.remove == true) {
+            this.removeSelection(annoID, memberID);
+            selection.remove();
+            continue;
+          }
+        } else {
+          let member = this.members[selection.getAttribute("member")];
+          if (member == null || member.cursorRender == null) {
+            continue;
+          }
+          render = {
+            ...member.cursorRender,
+            ...(this.editor.selecting[annoID] ?? {})
+          };
+        }
+        if (render.f == null) {
           continue;
         }
-        render = {
-          ...member.cursorRender,
-          ...(this.editor.selecting[annoID] ?? {})
-        };
-      }
-      if (render.f == null) {
-        continue;
-      }
-      let rect = this.editor.utils.getRect(render);
-      
-      let useTransition = transition == true;
-      if (isTransitionFunction == true) {
-        useTransition = isTransitionFunction(rect);
-      }
-      if (useTransition == false) {
-        selection.setAttribute("notransition", "");
-      }
-      
-      let rotate = rect.rotation;
-      if (rotate > 180) {
-        rotate = -(360 - rotate);
-      }
-      selection.style.width = ((rect.width * this.editor.zoom) - 3) + "px";
-      selection.style.height = ((rect.height * this.editor.zoom) - 3) + "px";
-      selection.style.transform = "translate(" + (annotationRect.left + (rect.x * this.editor.zoom) + scrollLeft - 1.5) + "px," + (annotationRect.top + (rect.y * this.editor.zoom) + scrollTop - 1.5) + "px) rotate(" + rotate + "deg)";
-      
-      if (useTransition == false) {
-        selection.offsetHeight;
-        selection.removeAttribute("notransition");
+        let rect = this.editor.utils.getRect(render);
+        
+        let useTransition = transition == true;
+        if (isTransitionFunction == true) {
+          useTransition = isTransitionFunction(rect);
+        }
+        if (useTransition == false) {
+          selection.setAttribute("notransition", "");
+        }
+        
+        let rotate = rect.rotation;
+        if (rotate > 180) {
+          rotate = -(360 - rotate);
+        }
+        selection.style.width = ((rect.width * this.editor.zoom) - 3) + "px";
+        selection.style.height = ((rect.height * this.editor.zoom) - 3) + "px";
+        selection.style.transform = "translate(" + (annotationRect.left + (rect.x * this.editor.zoom) + scrollLeft - 1.5) + "px," + (annotationRect.top + (rect.y * this.editor.zoom) + scrollTop - 1.5) + "px) rotate(" + rotate + "deg)";
+        
+        if (useTransition == false) {
+          selection.offsetHeight;
+          selection.removeAttribute("notransition");
+        }
       }
     }
   }
@@ -451,29 +499,33 @@ export class Module {
 
     this.refreshRealtimeSelections(false, { annotationRect, scrollLeft, scrollTop });
     
-    let adjustElements = this.editor.realtimeHolder.querySelectorAll("div[scale]");
-    for (let i = 0; i < adjustElements.length; i++) {
-      let element = adjustElements[i];
-      if (element.hasAttribute("scale") == true) {
-        element.setAttribute("notransition", "");
-        if (element.hasAttribute("width") == true) {
-          element.style.width = parseFloat(element.getAttribute("width")) * this.editor.zoom + "px";
+    let memberKeys = Object.keys(this.members);
+    for (let i = 0; i < memberKeys.length; i++) {
+      let elements = (this.members[memberKeys[i]] ?? {}).elements ?? {};
+      let elementKeys = Object.keys(elements);
+      for (let e = 0; e < elementKeys.length; e++) {
+        let { element, scale } = elements[elementKeys[e]] ?? {};
+        if (element != null && scale == true) {
+          element.setAttribute("notransition", "");
+          if (element.hasAttribute("width") == true) {
+            element.style.width = parseFloat(element.getAttribute("width")) * this.editor.zoom + "px";
+          }
+          if (element.hasAttribute("height") == true) {
+            element.style.height = parseFloat(element.getAttribute("height")) * this.editor.zoom + "px";
+          }
+          if (element.hasAttribute("x") == true && element.hasAttribute("y") == true) {
+            let x = parseFloat(element.getAttribute("x")) * this.editor.zoom;
+            let y = parseFloat(element.getAttribute("y")) * this.editor.zoom;
+            element.style.transform = "translate(" + (x + annotationRect.left + (parseInt(element.getAttribute("offsetx") ?? "0")) + scrollLeft) + "px," + (y + annotationRect.top + (parseInt(element.getAttribute("offsety") ?? "0")) + scrollTop) + "px)";
+          }
+          element.offsetHeight;
+          element.removeAttribute("notransition");
         }
-        if (element.hasAttribute("height") == true) {
-          element.style.height = parseFloat(element.getAttribute("height")) * this.editor.zoom + "px";
+        if (this.editor.settings.anonymousMode != true) {
+          element.removeAttribute("anonymous");
+        } else {
+          element.setAttribute("anonymous", "");
         }
-        if (element.hasAttribute("x") == true && element.hasAttribute("y") == true) {
-          let x = parseFloat(element.getAttribute("x")) * this.editor.zoom;
-          let y = parseFloat(element.getAttribute("y")) * this.editor.zoom;
-          element.style.transform = "translate(" + (x + annotationRect.left + (parseInt(element.getAttribute("offsetx") ?? "0")) + scrollLeft) + "px," + (y + annotationRect.top + (parseInt(element.getAttribute("offsety") ?? "0")) + scrollTop) + "px)";
-        }
-        element.offsetHeight;
-        element.removeAttribute("notransition");
-      }
-      if (this.editor.settings.anonymousMode != true) {
-        element.removeAttribute("anonymous");
-      } else {
-        element.setAttribute("anonymous", "");
       }
     }
   }
@@ -498,14 +550,19 @@ export class Module {
 
     (async () => {
       for (let i = 0; i < memberElements.length; i++) {
-        let elem = memberElements[i];
+        let data = memberElements[i] ?? {};
+        let anno = data.annotation;
+        if (anno != null) {
+          this.removeSelection(anno, memberID);
+        }
+        let elem = data.element;
         if (elem != null) {
           elem.style.opacity = 0;
         }
       }
       await sleep(300);
       for (let i = 0; i < memberElements.length; i++) {
-        let elem = memberElements[i];
+        let elem = (memberElements[i] ?? {}).element;
         if (elem != null) {
           elem.remove();
         }
@@ -519,7 +576,6 @@ export class Module {
   }
 
   async js() {
-
     // Handle publishing realtime events (SHORT events):
     this.editor.pipeline.subscribe("realtimePublishClickStart", "click_start", (data) => { this.publishShort(data.event); }, { sort: 2 });
     this.editor.pipeline.subscribe("realtimePublishClickMove", "click_move", (data) => { this.publishShort(data.event); }, { sort: 2 });
@@ -604,7 +660,7 @@ export class Module {
         clearTimeout(member.timeout);
         member.timeout = setTimeout(() => { this.removeRealtime(memberID); }, 120000); // Remove realtime member elements if inactive for 2 minutes
         
-        let cursorHolder = member.elements.cursor;
+        let cursorHolder = (member.elements.cursor ?? {}).element;
         if (cursorHolder == null) {
           cursorHolder = document.createElement("div");
           cursorHolder.className = "eCursor";
@@ -612,7 +668,7 @@ export class Module {
           cursorHolder.setAttribute("scale", "");
           cursorHolder.setAttribute("notransition", "");
           this.editor.realtimeHolder.appendChild(cursorHolder);
-          member.elements.cursor = cursorHolder;
+          member.elements.cursor = { element: cursorHolder, scale: true };
           cursorHolder.offsetHeight;
           cursorHolder.style.opacity = 1;
         }
@@ -713,16 +769,16 @@ export class Module {
           if (elemID.startsWith("selection_") == false) {
             continue;
           }
-          let select = member.elements[elemID];
+          let select = (member.elements[elemID] ?? {}).element;
           if (select == null) {
             continue;
           }
           let annoID = select.getAttribute("anno");
           if (selectKeys.includes(annoID) == false) {
-            delete member.elements[elemID];
-            //select.setAttribute("old", "");
-            select.style.opacity = 0;
+            let splitID = elemID.split("_");
+            this.removeSelection(splitID[splitID.length - 1], memberID, member);
             (async () => {
+              select.style.opacity = 0;
               await sleep(150);
               if (select != null) {
                 select.remove();
@@ -785,7 +841,7 @@ export class Module {
               }
 
               annoElem = annoPreview.getElement();
-              member.elements.selection_cursor_annotation = annoElem;
+              member.elements.selection_cursor_annotation = { element: annoElem };
               annoElem.setAttribute("member", memberID);
               annoElem.setAttribute("anno", "cursor");
               annoElem.setAttribute("type", anno.f);
@@ -867,10 +923,13 @@ export class Module {
             if ((anno.f == null || anno.sync != null || annoID == "cursor") && userSelection[annoID] != null) {
               selection = selections[annoID];
               if (selection == null) {
-                this.editor.realtimeHolder.insertAdjacentHTML("beforeend", `<div class="eCollabSelect" member="${memberID}" new></div>`);
-                selection = this.editor.realtimeHolder.querySelector('.eCollabSelect[member="' + memberID + '"][new]');
-                member.elements["selection_" + annoID] = selection;
-                selection.removeAttribute("new");
+                selection = document.createElement("div");
+                selection.className = "eCollabSelect";
+                selection.setAttribute("member", memberID);
+                this.editor.realtimeHolder.appendChild(selection);
+
+                this.addSelection(annoID, memberID, member, selection);
+
                 selection.style.setProperty("--themeColor", memberData.color);
                 if (this.editor.settings.anonymousMode != true) {
                   selection.removeAttribute("anonymous");
@@ -900,9 +959,8 @@ export class Module {
                 }
               }
               if (selection != null && anno.remove == true && selection.hasAttribute("remove") == false) {
-                delete member.elements["selection_" + annoID];
+                this.removeSelection(annoID, memberID, member);
                 selection.setAttribute("remove", "");
-                //selection.setAttribute("old", "");
                 selection.style.opacity = 0;
                 (async () => {
                   await sleep(150);
@@ -948,12 +1006,12 @@ export class Module {
         }
 
         // Handle Text Selection
-        let textSelectHolder = member.elements.textSelectionHolder;
+        let textSelectHolder = (member.elements.textSelectionHolder ?? {}).element;
         if (extra != null && extra.selection != null && extra.selection.length < 100) {
           if (textSelectHolder == null) {
             this.editor.realtimeHolder.insertAdjacentHTML("beforeend", `<div class="eSelection" member="${memberID}"></div>`);
             textSelectHolder = this.editor.realtimeHolder.querySelector('.eSelection[member="' + memberID + '"]:not([old])');
-            member.elements.textSelectionHolder = textSelectHolder;
+            member.elements.textSelectionHolder = { element: textSelectHolder, scale: true };
             textSelectHolder.style.setProperty("--themeColor", memberData.color);
           } else {
             textSelectHolder.innerHTML = "";

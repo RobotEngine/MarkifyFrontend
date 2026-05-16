@@ -535,19 +535,10 @@ export class Render {
     if (annotation.component.embedFrame != null) {
       annotation.component.embedFrame.remove();
     }
-    let allSelections = [
-      ...this.editor.annotationHolder.querySelectorAll('.eSelect[anno="' + render._id + '"]'),
-      ...this.editor.realtimeHolder.querySelectorAll('.eCollabSelect[anno="' + render._id + '"]')
-    ];
-    for (let i = 0; i < allSelections.length; i++) {
-      let select = allSelections[i];
-      (async () => {
-        select.setAttribute("old", "");
-        select.style.opacity = 0;
-        await sleep(150);
-        select.remove();
-      })();
+    if (this.editor.selecting[render._id] != null) {
+      this.editor.cleanupSelections();
     }
+    this.editor.removeSelection(render._id);
   }
   remove(annotation) {
     if (annotation == null) {

@@ -348,7 +348,7 @@ export class Module {
     this.currentToolModulePath = null;
     return await this.activateTool();
   }
-  pushToolEvent(type, event) {
+  async pushToolEvent(type, event) {
     if (this.currentToolModule == null) {
       return;
     }
@@ -376,7 +376,7 @@ export class Module {
       }
     }
     for (let i = 0; i < events.length; i++) {
-      callback.call(this.currentToolModule, events[i]); // Use .call() to keep "this" context
+      await callback.call(this.currentToolModule, events[i]); // Use .call() to keep "this" context
     }
   }
 
@@ -919,14 +919,14 @@ export class Module {
         this.toolbar.setTool(target.closest("button"), true);
       }
       if (target.closest(".eContent") != null) {
-        this.pushToolEvent("clickStart", event);
+        await this.pushToolEvent("clickStart", event);
       }
     }, { sort: 1 });
-    this.editor.pipeline.subscribe("toolbarMouse", "click_move", (data) => {
+    this.editor.pipeline.subscribe("toolbarMouse", "click_move", async (data) => {
       let event = data.event;
       this.checkShift(event);
       this.tooltip.set(event);
-      this.pushToolEvent("clickMove", event);
+      await this.pushToolEvent("clickMove", event);
 
       if (this.currentToolModule != null) {
         if (this.currentToolModule.MOUSE == null || this.currentToolModule.MOUSE.override != true) {
@@ -949,7 +949,7 @@ export class Module {
         }
       }
     }, { sort: 1 });
-    this.editor.pipeline.subscribe("toolbarMouse", "click_end", (data) => {
+    this.editor.pipeline.subscribe("toolbarMouse", "click_end", async (data) => {
       this.checkShift(data.event);
       if (this.previousToolModule != null && this.previousToolModule != "selection/pan") {
         data.event.preventDefault();
@@ -958,7 +958,7 @@ export class Module {
         return this.activateTool(null, { resetSelection: false });
       }
       this.toolbar.setTool();
-      this.pushToolEvent("clickEnd", data.event);
+      await this.pushToolEvent("clickEnd", data.event);
     }, { sort: 1 });
     this.editor.pipeline.subscribe("toolbarMouse", "click", (data) => {
       let event = data.event;

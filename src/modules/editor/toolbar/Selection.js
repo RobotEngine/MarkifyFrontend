@@ -36,7 +36,7 @@ export class Selection {
   checkDistanceYDirection = [];
   currentSnapElements = {};
 
-  async updateBox(options = {}) {
+  async cleanup() {
     let removeSelections = [];
     let checkSelections = Object.keys(this.currentSelections);
     for (let i = 0; i < checkSelections.length; i++) {
@@ -94,6 +94,9 @@ export class Selection {
         }
       })();
     }
+  }
+  async updateBox(options = {}) {
+    this.cleanup();
 
     options.hideSelectBox = options.hideSelectBox ?? this.hideSelectBox;
 
@@ -2402,11 +2405,11 @@ export class Selection {
     await this.updateBox();
 
     if (snapX == null && snapY == null) {
-      let { snapX, snapY } = await this.snapItems(event, { resizeHandleAxis: snapHandleAxis, scaleWidth: scaleWidth, scaleHeight: scaleHeight, render: false });
+      let { snapX, snapY } = await this.snapItems(event, { resizeHandleAxis: snapHandleAxis, scaleWidth, scaleHeight, render: false });
       if (snapX != 0 || snapY != 0) {
         await this.moveAction(event, snapX, snapY, fromScroll);
       }
-      await this.snapItems(event, { resizeHandleAxis: snapHandleAxis, scaleWidth: scaleWidth, scaleHeight: scaleHeight, recalculateExisting: true });
+      await this.snapItems(event, { resizeHandleAxis: snapHandleAxis, scaleWidth, scaleHeight, recalculateExisting: true });
     }
   }
   async endAction(options = {}) {

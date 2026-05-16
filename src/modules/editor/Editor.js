@@ -246,9 +246,20 @@ export class Editor {
     this.savePreferenceTimeout = setTimeout(() => { this.savePreference(); }, 1000); // Save after 1 second of no changes
   }
 
+  cleanupSelections() {
+    if (this.toolbar != null && this.toolbar.selection != null) {
+      return this.toolbar.selection.cleanup();
+    }
+  }
+
   setShortSub() {
     if (this.realtime.module != null) {
       this.realtime.module.setShortSub(this.visibleChunks);
+    }
+  }
+  removeSelection(annoID, memberID, member) {
+    if (this.realtime.module != null) {
+      this.realtime.module.removeSelection(annoID, memberID, member);
     }
   }
   refreshRealtimeSelections(transition, cache) {

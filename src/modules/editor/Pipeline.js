@@ -3,6 +3,11 @@
 export class Pipeline {
   pipeline = {}; // All active events
   pipelineSubs = {}; // All active subscribes
+
+  constructor(nesting) {
+    this.nesting = nesting; // Pass events down to subpage pipelines
+  }
+
   async publish(event, data) {
     let listeners = this.pipeline[event] ?? [];
     for (let i = 0; i < listeners.length; i++) {
@@ -11,7 +16,17 @@ export class Pipeline {
         await subscribe.callback(data);
       }
     }
+    if (this.nesting != null) {
+      let children = Object.keys(this.nesting);
+      for (let i = 0; i < children.length; i++) {
+        let child = this.nesting[children[i]] ?? {};
+        if (child.pipeline != null && child.pipeline.publish != null) {
+          child.pipeline.publish(event, data);
+        }
+      }
+    }
   }
+
   subscribe(id, event, callback, extra) {
     extra = extra ?? {};
 
@@ -42,6 +57,7 @@ export class Pipeline {
       });
     }
   }
+  
   unsubscribe(id, event) {
     let pipelineSubs = this.pipelineSubs[id];
     if (pipelineSubs == null) {

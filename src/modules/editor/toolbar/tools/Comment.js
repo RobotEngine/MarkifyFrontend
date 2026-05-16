@@ -26,7 +26,7 @@ class MoreDropdown {
     ".eToolbarCommentMoreAction div svg": `width: 100%; height: 100%`,
     ".eToolbarCommentMoreAction:hover": `background: var(--themeColor); color: #fff`
   };
-  js = async (frame, { parent, comment, root }) => {
+  js(frame, { parent, comment, root }) {
     let commentID = comment.getAttribute("comment");
     let render = (parent.editor.annotations[commentID] ?? {}).render ?? {};
 
@@ -173,7 +173,7 @@ class SideMenu {
     ".eSideMenuCommentItem div[text] .ql-editor": `padding: 0 !important; overflow-y: unset !important; font-family: var(--font); font-size: inherit; line-height: inherit; pointer-events: none`,
     ".eSideMenuCommentItem div[replycount]": `display: none; width: 100%; max-width: 220px; margin-top: 4px; color: var(--theme); font-size: 12px; font-weight: 600`
   };
-  js = async (frame) => {
+  js(frame) {
     let sideMenu = frame.closest(".eSideMenu");
     let holder = frame.querySelector(".eSideMenuCommentContainer");
 

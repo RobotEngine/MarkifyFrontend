@@ -36,7 +36,7 @@ const breakoutPagesPath = "/src/modules/lesson/breakout/pages/";
 
 export class Page {
   constructor() {
-    this.pipeline = new Pipeline;
+    this.pipeline = new Pipeline(this.pages);
   }
   
   html = ``;
@@ -77,7 +77,7 @@ export class Page {
     newPage.setAttribute("path", path);
 
     this.pages[id] = await this.setFrame(new Promise(async (resolve) => {
-      let loadModuleFunction = breakoutPages[breakoutPagesPath + type + ".js"];
+      let loadModuleFunction = breakoutPages[breakoutPagesPath + path + ".js"];
       if (loadModuleFunction == null) {
         return resolve();
       }
@@ -185,5 +185,8 @@ export class Page {
     page.addEventListener("contextmenu", (event) => {
       this.pipeline.publish("contextmenu", { event: event });
     });
+
+    // Just for testing (change later):
+    await this.openPage("primary", "overview");
   }
 }

@@ -217,7 +217,6 @@ export class Page {
       this.topScrollRight.style.pointerEvents = "none";
     }
   }
-
   updateInterface() {
     let access = this.editor.self.access;
     if (access < 1) {
@@ -579,18 +578,14 @@ export class Page {
     // Top bar events:
     this.topScrollLeft.addEventListener("click", () => {
       this.top.scrollTo({ left: this.top.scrollLeft - 200, behavior: "smooth" });
-      this.updateTopBar();
     });
     this.topScrollRight.addEventListener("click", () => {
       this.top.scrollTo({ left: this.top.scrollLeft + 200, behavior: "smooth" });
-      this.updateTopBar();
     });
     this.pipeline.subscribe("topbarResize", "resize", () => { this.updateTopBar(); });
     this.pipeline.subscribe("topbarVisibilityChange", "visibilitychange", () => { this.updateTopBar(); });
     this.pipeline.subscribe("topbarScroll", "topbar_scroll", () => { this.updateTopBar(true); });
-    this.top.addEventListener("scroll", (event) => {
-      this.pipeline.publish("topbar_scroll", { event });
-    });
+    this.top.addEventListener("scroll", (event) => { this.pipeline.publish("topbar_scroll", { event }); });
 
     // Interface events:
     this.pipeline.subscribe("interfaceUpdate", "refresh_interface", () => { this.updateInterface(); });

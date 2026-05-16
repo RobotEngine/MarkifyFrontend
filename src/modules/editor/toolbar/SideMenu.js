@@ -43,6 +43,8 @@ export class SideMenu {
     this.frame.style.transform = "translate(0%, -50%)";
     this.frame.style.opacity = "1";
 
+    this.editor.pipeline.publish("sidemenu_open", { frame: this.frame, module: newModule });
+
     return this;
   }
   close() {
@@ -60,6 +62,7 @@ export class SideMenu {
         remFrame.remove();
       }
     })();
+    this.editor.pipeline.publish("sidemenu_close", {});
     this.editor.pipeline.unsubscribe("sidemenu");
   }
 }

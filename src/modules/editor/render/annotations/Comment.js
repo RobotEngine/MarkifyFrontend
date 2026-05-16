@@ -32,6 +32,8 @@ export class Annotation extends BaseAnnotation {
       return (a.time ?? a.sync) - (b.time ?? b.sync);
     }));
     this.subscribe("bounds_change", () => { this.commentModule.updateCommentFrame(); });
+    this.subscribe("sidemenu_open", () => { this.commentModule.updateCommentFrame(); });
+    this.subscribe("sidemenu_close", () => { this.commentModule.updateCommentFrame(); });
     this.editor.pipeline.publish("comment_select_start", this.properties);
   }
   SELECTION_END() {
@@ -41,6 +43,8 @@ export class Annotation extends BaseAnnotation {
     this.commentModule.closeCommentFrame();
     this.commentModule = null;
     this.unsubscribe("bounds_change");
+    this.unsubscribe("sidemenu_open");
+    this.unsubscribe("sidemenu_close");
     this.editor.pipeline.publish("comment_select_end", this.properties);
     if (this.properties.resolved == true) {
       return this.remove();

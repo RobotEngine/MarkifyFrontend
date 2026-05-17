@@ -394,7 +394,7 @@ export class Page {
       sources: this.parent.sources,
       collaborators: this.parent.collaborators,
       backgroundColor: this.editor.backgroundColor,
-      preferences: this.editor.preferences
+      preferenceState: this.editor.preferences.state
     };
     if (options.includeAnnotations != false) {
       construct.annotations = this.editor.annotations;
@@ -466,8 +466,6 @@ export class Page {
     this.increasePageButton = this.currentPageHolder.querySelector(".ePageNav[down]");
     this.decreasePageButton = this.currentPageHolder.querySelector(".ePageNav[up]");
 
-    let stringPref = JSON.stringify(this.parent.preferences); // Must be duplicated
-
     // Create editor:
     this.editor = await this.setFrame(Editor, this.contentHolder, {
       construct: {
@@ -484,8 +482,7 @@ export class Page {
         collaborators: this.parent.collaborators,
         settings: this.parent.lesson.settings,
         resync: this.resync,
-        preferences: JSON.parse(stringPref),
-        lastSavePreferences: JSON.parse(stringPref),
+        preferenceState: this.parent.preferences.state,
         backgroundColor: this.lesson.background ?? "FFFFFF",
         minimumEditingAccess: 1
       }

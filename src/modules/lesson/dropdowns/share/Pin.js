@@ -48,7 +48,6 @@ export class Frame {
   js(frame, extra) {
     let parent = extra.parent;
     let lesson = parent.parent;
-    let editor = extra.editor;
 
     let createHolder = frame.querySelector(".eSharePinCreate");
     let createButton = createHolder.querySelector("button");

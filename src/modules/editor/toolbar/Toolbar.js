@@ -157,7 +157,7 @@ export class Toolbar {
       let div = tool.querySelector("div");
       if (tool.hasAttribute("tool") == true) {
         let toolType = tool.getAttribute("tool");
-        let toolPreference = this.editor.preferences.tools[toolType] ?? this.editor.preferences.tools[this.toolbar.currentTool] ?? {};
+        let toolPreference = this.editor.preferences.state.tools[toolType] ?? this.editor.preferences.state.tools[this.toolbar.currentTool] ?? {};
         if (toolPreference.color != null) {
           div.style.setProperty("--toolColor", "#" + toolPreference.color.selected);
           div.style.setProperty("--toolColorOpacity", hexToRGBString(toolPreference.color.selected, (toolPreference.opacity ?? 100) / 100));
@@ -335,7 +335,7 @@ export class Toolbar {
         if (isExtended == false) {
           let toolData = await this.createSub();
           if (this.toolbar.subToolbar != null) {
-            let selectTool = (this.editor.preferences.tools[toolID] ?? {}).subtool;
+            let selectTool = (this.editor.preferences.state.tools[toolID] ?? {}).subtool;
             if (selectTool != null) {
               let selectSubtool = this.toolbar.subToolbar.querySelector('.eTool[tool="' + selectTool + '"]');
               if (selectSubtool != null) {
@@ -416,10 +416,10 @@ export class Toolbar {
       let setSubTool = button.getAttribute("tool");
       if (setSubTool != null) {
         this.toolbar.currentSubTool = setSubTool;
-        let toolPreference = this.editor.preferences.tools[this.toolbar.currentTool] ?? {};
+        let toolPreference = this.editor.preferences.state.tools[this.toolbar.currentTool] ?? {};
         if (toolPreference.subtool != null) {
           toolPreference.subtool = this.toolbar.currentSubTool;
-          this.editor.savePreferences();
+          this.editor.preferences.save();
         }
         await this.enableTool(button, shortPress, null, passData);
       } else {

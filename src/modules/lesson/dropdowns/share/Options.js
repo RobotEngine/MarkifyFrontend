@@ -152,7 +152,6 @@ export class Frame {
 
     let parent = extra.parent;
     let lesson = parent.parent;
-    let editor = extra.editor;
 
     let switcher = frame.querySelector(".eShareOptionSwitcher");
     let contentHolder = frame.querySelector(".eShareOptionContent");
@@ -372,8 +371,8 @@ export class Frame {
     });
 
     let saveDefault = async (data) => {
-      editor.preferences.share = { ...(editor.preferences.share ?? {}), ...data };
-      await editor.savePreferences(true);
+      lesson.preferences.state.share = { ...(lesson.preferences.state.share ?? {}), ...data };
+      await lesson.preferences.save();
     }
     let settingDefaultButton = settingSection.querySelector(".eShareSaveDefault");
     settingDefaultButton.addEventListener("click", async () => {

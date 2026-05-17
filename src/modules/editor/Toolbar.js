@@ -393,14 +393,14 @@ export class Module {
     };
   }
   getAnnotationPreference(returnMissing) {
-    let result = this.editor.preferences.tools[this.getPreferenceTool().f];
+    let result = this.editor.preferences.state.tools[this.getPreferenceTool().f];
     if (returnMissing == true) {
       return result;
     }
     return result ?? {};
   }
   getToolPreference() {
-    return this.editor.preferences.tools[this.currentSubTool] ?? this.editor.preferences.tools[this.currentTool] ?? {};
+    return this.editor.preferences.state.tools[this.currentSubTool] ?? this.editor.preferences.state.tools[this.currentTool] ?? {};
   }
   setToolPreference(path, value) {
     let split = path.split(".");
@@ -412,7 +412,7 @@ export class Module {
         check[split[i]] = value;
       }
     }
-    this.editor.savePreferences();
+    this.editor.preferences.save();
     this.toolbar.updateButtons();
   }
   async saveSelecting(setFunction, options = {}) {

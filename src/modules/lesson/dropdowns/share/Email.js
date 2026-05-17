@@ -1,5 +1,7 @@
 import { sleep, sendRequest, getObject } from "@/crucial";
 
+import { alert as alertModule } from "@modules/utility/Alert";
+
 import { close as closeIcon } from "@modules/utility/core-icons";
 
 export class Frame {
@@ -37,7 +39,6 @@ export class Frame {
 
     let parent = extra.parent;
     let lesson = parent.parent;
-    let editor = extra.editor;
     
     let inputField = frame.querySelector(".eShareEmailInput");
     let sendButton = frame.querySelector(".eShareEmailButton");
@@ -58,7 +59,7 @@ export class Frame {
     let sendInvite = async () => {
       let email = inputField.value;
       if (verifyEmailRegex.test(email) == false) {
-        editor.openAlert("error", "<b>Invalid Email</b>That email is invalid, check it and try again.");
+        alertModule.open("error", "<b>Invalid Email</b>That email is invalid, check it and try again.");
         inputField.focus();
         return;
       }

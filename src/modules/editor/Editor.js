@@ -14,6 +14,7 @@ import { Render } from "./Render";
 import { Save } from "./Save";
 import { History } from "./History";
 import { Text } from "./Text";
+import { Preferences } from "./Preferences";
 
 export class Editor {
   constructor() {
@@ -23,6 +24,7 @@ export class Editor {
     this.save = new Save(this);
     this.history = new History(this);
     this.text = new Text(this);
+    this.preferences = new Preferences(this);
   }
 
   html = `
@@ -224,28 +226,6 @@ export class Editor {
     }
   }
 
-  async savePreference() {
-    let tempRevert = copyObject(this.lastSavePreferences);
-    let changes = objectUpdate(this.preferences, this.lastSavePreferences);
-    this.lastSavePreferences = copyObject(this.preferences);
-    if (Object.keys(changes).length > 0) {
-      let [code] = await sendRequest("POST", "lessons/save/preferences", { save: changes });
-      if (code != 200) {
-        this.lastSavePreferences = tempRevert;
-      }
-    }
-  }
-  async savePreferences(skip) {
-    if (userID == null) {
-      return; // Can't save if not a user!
-    }
-    clearTimeout(this.savePreferenceTimeout);
-    if (skip == true) {
-      return await this.savePreference();
-    }
-    this.savePreferenceTimeout = setTimeout(() => { this.savePreference(); }, 1000); // Save after 1 second of no changes
-  }
-
   cleanupSelections() {
     if (this.toolbar != null && this.toolbar.selection != null) {
       return this.toolbar.selection.cleanup();
@@ -327,17 +307,15 @@ export class Editor {
   }
 
   getCenterPosition() {
-    let annotationRect = this.utils.annotationsRect();
     return {
-      x: (((this.pageOffsetWidth / 2) - annotationRect.left) / this.zoom),
-      y: (((this.pageOffsetHeight / 2) - annotationRect.top) / this.zoom)
+      x: (this.scrollLeft + (this.pageOffsetWidth / 2) - this.render.marginLeft) / this.zoom,
+      y: (this.scrollTop + (this.pageOffsetHeight / 2) - this.render.marginTop) / this.zoom
     };
   }
   goToCenterPosition(x, y, animate) {
-    let annotationRect = this.utils.annotationsRect();
     this.scrollTo(
-      (this.scrollLeft + annotationRect.left) + (x * this.zoom) - (this.pageOffsetWidth / 2),
-      (this.scrollTop + annotationRect.top) + (y * this.zoom) - (this.pageOffsetHeight / 2),
+      (x * this.zoom) - (this.pageOffsetWidth / 2) + this.render.marginLeft,
+      (y * this.zoom) - (this.pageOffsetHeight / 2) + this.render.marginTop,
       animate
     );
   }
@@ -871,15 +849,22 @@ export class Editor {
       }
     }
 
+    // Set default preferences:
+    this.preferences.create(this.preferenceState);
+
     // Handle resizing and recentering of the editor frame:
     this.pipeline.subscribe("resizeChange", "resize", async (event) => {
-      let centerPosition = this.getCenterPosition();
+      if (this.resizeCenterPosition == null) {
+        this.resizeCenterPosition = this.getCenterPosition();
+      }
+      clearTimeout(this.clearResizeCenterPosition);
+      this.clearResizeCenterPosition = setTimeout(() => { this.resizeCenterPosition = null; }, 200);
       
       this.updatePageSize();
       await this.render.setMarginSize();
 
       if (event.simulated != true) {
-        this.goToCenterPosition(centerPosition.x, centerPosition.y);
+        this.goToCenterPosition(this.resizeCenterPosition.x, this.resizeCenterPosition.y);
       } else {
         clearTimeout(this.recenterTimeoutFromSimulatedResize);
         this.recenterTimeoutFromSimulatedResize = setTimeout(() => {
@@ -911,6 +896,7 @@ export class Editor {
         this.lastMouseX = null;
         this.lastMouseY = null;
       }
+      this.resizeCenterPosition = null;
     });
     this.page.addEventListener("DOMMouseScroll", (event) => {
       this.pipeline.publish("wheel", { type: "DOMMouseScroll", event: event });
@@ -946,6 +932,7 @@ export class Editor {
         return;
       }
       this.handlePinch(event);
+      this.resizeCenterPosition = null;
     });
     this.pipeline.subscribe("zoomPinchTouchEnd", "touchend", (data) => {
       if (data.event.touches.length < 2) {

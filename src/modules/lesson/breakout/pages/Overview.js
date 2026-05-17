@@ -29,6 +29,9 @@ import {
   hasFeatureEnabled
 } from "@/crucial";
 
+import { dropdown as dropdownModule } from "@modules/utility/Dropdown";
+import { alert as alertModule } from "@modules/utility/Alert";
+
 import { Editor } from "@modules/editor/Editor";
 import { REALTIME } from "@modules/editor/imports";
 import { Pipeline } from "@modules/editor/Pipeline";
@@ -446,7 +449,34 @@ export class Page {
     });
     this.lessonName.addEventListener("paste", clipBoardRead);
 
-    //
+    // File dropdown:
+
+    // Share dropdowns:
+    this.shareButton.addEventListener("click", () => {
+      dropdownModule.open(this.shareButton, import("@modules/lesson/dropdowns/share/Share"), { parent: this.parent });
+    });
+    this.sharePinButton.addEventListener("click", () => {
+      dropdownModule.open(this.sharePinButton, import("@modules/lesson/dropdowns/share/Pin"), { parent: this.parent });
+    });
+    if (this.parent.parent.lesson.pin != null) {
+      this.sharePinButton.style.display = "unset";
+      this.sharePinButton.textContent = this.parent.parent.lesson.pin;
+    }
+
+    // Account setup:
+    if (userID != null) {
+      this.accountButton.querySelector("div").textContent = account.user;
+      if (account.image != null) {
+       this.accountButton.querySelector("img").src = account.image;
+      }
+      this.accountButton.addEventListener("click", () => {
+        dropdownModule.open(this.accountButton, import("@modules/dropdowns/Account"), { parent: this.parent });
+      });
+    } else {
+      this.accountButton.remove();
+      this.loginButton.style.display = "block";
+      this.loginButton.addEventListener("click", () => { promptLogin(); });
+    }
 
     this.updateInterface();
   }

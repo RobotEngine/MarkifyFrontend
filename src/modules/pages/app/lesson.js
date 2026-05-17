@@ -2,10 +2,11 @@ import { changeGlobalImports, PageFrame, fixed, favicon, userID, account, mouseD
 
 import { alert as alertModule } from "@modules/utility/Alert";
 
-import { preferences } from "@modules/lesson/preferences";
+import { defaultPreferences } from "@modules/lesson/default-preferences";
 import { defaultEmojis } from "@modules/lesson/default-emojis";
 
-import { PDFJS, QUILL, PDFJS_WORKER, MATHQUILL } from "../../editor/imports";
+import { Preferences } from "@modules/editor/Preferences";
+import { PDFJS, QUILL, PDFJS_WORKER, MATHQUILL } from "@modules/editor/imports";
 
 const lessonPages = changeGlobalImports(import.meta.glob("@modules/lesson/pages/**/*.js"));
 const lessonPagesPath = "/src/modules/lesson/pages/";
@@ -260,7 +261,6 @@ export class Page extends PageFrame {
   sources = {};
   pageRenderPipeline = { running: false, queue: [] };
 
-  preferences = copyObject(preferences);
   defaultEmojis = copyObject(defaultEmojis);
   recentEmojis = [];
 
@@ -270,6 +270,9 @@ export class Page extends PageFrame {
 
   async js(page, joinData) {
     this.id = getParam("lesson") ?? "";
+
+    this.preferences = new Preferences();
+    this.preferences.create(defaultPreferences);
 
     // Preload Libraries:
     PDFJS();
@@ -585,7 +588,7 @@ export class Page extends PageFrame {
                 }
                 break;
               default:
-                objectUpdate(data.data, this.preferences);
+                this.preferences.update(data.data);
             }
         }
         this.pushToPipelines(null, "self", data);
@@ -906,7 +909,7 @@ export class Page extends PageFrame {
         this.recentEmojis = body.preferences.emojis;
         delete body.preferences.emojis;
       }
-      objectUpdate(body.preferences, this.preferences);
+      this.preferences.update(body.preferences);
     }
     for (let i = 0; (i < this.defaultEmojis.length && this.recentEmojis.length < 21); i++) {
       if (this.recentEmojis.includes(this.defaultEmojis[i]) == false) {

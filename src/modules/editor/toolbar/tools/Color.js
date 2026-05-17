@@ -341,17 +341,17 @@ export class Tool {
     let modeInput = frame.querySelector(".eSubToolColorPickerField");
     let modes = ["HEX", "RGB", "HSL", "HSB"];
     modeButton.addEventListener("click", () => {
-      editor.preferences.tools.options.colorpicker.scale++;
-      if (editor.preferences.tools.options.colorpicker.scale > modes.length - 1) {
-        editor.preferences.tools.options.colorpicker.scale = 0;
+      editor.preferences.state.tools.options.colorpicker.scale++;
+      if (editor.preferences.state.tools.options.colorpicker.scale > modes.length - 1) {
+        editor.preferences.state.tools.options.colorpicker.scale = 0;
       }
-      modeButton.textContent = modes[editor.preferences.tools.options.colorpicker.scale];
-      editor.savePreferences();
+      modeButton.textContent = modes[editor.preferences.state.tools.options.colorpicker.scale];
+      editor.preferences.save();
       updatePickerUI();
     });
-    modeButton.textContent = modes[editor.preferences.tools.options.colorpicker.scale];
+    modeButton.textContent = modes[editor.preferences.state.tools.options.colorpicker.scale];
     modeInput.addEventListener("input", () => {
-      switch (modes[editor.preferences.tools.options.colorpicker.scale]) {
+      switch (modes[editor.preferences.state.tools.options.colorpicker.scale]) {
         case "HEX":
           modeInput.value = modeInput.value.replace(/[^0-9a-z]/gi, "");
           if ((/^([0-9a-f]{3}){1,2}$/i).test(modeInput.value) == true) {
@@ -413,7 +413,7 @@ export class Tool {
       ctx.fillRect(0, 0, canvas.width, canvas.height);
       // Update Input:
       if (updateText != false) {
-        switch (modes[editor.preferences.tools.options.colorpicker.scale]) {
+        switch (modes[editor.preferences.state.tools.options.colorpicker.scale]) {
           case "HEX":
             modeInput.value = selectedColor.toUpperCase();
             break;

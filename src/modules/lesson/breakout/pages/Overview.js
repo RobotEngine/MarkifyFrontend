@@ -404,6 +404,48 @@ export class Page {
       setPage("pages/app/dashboard");
     });
 
+    // Lesson name events:
+    let name = this.parent.parent.lesson.name ?? "Untitled Lesson";;
+    this.lessonName.textContent = name;
+    this.lessonName.title = name;
+    this.lessonName.addEventListener("keydown", (event) => {
+      if (event.keyCode == 13) {
+        event.preventDefault();
+        this.lessonName.blur();
+      }
+    });
+    this.lessonName.addEventListener("input", () => { this.updateTopBar(); });
+    this.lessonName.addEventListener("focusout", async () => {
+      this.lessonName.scrollTo(0, 0);
+      this.lessonName.parentElement.style.setProperty("--borderWidth", "0px");
+      this.updateTopBar();
+
+      let name = this.lessonName.textContent.substring(0, 100).replace(/[^A-Za-z0-9.,_|/\-+!?@#$%^&*()\[\]{}'":;~` ]/g, "");
+      if (name.replace(/ /g, "").length < 1) {
+        this.lessonName.textContent = this.parent.parent.lesson.name;
+        return;
+      }
+      if (this.lessonName.textContent == this.parent.parent.lesson.name) {
+        this.lessonName.textContent = this.parent.parent.lesson.name;
+        return;
+      }
+      let oldName = this.parent.parent.lesson.name;
+      this.parent.parent.lesson.name = name;
+      this.lessonName.textContent = name;
+      this.lessonName.title = name;
+      let [code] = await sendRequest("POST", "lessons/name", { name: name }, { session: this.parent.parent.session });
+      if (code != 200) {
+        this.parent.parent.lesson.name = oldName;
+        this.lessonName.textContent = oldName;
+        this.lessonName.title = oldName;
+      }
+    });
+    this.lessonName.addEventListener("focus", async () => {
+      this.lessonName.parentElement.style.setProperty("--borderWidth", "4px");
+      this.updateTopBar();
+    });
+    this.lessonName.addEventListener("paste", clipBoardRead);
+
     //
 
     this.updateInterface();

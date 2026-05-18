@@ -190,7 +190,7 @@ export class Annotation extends BaseAnnotation {
           pdfDocumentHolder.style.opacity = 0;
           pdfDocumentHolder.style.transition = "opacity .3s";
         }
-        this.editor.render.addPageToQueue(this.properties.source, this.properties.number);
+        this.editor.render.addPageToQueue(this, this.properties.source, this.properties.number);
       } else {
         pdfDocumentHolder.setAttribute("sourcepage", sourcePageId);
         pdfDocumentHolder.setAttribute("width", this.properties.s[0]);
@@ -262,5 +262,13 @@ export class Annotation extends BaseAnnotation {
     this.setZIndex();
     this.setTransform();
     this.setAnimate();
+  }
+
+  remove() {
+    if (this.pageRenderTask != null) {
+      this.pageRenderTask.cancel();
+      delete this.pageRenderTask;
+    }
+    super.remove();
   }
 }

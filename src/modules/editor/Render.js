@@ -38,7 +38,6 @@ export class Render {
 
   fragmentQueue = [];
   fragmentStorage = {};
-  pdfPageStorage = {};
   pdfFileLoading = {};
 
   tempID() {
@@ -217,27 +216,25 @@ export class Render {
 
     while (
       this.editor.pageRenderPipeline.queue.length > 0
-      || (this.editor.exporting == true && Object.keys(this.pdfFileLoading).length > 0)) {
-      let [sourcePageId, scopedFunction, renderer] = this.editor.pageRenderPipeline.queue.shift() ?? [];
+      || (this.editor.exporting == true && Object.keys(this.pdfFileLoading).length > 0)
+    ) {
+      let [annotation, sourceID, pageNumber, scopedFunction, renderer] = this.editor.pageRenderPipeline.queue.shift() ?? [];
       if (scopedFunction != null) {
-        await scopedFunction(renderer, sourcePageId);
+        await scopedFunction(renderer, annotation, sourceID, pageNumber);
       }
       await sleep(1);
     }
 
     this.editor.pageRenderPipeline.running = false;
   }
-  async renderPage(renderer, sourcePageId) {
-    return await renderPage(renderer, sourcePageId);
+  async renderPage(renderer, annotation, sourceID, pageNumber) {
+    return await renderPage(renderer, annotation, sourceID, pageNumber);
   }
-  async addPageToQueue(sourceID, pageNumber, forceRunRender) {
+  async addPageToQueue(annotation, sourceID, pageNumber, forceRunRender) {
     let sourcePageId = sourceID + "_" + pageNumber;
-    if (this.pdfPageStorage[sourcePageId] == null) {
-      this.pdfPageStorage[sourcePageId] = [sourceID, pageNumber];
-      this.editor.pageRenderPipeline.queue.push([sourcePageId, this.renderPage, this]);
-      if (this.editor.exporting != true || forceRunRender == true) {
-        setTimeout(() => { this.processPageRenders(); }, 0);
-      }
+    this.editor.pageRenderPipeline.queue.push([annotation, sourceID, pageNumber, this.renderPage, this]);
+    if (this.editor.exporting != true || forceRunRender == true) {
+      queueMicrotask(() => { this.processPageRenders(); });
     }
   }
 
@@ -253,7 +250,7 @@ export class Render {
       return;
     }
     if (typeof moduleLoad == "function") {
-      moduleLoad = await moduleLoadFunction();
+      moduleLoad = await moduleLoad();
     }
     if (moduleLoad != null) {
       return await this.editor.newModule(moduleLoad.Annotation);

@@ -1037,7 +1037,7 @@ export class Frame {
         collaborators: this.collaborators,
         settings: this.lesson.lesson.settings,
         backgroundColor: this.backgroundColor,
-        preferences: this.preferences
+        preferenceState: this.preferenceState
       }
     });
     this.editor.realtime.enabled = false;

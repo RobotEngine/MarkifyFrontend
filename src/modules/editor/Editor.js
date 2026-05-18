@@ -850,7 +850,7 @@ export class Editor {
     }
 
     // Set default preferences:
-    this.preferences.create(this.preferenceState);
+    this.preferences.create(this.preferenceState ?? {});
 
     // Handle resizing and recentering of the editor frame:
     this.pipeline.subscribe("resizeChange", "resize", async (event) => {

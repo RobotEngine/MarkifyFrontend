@@ -15,12 +15,12 @@ export class Text {
   }
 
   fonts = {
-    "montserrat": ["Montserrat", 0],
-    "notosans": ["Noto Sans", 1],
-    "playfairdisplay": ["Playfair Display", 2],
-    "sourcecodepro": ["Source Code Pro", 3],
-    "comfortaa": ["Comfortaa", 4],
-    "playpensans": ["Playpen Sans", 5]
+    "montserrat": ["Montserrat", 0, () => { return import("@fontsource-variable/montserrat/files/montserrat-latin-wght-normal.woff2?url"); }],
+    "notosans": ["Noto Sans", 1, () => { return import("@fontsource-variable/noto-sans/files/noto-sans-latin-wght-normal.woff2?url"); }],
+    "playfairdisplay": ["Playfair Display", 2, () => { return import("@fontsource-variable/playfair-display/files/playfair-display-latin-wght-normal.woff2?url"); }],
+    "sourcecodepro": ["Source Code Pro", 3, () => { return import("@fontsource-variable/source-code-pro/files/source-code-pro-latin-wght-normal.woff2?url"); }],
+    "comfortaa": ["Comfortaa", 4, () => { return import("@fontsource-variable/comfortaa/files/comfortaa-latin-wght-normal.woff2?url"); }],
+    "playpensans": ["Playpen Sans", 5, () => { return import("@fontsource-variable/playpen-sans/files/playpen-sans-latin-wght-normal.woff2?url"); }]
   };
 
   async getQuill() {
@@ -288,46 +288,52 @@ export class Text {
   }
   loadFont(font) {
     let fontInfo = this.fonts[font];
-      if (fontInfo == null) {
-        return;
-      }
-      if (window.loadedFonts[font] != null) {
-        return;
-      }
-      if (window.loadingFonts[font] != null) {
-        return window.loadingFonts[font];
-      }
-      let fetchFont = new Promise(async (resolve) => {
-      let newFontLink = document.createElement("link");
-      newFontLink.rel = "stylesheet";
-      head.appendChild(newFontLink);
-      let loadFunction;
-      let errorFunction;
-      loadFunction = () => {
+    if (fontInfo == null) {
+      return;
+    }
+    if (window.loadedFonts[font] != null) {
+      return;
+    }
+    
+    if (window.loadingFonts[font] != null) {
+      return window.loadingFonts[font];
+    }
+
+    let fetchFont = new Promise(async (resolve) => {
+      try {
+        let module = await fontInfo[2]();
+        let fontUrl = module.default;
+
+        let customFont = new FontFace(fontInfo[0], "url(" + fontUrl + ")", {
+          weight: "100 900",
+          style: "normal",
+          display: "swap"
+        });
+
+        let loadedFontFace = await customFont.load();
+        document.fonts.add(loadedFontFace);
+
         window.loadedFonts[font] = true;
         delete window.loadingFonts[font];
+        
         let newRules = {};
-        newRules[".ql-editor .ql-font-" + font] = "font-family: " + '"' + fontInfo[0] + '"';
+        newRules[".ql-editor .ql-font-" + font] = 'font-family: "' + fontInfo[0] + '", sans-serif';
         appendCSS(newRules);
-        newFontLink.removeEventListener("load", loadFunction);
-        newFontLink.removeEventListener("error", errorFunction);
+        
         resolve();
-      }
-      newFontLink.addEventListener("load", loadFunction);
-      errorFunction = (error) => {
+      } catch (error) {
         delete window.loadingFonts[font];
-        console.error("Failed to load font: " + font, error);
-        newFontLink.removeEventListener("load", loadFunction);
-        newFontLink.removeEventListener("error", errorFunction);
+        console.error("Failed to load local font asset: " + font, error);
         resolve();
       }
-      newFontLink.addEventListener("error", errorFunction);
-      newFontLink.href = "https://fonts.googleapis.com/css?family=" + fontInfo[0].replace(/ /g, "+") + "&display=swap";
     });
+
     window.loadingFonts[font] = fetchFont;
+    
     if (this.editor.exporting == true) {
       this.editor.exportPromises.push(fetchFont);
     }
+    
     return fetchFont;
   }
   checkFonts(type, delta) {

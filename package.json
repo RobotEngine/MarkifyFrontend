@@ -15,6 +15,12 @@
     "vite": "^8.0.4"
   },
   "dependencies": {
+    "@fontsource-variable/comfortaa": "^5.2.8",
+    "@fontsource-variable/montserrat": "^5.2.8",
+    "@fontsource-variable/noto-sans": "^5.2.10",
+    "@fontsource-variable/playfair-display": "^5.2.8",
+    "@fontsource-variable/playpen-sans": "^5.2.9",
+    "@fontsource-variable/source-code-pro": "^5.2.7",
     "quill": "^2.0.2"
   }
 }

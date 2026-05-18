@@ -1,4 +1,4 @@
-import { userID, setPage, sendRequest } from "@/crucial";
+import { userID, setPage, promptLogin, sendRequest } from "@/crucial";
 
 import { Frame as ExportDropdown } from "@modules/lesson/dropdowns/Export";
 import { Frame as BoardStyleDropdown } from "@modules/lesson/dropdowns/BoardStyle";
@@ -143,11 +143,20 @@ export class Frame {
 
     let deleteLessonButton = frame.querySelector('.eFileAction[option="deletelesson"]');
     deleteLessonButton.addEventListener("click", () => {
-      this.open(deleteLessonButton, import("@modules/dropdowns/Remove"), { type: "deletelesson", lessonID: parent.parent.id, isOwner: editor.self.access == 5, session: editor.session });
+      this.open(deleteLessonButton, import("@modules/dropdowns/Remove"), {
+        type: "deletelesson",
+        lessonID: parent.parent.id,
+        isOwner: editor.self.access == 5,
+        session: editor.session
+      });
     });
     let deleteAnnotationsButton = frame.querySelector('.eFileAction[option="deleteannotations"]');
     deleteAnnotationsButton.addEventListener("click", () => {
-      this.open(deleteAnnotationsButton, import("@modules/dropdowns/Remove"), { type: "deleteannotations", lessonID: parent.parent.id, session: editor.session });
+      this.open(deleteAnnotationsButton, import("@modules/dropdowns/Remove"), {
+        type: "deleteannotations",
+        lessonID: parent.parent.id,
+        session: editor.session
+      });
     });
 
     let updateButtons = () => {

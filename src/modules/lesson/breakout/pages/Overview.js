@@ -32,13 +32,16 @@ import {
 import { dropdown as dropdownModule } from "@modules/utility/Dropdown";
 import { alert as alertModule } from "@modules/utility/Alert";
 
-import { Editor } from "@modules/editor/Editor";
-import { REALTIME } from "@modules/editor/imports";
+import { Frame as FileDropdown } from "../overview/FileDropdown";
+
+import { MasonryLayout } from "../overview/MasonryLayout";
+
 import { Pipeline } from "@modules/editor/Pipeline";
 
 import leftArrowIcon from "@assets/lesson/navigation/leftarrow.svg?raw";
 import rightArrowIcon from "@assets/lesson/navigation/rightarrow.svg?raw";
 import breakoutLogoIcon from "@assets/breakout.svg?raw";
+import boardLogoIcon from "@assets/icon.svg?raw";
 
 export class Page {
   constructor() {
@@ -74,7 +77,7 @@ export class Page {
     <div class="broBottomHolder">
       <div class="broBottom">
         <div class="broBottomSection broOpenBoard">
-          <button></button>
+          <button title="Open Markify Board">${boardLogoIcon}</button>
         </div>
         <div class="broBottomSection broWaitingRoom">
           <div class="broWaitingRoomMenu">
@@ -309,6 +312,41 @@ export class Page {
     this.updateTopBar();
   }
 
+  waitingRoomOpen = false;
+  openWaitingRoom() {
+    this.waitingRoomOpen = true;
+    this.waitingRoom.setAttribute("open", "");
+  }
+  closeWaitingRoom() {
+    this.waitingRoomOpen = false;
+    this.waitingRoom.removeAttribute("open");
+  }
+
+  async updateSplitScreenButton() {
+    this.boardEnabled = this.parent.parent.lesson.tool.includes("board");
+    this.boardOpen = this.parent.parent.pages["board"] != null;
+    this.boardVisible = this.parent.parent.maximized != true || this.parent.parent.activePageID == "board";
+
+    let showBoardButton = false;
+    if (this.boardEnabled == true) {
+      if (this.boardOpen == false || this.boardVisible == false) {
+        showBoardButton = true;
+      }
+    } else if (this.parent.parent.self.access > 3) {
+      if (this.boardOpen == false || this.boardVisible == false) {
+        showBoardButton = true;
+      }
+    }
+
+    if (showBoardButton == true) {
+      this.openBoardHolder.style.display = "flex";
+      this.bottomButtonSpacer.style.display = "flex";
+    } else {
+      this.openBoardHolder.style.removeProperty("display");
+      this.bottomButtonSpacer.style.removeProperty("display");
+    }
+  }
+
   async js(frame) {
     frame.style.position = "relative";
     frame.style.width = "100%";
@@ -450,6 +488,11 @@ export class Page {
     this.lessonName.addEventListener("paste", clipBoardRead);
 
     // File dropdown:
+    this.fileButton.addEventListener("click", () => {
+      dropdownModule.open(this.fileButton, FileDropdown, { parent: this });
+    });
+
+    // Manage dropdown:
 
     // Share dropdowns:
     this.shareButton.addEventListener("click", () => {
@@ -477,6 +520,37 @@ export class Page {
       this.loginButton.style.display = "block";
       this.loginButton.addEventListener("click", () => { promptLogin(); });
     }
+
+    // Waiting room menu events:
+    this.waitingRoomOpenButton.addEventListener("click", () => {
+      if (this.waitingRoomOpen == false) {
+        this.openWaitingRoom();
+      } else {
+        this.closeWaitingRoom();
+      }
+    });
+    this.waitingRoomCloseButton.addEventListener("click", () => {
+      this.closeWaitingRoom();
+    });
+
+    // Splitscreen update events:
+    this.openBoard.addEventListener("click", async () => {
+      this.openBoardHolder.style.removeProperty("display");
+      this.bottomButtonSpacer.style.removeProperty("display");
+
+      if (this.boardOpen == false) {
+        await this.parent.parent.addPage("board", "board", { insertBefore: this.parent.pageHolder, percent: .5 });
+      }
+      if (this.boardVisible == false) {
+        this.parent.parent.activePageID = "board";
+        this.parent.parent.pushToPipelines(null, "page_switch", { pageID: "board" });
+      }
+    });
+    this.pipeline.subscribe("pageAdd", "page_add", () => { this.updateSplitScreenButton(); });
+    this.pipeline.subscribe("pageRemove", "page_remove", () => { this.updateSplitScreenButton(); });
+    this.pipeline.subscribe("pageSwitch", "page_switch", () => { this.updateSplitScreenButton(); });
+    this.pipeline.subscribe("pageMaximize", "maximize", () => { this.updateSplitScreenButton(); });
+    this.updateSplitScreenButton();
 
     this.updateInterface();
   }

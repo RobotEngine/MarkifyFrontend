@@ -65,9 +65,11 @@ export class Page extends PageFrame {
     let typePages = this.pages[type];
     let pageHolder = this.frame.querySelector(".lPageHolder");
     if (holder == null) {
-      pageHolder.insertAdjacentHTML("beforeend", `<div class="lPage" new></div>`);
-      holder = pageHolder.querySelector(".lPage[new]");
-      holder.removeAttribute("new");
+      holder = document.createElement("div");
+      holder.className = "lPage";
+      holder.setAttribute("dropdownholder", "");
+      holder.setAttribute("modalholder", "");
+      pageHolder.appendChild(holder);
       let newDivider;
       if (pageHolder.childElementCount > 1) {
         pageHolder.insertAdjacentHTML("beforeend", `<div class="lPageDivider" draggable="false" new><div></div></div>`);
@@ -117,7 +119,6 @@ export class Page extends PageFrame {
     }
     holder.setAttribute("pageid", id);
     holder.setAttribute("pagetype", type);
-    holder.setAttribute("dropdownholder", "");
     let newPage = await this.setFrame(new Promise(async (resolve) => {
       let loadModuleFunction = lessonPages[lessonPagesPath + type + ".js"];
       if (loadModuleFunction == null) {

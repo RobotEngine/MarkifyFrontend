@@ -46,6 +46,7 @@ import boardLogoIcon from "@assets/icon.svg?raw";
 export class Page {
   constructor() {
     this.pipeline = new Pipeline;
+    this.layout = new MasonryLayout(this);
   }
 
   html = `
@@ -347,12 +348,12 @@ export class Page {
     }
   }
 
-  async js(frame) {
-    frame.style.position = "relative";
-    frame.style.width = "100%";
-    frame.style.height = "100%";
+  async js() {
+    this.frame.style.position = "relative";
+    this.frame.style.width = "100%";
+    this.frame.style.height = "100%";
 
-    this.page = frame.closest(".brPage");
+    this.page = this.frame.closest(".brPage");
 
     this.topHolder = this.frame.querySelector(".broTopHolder");
     this.top = this.topHolder.querySelector(".broTop");
@@ -551,6 +552,19 @@ export class Page {
     this.pipeline.subscribe("pageSwitch", "page_switch", () => { this.updateSplitScreenButton(); });
     this.pipeline.subscribe("pageMaximize", "maximize", () => { this.updateSplitScreenButton(); });
     this.updateSplitScreenButton();
+
+    // Tile Layout Events:
+    this.pipeline.subscribe("tilesResize", "resize", (event) => {
+      this.layout.resized = true;
+      this.layout.lastResizeWasSimulated = event.simulated == true;
+      this.layout.setupColumns();
+    });
+    this.pipeline.subscribe("tilesScroll", "scroll", () => { this.layout.runUpdateCycle(); }, { sort: 1 });
+    this.layout.setupColumns(true);
+
+    (async () => {
+      this.layout.addTile({ _id: "NEW_GROUP_CREATE", version: (this.parent.parent.lesson.breakout ?? {}).version }, null, true);
+    })();
 
     this.updateInterface();
   }

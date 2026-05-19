@@ -901,6 +901,13 @@ export class Tool {
     this.editor.selecting = {};
     this.toolbar.selection.updateBox();
 
+    this.editor.pipeline.subscribe("toolbarCommentSidemenuOpen", "sidemenu_open", (data) => {
+      this.updateCommentFrame();
+    });
+    this.editor.pipeline.subscribe("toolbarCommentSidemenuClose", "sidemenu_close", (data) => {
+      this.updateCommentFrame();
+    });
+
     this.openCommentFrame(this.annotation);
 
     commentElement.setAttribute("selected", "");
@@ -914,6 +921,9 @@ export class Tool {
   }
   disable() {
     this.closeCommentFrame();
+
+    this.editor.pipeline.unsubscribe("toolbarCommentSidemenuOpen");
+    this.editor.pipeline.unsubscribe("toolbarCommentSidemenuClose");
 
     if (this.annotation != null) {
       this.editor.render.remove(this.annotation);

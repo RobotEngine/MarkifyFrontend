@@ -5,6 +5,7 @@ import trash from "@assets/delete.svg?raw";
 import more from "@assets/more.svg?raw";
 import search from "@assets/search.svg?raw";
 import copy from "@assets/copy.svg?raw";
+import open from "@assets/open.svg?raw";
 
 export {
   close,
@@ -13,5 +14,6 @@ export {
   trash,
   more,
   search,
-  copy
+  copy,
+  open
 };

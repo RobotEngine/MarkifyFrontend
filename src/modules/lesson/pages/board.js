@@ -3,8 +3,8 @@ import { userID, account, setPage, getParam, modifyParams, sendRequest, connecte
 import { Editor } from "@modules/editor/Editor";
 import { REALTIME, TOOLBAR } from "@modules/editor/imports";
 
-import { Frame as FileDropdown } from "@modules/lesson/board/FileDropdown";
-import { Frame as MembersDropdown } from "@modules/lesson/board/MembersDropdown";
+import { Frame as FileDropdown } from "@modules/lesson/board/dropdowns/File";
+import { Frame as MembersDropdown } from "@modules/lesson/board/dropdowns/Members";
 import { Frame as ZoomDropdown } from "@modules/lesson/dropdowns/Zoom";
 
 import leftArrowIcon from "@assets/lesson/navigation/leftarrow.svg?raw";
@@ -938,7 +938,7 @@ export class Page {
       this.contentHolder.removeAttribute("disabled");
       this.mainPage.insertAdjacentHTML("beforeend", `<div class="eCreateBoardHolder"></div>`);
       this.editor.openModal(
-        import("@modules/lesson/board/NewBoard"),
+        import("@modules/lesson/board/modals/NewBoard"),
         this.mainPage.querySelector(".eCreateBoardHolder"),
         {
           title: "Create Board",

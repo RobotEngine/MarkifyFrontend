@@ -252,9 +252,7 @@ export const Modal = class {
 
     this.cache = {}; // Clear cache
 
-    if ((this.module ?? {}).maxHeight != null) {
-      this.maxHeight = this.module.maxHeight;
-    }
+    this.maxHeight = (this.module ?? {}).maxHeight;
 
     this.content = content;
 

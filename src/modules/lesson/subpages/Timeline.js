@@ -800,7 +800,7 @@ export class Frame {
         if (parameters.length > 0) {
           path += "?" + parameters.join("&");
         }
-        let [code, body] = await sendRequest("GET", path, null, { session: this.parent.session });
+        let [code, body] = await sendRequest("GET", path, null, { session: this.session });
         if (code == 200) {
           for (let i = 0; i < body.changes.length; i++) {
             this.applyChange(body.changes[i]);
@@ -923,7 +923,7 @@ export class Frame {
         if (parameters.length > 0) {
           path += "?" + parameters.join("&");
         }
-        let [code, body] = await sendRequest("GET", path, null, { session: this.parent.session, allowError: [403] });
+        let [code, body] = await sendRequest("GET", path, null, { session: this.session, allowError: [403] });
         if (code == 200) {
           this.totalSortedChanges += body.count;
           let loadChange = body.count - this.sortedChanges.length;
@@ -1061,7 +1061,7 @@ export class Frame {
       if ((this.parameters ?? []).length > 0) {
         path += "?" + this.parameters.join("&");
       }
-      let [annoCode, annoBody] = await sendRequest("GET", path, null, { session: this.parent.session });
+      let [annoCode, annoBody] = await sendRequest("GET", path, null, { session: this.session });
       if (annoCode != 200) {
         return this.editor.openAlert("error", `<b>Error Loading Annotations</b>Please try again later...`);
       }
@@ -1201,7 +1201,7 @@ export class Frame {
       if (parameters.length > 0) {
         path += "?" + parameters.join("&");
       }
-      let [code] = await sendRequest("GET", path, null, { session: this.parent.session });
+      let [code] = await sendRequest("GET", path, null, { session: this.session });
       if (code == 200) {
         if (this.close != null) {
           return this.close();

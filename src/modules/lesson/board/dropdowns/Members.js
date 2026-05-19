@@ -33,6 +33,7 @@ export class Frame {
     </div>
   </div>
   `;
+  
   css = {
     ".dropdownTitle span[membercount]": `display: none; min-width: 12px; height: 24px; padding: 0px 6px; margin-right: 5px; justify-content: center; align-items: center; background: var(--pageColor); box-shadow: 0px 0px 8px 0px rgba(var(--themeColorRGB), .3); border-radius: 12px; font-weight: 700`,
 
@@ -111,6 +112,7 @@ export class Frame {
     ".eMemberSectionActions button:active": `background: var(--themeColor); color: #fff`,
     ".eMemberSectionActions button:active div[image]": `filter: brightness(0) invert(1); transform: scale(1)`
   };
+
   js(frame, extra) {
     frame.closest(".dropdownContent").style.padding = "0px";
 

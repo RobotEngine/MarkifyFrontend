@@ -1,38 +1,12 @@
-import {
-  body,
-  fixed,
-  favicon,
-
-  userID,
-  account,
-
-  changeGlobalImports,
-  mouseDown,
-  setPage,
-  setFrame,
-  sleep,
-  getParam,
-  modifyParams,
-  getEpoch,
-  sendRequest,
-  socket,
-  connected,
-  subscribe,
-  getLocalStore,
-  setLocalStore,
-  objectUpdate,
-  copyObject,
-  getObject,
-  textBoxError,
-  clipBoardRead,
-  promptLogin,
-  hasFeatureEnabled
-} from "@/crucial";
+import { userID, account, mouseDown, setPage, sleep, modifyParams, sendRequest, subscribe, objectUpdate, copyObject, clipBoardRead, promptLogin } from "@/crucial";
 
 import { dropdown as dropdownModule } from "@modules/utility/Dropdown";
-import { alert as alertModule } from "@modules/utility/Alert";
+import { modal as modalModule } from "@modules/utility/Modal";
 
-import { Frame as FileDropdown } from "../overview/FileDropdown";
+import { Frame as FileDropdown } from "../overview/dropdowns/File";
+import { Frame as ManageDropdown } from "../overview/dropdowns/Manage";
+import { Frame as ManageMemberDropdown } from "../overview/dropdowns/ManageMember";
+import { Frame as GroupOptionsDropdown } from "../overview/dropdowns/GroupOptions";
 
 import { MasonryLayout } from "../overview/MasonryLayout";
 
@@ -231,6 +205,12 @@ export class Page {
 
   unassignedMembers = 0;
 
+  dragContext = {};
+  wasDragging = false;
+  scrollOffset = 32;
+  scrollY = 0;
+  scrollIntervalRunning = false;
+
   getTemplate() {
     if (this.template != null) {
       return this.template;
@@ -369,6 +349,72 @@ export class Page {
     }
   }
 
+  updateUnassignedMemberCount(change) {
+    if (change != null) {
+      this.unassignedMembers += change;
+    }
+    if (this.unassignedMembers > 0) {
+      this.waitingRoomOpenButtonCount.style.display = "flex";
+      this.waitingRoomOpenButtonCount.parentElement.style.padding = "4px 10px 4px 4px";
+    } else {
+      this.waitingRoomOpenButtonCount.style.removeProperty("display");
+      this.waitingRoomOpenButtonCount.parentElement.style.removeProperty("padding");
+    }
+    if (this.unassignedMembers > 0 || this.dragContext.enabled == true) {
+      this.waitingRoomHolder.removeAttribute("hidden");
+    } else {
+      this.waitingRoomHolder.setAttribute("hidden", "");
+    }
+    this.waitingRoomOpenButtonCount.textContent = this.unassignedMembers;
+  }
+
+  updateMember = (modify, data) => {
+    let groupMember = this.layout.members[modify];
+    if (groupMember == null) {
+      return;
+    }
+    if (data.hasOwnProperty("group") == true && data.group != groupMember.group) {
+      delete groupMember.contribution;
+      if (groupMember.group != null) {
+        let oldGroupTile = this.layout.tiles[groupMember.group] ?? {};
+        if (oldGroupTile.members != null) {
+          let index = oldGroupTile.members.indexOf(modify);
+          if (index > -1) {
+            oldGroupTile.members.splice(index, 1);
+            this.layout.updatePercentageOfWork(oldGroupTile);
+          }
+        }
+        if (oldGroupTile.editor != null && data._id != null) {
+          oldGroupTile.editor.pipeline.publish("leave", { _id: data._id });
+        }
+      } else if (data.group != null) {
+        this.updateUnassignedMemberCount(-1);
+      }
+      this.layout.removeMemberTile(modify, true);
+      groupMember.group = data.group;
+      if (data.group != null) {
+        let groupTile = this.layout.tiles[data.group];
+        if (groupTile == null) {
+          let pending = pendingMemberAssignment[data.group];
+          if (pending == null) {
+            pendingMemberAssignment[data.group] = [];
+            pending = pendingMemberAssignment[data.group];
+          }
+          if (pending.includes(data.modify) == false) {
+            pending.push(data.modify);
+          }
+        } else if (groupTile.members != null && groupTile.members.includes(modify) == false) {
+          groupTile.members.push(modify);
+          this.layout.addMemberTile(modify, true);
+          this.layout.updatePercentageOfWork(groupTile);
+        }
+      } else if ((this.layout.memberSessions[modify] ?? []).length > 0) {
+        this.layout.addMemberTile(modify, true);
+        this.updateUnassignedMemberCount(1);
+      }
+    }
+  }
+
   async loadGroups() {
     if (this.loadingGroups == true || this.allGroupsLoaded == true) {
       return;
@@ -417,6 +463,264 @@ export class Page {
         checkLoadGroups();
       }
     }
+  }
+
+  async scrollInterval() {
+    if (this.scrollIntervalRunning == true) {
+      return;
+    }
+    this.scrollIntervalRunning = true;
+    while (this.scrollY != 0 && this.dragContext.enabled == true) {
+      this.groupHolder.scrollTo({ top: this.groupHolder.scrollTop + this.scrollY });
+      await sleep(10);
+    }
+    this.scrollIntervalRunning = false;
+  }
+  removeDrag(moved) {
+    if (this.dragContext.tileData != null) {
+      this.page.removeAttribute("dragging");
+    }
+    let removeElement = this.dragContext.element;
+    if (removeElement == null) {
+      return;
+    }
+
+    if (
+      this.dragContext.tileData != null
+      && this.dragContext.tileData.tile != null
+      && this.frame.contains(this.dragContext.tileData.tile) == true
+    ) {
+      let button = this.dragContext.tileData.tile.closest(".broTile");
+      let pageRect = this.frame.getBoundingClientRect();
+      let originalRect = this.dragContext.tileData.tile.getBoundingClientRect();
+      if (moved != true) {
+        removeElement.style.transform = "translate(" + ((originalRect.x - pageRect.x) - (this.dragContext.lastX - this.dragContext.offsetX)) + "px, " + (originalRect.y - pageRect.y - this.dragContext.lastY + this.dragContext.offsetY) + "px) scale(.975)";
+        this.dragContext.tileData.tile.removeAttribute("disabled");
+      } else {
+        removeElement.style.transformOrigin = this.dragContext.offsetX + "px " + this.dragContext.offsetY + "px";
+        removeElement.style.transform = "translate(0px, 0px) scale(0)";
+      }
+      (async () => {
+        await sleep(100);
+        if (button != null) {
+          button.removeAttribute("disabled");
+        }
+      })();
+    } else {
+      removeElement.style.transformOrigin = "center";
+      removeElement.style.transform = "translate(0px, 0px) scale(0)";
+    }
+
+    removeElement.style.opacity = 0;
+    (async () => {
+      await sleep(200);
+      if (removeElement != null) {
+        removeElement.remove();
+      }
+    })();
+
+    if (this.dragContext.waitingRoomOpen == true) {
+      this.openWaitingRoom();
+    }
+
+    this.wasDragging = true;
+    this.dragContext = {};
+
+    this.updateUnassignedMemberCount();
+  }
+  dragStart(event) {
+    if (this.dragContext.enabled == true && this.dragContext.forceMouseDown == true) {
+      this.wasDragging = true;
+      return this.dragEnd(event);
+    }
+    this.dragContext = {};
+    let target = event.target;
+    let pageRect = this.frame.getBoundingClientRect();
+    let mouseX = (event.x ?? event.clientX ?? ((event.changedTouches ?? [])[0] ?? {}).clientX ?? 0) - pageRect.x;
+    let mouseY = (event.y ?? event.clientY ?? ((event.changedTouches ?? [])[0] ?? {}).clientY ?? 0) - pageRect.y;
+    let tile = target.closest(".broTileMember");
+    if (tile == null) {
+      return;
+    }
+    event.preventDefault();
+    let tileData = this.layout.members[tile.getAttribute("collaborator")];
+    if (this.dragContext.tileData != null) {
+      return;
+    }
+    this.dragContext = {
+      tileData,
+      width: tile.clientWidth,
+      height: tile.clientHeight,
+      startX: mouseX,
+      startY: mouseY,
+      startScrollY: this.groupHolder.scrollTop,
+      waitingRoomOpen: this.waitingRoomOpen
+    };
+    this.page.setAttribute("dragging", "");
+  }
+  dragMove = (event) => {
+    let mouseX = this.lastMouseX ?? 0;
+    let mouseY = this.lastMouseY ?? 0;
+    if (event != null) {
+      mouseX = event.x ?? event.clientX ?? ((event.changedTouches ?? [])[0] ?? {}).clientX ?? 0;
+      mouseY = event.y ?? event.clientY ?? ((event.changedTouches ?? [])[0] ?? {}).clientY ?? 0;
+      this.lastMouseX = mouseX;
+      this.lastMouseY = mouseY;
+    }
+    if (this.dragContext.tileData == null || this.dragContext.tileData.tile == null) {
+      return this.removeDrag();
+    }
+    if (mouseDown() == false && this.dragContext.forceMouseDown != true) {
+      return this.removeDrag();
+    }
+    let pageRect = this.frame.getBoundingClientRect();
+    mouseX -= pageRect.x;
+    mouseY -= pageRect.y;
+    let startX = this.dragContext.startX ?? mouseX;
+    let startY = this.dragContext.startY ?? mouseY;
+    this.dragContext.lastX = mouseX;
+    this.dragContext.lastY = mouseY;
+    if (this.dragContext.enabled != true) {
+      if (
+        Math.abs(mouseX - startX) > 5 || Math.abs(mouseY - startY) > 5
+        || this.dragContext.forceMouseDown == true
+      ) {
+        if (
+          event != null
+          && this.dragContext.forceMouseDown != true
+          && (
+            event.target.closest(".broTileMember") == null
+            || this.frame.contains(this.dragContext.tileData.tile) == false
+          )
+        ) {
+          return this.removeDrag();
+        }
+        this.dragContext.enabled = true;
+        this.dragContext.element = this.dragContext.tileData.tile.cloneNode(true);
+        this.dragContext.element.style.position = "absolute";
+        this.dragContext.element.style.width = this.dragContext.width + "px";
+        this.dragContext.element.style.height = this.dragContext.height + "px";
+        this.dragContext.element.style.background = "var(--pageColor)";
+        this.dragContext.element.style.boxShadow = "var(--shadow)";
+        this.dragContext.element.style.zIndex = 10;
+        this.dragContext.element.style.pointerEvents = "none";
+        let originalRect = this.dragContext.tileData.tile.getBoundingClientRect();
+        this.dragContext.offsetX = this.dragContext.offsetX ?? (startX - (originalRect.x - pageRect.x));
+        this.dragContext.offsetY = this.dragContext.offsetY ?? (startY - (originalRect.y - pageRect.y + (this.groupHolder.scrollTop - this.dragContext.startScrollY)));
+        this.dragContext.element.style.transform = "translate(" + Math.min(startX + startX - mouseX - mouseX, 0) + "px, " + Math.min(startY + startY - mouseY - mouseY, 0) + "px) scale(.975)";
+        this.dragContext.element.style.transformOrigin = "0 0";
+        this.dragContext.element.style.opacity = 0;
+        this.dragContext.element.style.transition = "transform .3s, opacity .2s";
+        this.dragContext.element.setAttribute("dragging", "");
+        this.dragContext.tileData.tile.setAttribute("disabled", "");
+        this.dragContext.element.removeAttribute("activated");
+        this.frame.appendChild(this.dragContext.element);
+        let mainTile = this.dragContext.tileData.tile.closest(".broTile");
+        if (mainTile != null) {
+          mainTile.setAttribute("disabled", "");
+        }
+        this.dragContext.element.offsetHeight;
+        this.dragContext.element.style.transform = "translate(0px, 0px) scale(.975)";
+        this.dragContext.element.style.opacity = 1;
+
+        if (this.dragContext.waitingRoomOpen == true) {
+          this.closeWaitingRoom();
+        }
+        this.updateUnassignedMemberCount();
+      } else {
+        return;
+      }
+    }
+    if (this.dragContext.element == null) {
+      return;
+    }
+    this.dragContext.element.style.left = (mouseX - (this.dragContext.offsetX ?? 0)) + "px";
+    this.dragContext.element.style.top = (mouseY - (this.dragContext.offsetY ?? 0)) + "px";
+
+    this.scrollY = 0;
+    let topPos = this.scrollOffset - mouseY;
+    if (topPos > 0) {
+      let percentage = 1 + ((topPos - this.scrollOffset) / this.scrollOffset);
+      this.scrollY = -Math.min(10 * percentage, 10);
+    }
+    let bottomPos = mouseY - this.page.offsetHeight + this.scrollOffset;
+    if (bottomPos > 0) {
+      let percentage = 1 + ((bottomPos - this.scrollOffset) / this.scrollOffset);
+      this.scrollY = Math.min(10 * percentage, 10);
+    }
+    if (this.dragContext.autoScrollActive == true) {
+      this.scrollInterval();
+    } else if (this.scrollY == 0) {
+      this.dragContext.autoScrollActive = true;
+    }
+  }
+  async dragEnd(event) {
+    if (
+      this.dragContext.enabled != true
+      || this.dragContext.tileData == null
+      || this.dragContext.tileData.tile == null
+    ) {
+      return this.removeDrag();
+    }
+    let target = document.elementFromPoint(
+      event.x ?? event.clientX ?? ((event.changedTouches ?? [])[0] ?? {}).clientX ?? 0,
+      event.y ?? event.clientY ?? ((event.changedTouches ?? [])[0] ?? {}).clientY ?? 0
+    );
+    if (target == null) {
+      return this.removeDrag();
+    }
+    let groupTile = target.closest(".broTile[group], .broWaitingRoom");
+    if (groupTile != null) {
+      let groupID = groupTile.getAttribute("group");
+      if (this.dragContext.tileData.group == groupID) { // Same group:
+        return this.removeDrag();
+      }
+      let path = "lessons/breakout/move?collaborator=" + this.dragContext.tileData.modify;
+      if (groupID != null) {
+        path += "&group=" + groupID;
+      }
+      let revertTile = this.dragContext.tileData.tile;
+      this.removeDrag(true);
+      await sendRequest("PUT", path, null, { session: this.parent.parent.session });
+      if (revertTile != null) {
+        revertTile.removeAttribute("disabled");
+      }
+      return;
+    }
+    this.removeDrag();
+  }
+  forceDragStart(modifyID) {
+    let tileData = this.layout.members[modifyID] ?? {};
+    if (tileData.tile == null) {
+      return;
+    }
+    this.dragContext = {
+      tileData,
+      width: tileData.tile.clientWidth,
+      height: tileData.tile.clientHeight,
+      offsetX: -8,
+      offsetY: -8,
+      startScrollY: this.groupHolder.scrollTop,
+      waitingRoomOpen: this.waitingRoomOpen,
+      forceMouseDown: true
+    };
+    this.dragMove();
+  }
+
+  async openGroup(groupID) {
+    let tileData = this.layout.tiles[groupID];
+    let editor;
+    if (tileData.editor != null && tileData.loadedAnnotations == true) {
+      editor = tileData.editor;
+    }
+    this.parent.parent.self.group = groupID;
+    this.parent.openPage("secondary", "breakout/group", { group: tileData.render, members: tileData.members, editor });
+  }
+  onOpen() { // When returning here, leave the group:
+    if (this.parent.parent.self.group != null) {
+      sendRequest("DELETE", "lessons/breakout/groups/leavepreview", null, { session: this.parent.parent.session });
+    }
+    modifyParams("team");
   }
 
   async js() {
@@ -565,6 +869,9 @@ export class Page {
     });
 
     // Manage dropdown:
+    this.manageButton.addEventListener("click", () => {
+      dropdownModule.open(this.manageButton, ManageDropdown, { parent: this });
+    });
 
     // Share dropdowns:
     this.shareButton.addEventListener("click", () => {
@@ -624,7 +931,18 @@ export class Page {
     this.pipeline.subscribe("pageMaximize", "maximize", () => { this.updateSplitScreenButton(); });
     this.updateSplitScreenButton();
 
-    // Tile Layout Events:
+    // Tile layout cleanup event:
+    this.pipeline.subscribe("groupUpdatePageClose", "page_close", () => {
+      if (this.layout.groupUpdateSub != null) {
+        this.layout.groupUpdateSub.close();
+      }
+      if (this.layout.shortSub != null) {
+        this.layout.shortSub.close();
+        this.layout.shortSub = null;
+      }
+    });
+
+    // Tile Layout events:
     this.pipeline.subscribe("tilesResize", "resize", (event) => {
       this.layout.resized = true;
       this.layout.lastResizeWasSimulated = event.simulated == true;
@@ -638,11 +956,378 @@ export class Page {
     });
     this.layout.setupColumns(true);
 
+    // Group events:
+    let pendingMemberAssignment = {}; // May recieve member update events before the new group event.
+    this.pipeline.subscribe("createGroup", "creategroup", async (data) => {
+      await this.layout.addTile(data, pendingMemberAssignment[data._id] ?? [], true);
+      delete pendingMemberAssignment[data._id];
+      this.updateSubscribe();
+    });
+    this.pipeline.subscribe("removeGroup", "removegroup", (data) => {
+      this.layout.removeTile(data._id, true);
+    });
+
+    // Member events:
+    this.pipeline.subscribe("memberJoin", "join", (data) => {
+      let session = this.layout.memberSessions[data.modify];
+      let existingMember = this.layout.members[data.modify];
+      if (session == null) {
+        this.layout.memberSessions[data.modify] = [];
+        session = this.layout.memberSessions[data.modify];
+        if (data.group == null && data.access < 4) {
+          this.updateUnassignedMemberCount(1);
+        }
+      } else if (existingMember != null && existingMember.group != null && data.group == null && data.access < 4) {
+        this.updateUnassignedMemberCount(-1);
+      }
+      if (session.includes(data._id) == false) {
+        session.push(data._id);
+      }
+      if (data.access > 3) {
+        return;
+      }
+
+      if (existingMember != null && existingMember.group != data.group) {
+        delete existingMember.contribution;
+        if (existingMember.group != null) {
+          let groupTile = this.layout.tiles[existingMember.group] ?? {};
+          if (groupTile.members != null) {
+            let index = groupTile.members.indexOf(data.modify);
+            if (index > -1) {
+              groupTile.members.splice(index, 1);
+              this.layout.updatePercentageOfWork(groupTile);
+            }
+          }
+          if (groupTile.editor != null) {
+            groupTile.editor.pipeline.publish("leave", { _id: data._id });
+          }
+          this.layout.removeMemberTile(data.modify, true);
+        }
+      }
+      this.layout.members[data.modify] = { ...(existingMember ?? {}), group: data.group, modify: data.modify };
+      if (data.group != null) {
+        let groupTile = this.layout.tiles[data.group];
+        if (groupTile == null) {
+          let pending = pendingMemberAssignment[data.group];
+          if (pending == null) {
+            pendingMemberAssignment[data.group] = [];
+            pending = pendingMemberAssignment[data.group];
+          }
+          if (pending.includes(data.modify) == false) {
+            pending.push(data.modify);
+          }
+        } else {
+          if (groupTile.members != null && groupTile.members.includes(data.modify) == false) {
+            groupTile.members.push(data.modify);
+            this.layout.addMemberTile(data.modify);
+          } else {
+            this.layout.updateMemberTile(this.parent.parent.collaborators[data.modify]);
+          }
+          if (groupTile.editor != null) {
+            groupTile.editor.pipeline.publish("join", data);
+          }
+        }
+      } else {
+        this.layout.updateMemberTile(this.parent.parent.collaborators[data.modify]);
+      }
+    }, { sort: 1 });
+    this.pipeline.subscribe("memberUpdate", "update", (data) => {
+      let member = this.parent.parent.members[data._id];
+      if (member == null) {
+        return;
+      }
+      if (member.access < 4) {
+        this.updateMember(member.modify, data);
+      } else {
+        let loadedTiles = Object.keys(this.layout.loadedTiles);
+        for (let i = 0; i < loadedTiles.length; i++) {
+          let tile = this.layout.tiles[loadedTiles[i]];
+          if (tile.editor != null) {
+            tile.editor.pipeline.publish("leave", { _id: data._id });
+          }
+        }
+      }
+      if (member.group != null) {
+        let groupTile = this.layout.tiles[member.group] ?? {};
+        if (groupTile.editor != null) {
+          groupTile.editor.pipeline.publish("update", data);
+        }
+      }
+    }, { sort: 1 });
+    this.pipeline.subscribe("groupMemberMove", "move", (data) => {
+      let existingMember = this.layout.members[data.modify];
+      if (existingMember != null) {
+        this.updateMember(data.modify, data);
+        existingMember.contribution = data.contribution;
+        this.layout.updatePercentageOfWork(this.layout.tiles[data.group]);
+      }
+    });
+    this.pipeline.subscribe("memberLeave", "leave", (data) => {
+      if (data.member != null) {
+        let session = this.layout.memberSessions[data.member.modify];
+        if (session != null) {
+          let index = session.indexOf(data.member._id);
+          if (index > -1) {
+            session.splice(index, 1);
+          }
+          if (session.length < 1) {
+            delete this.layout.memberSessions[data.member.modify];
+            if (data.member.access < 4) {
+              if (data.member.group != null) {
+                this.layout.updateMemberTile(this.parent.parent.collaborators[data.member.modify]);
+              } else {
+                this.layout.removeMemberTile(data.member.modify, true);
+                this.updateUnassignedMemberCount(-1);
+              }
+            }
+          }
+        }
+        if (data.member.group != null) {
+          let groupTile = this.layout.tiles[data.member.group] ?? {};
+          if (groupTile.editor != null) {
+            groupTile.editor.pipeline.publish("leave", data);
+          }
+        }
+      }
+    }, { sort: 1 });
+    this.pipeline.subscribe("collaboratorUpdate", "collaborator_update", (data) => {
+      let groupMember = this.layout.members[data._id];
+      if (groupMember != null) {
+        this.layout.updateMemberTile(data);
+      }
+      let loadedTiles = Object.keys(this.layout.loadedTiles);
+      for (let i = 0; i < loadedTiles.length; i++) {
+        let tile = this.layout.tiles[loadedTiles[i]];
+        if (tile.editor != null) {
+          tile.editor.pipeline.publish("collaborator_update", data);
+          tile.editor.pipeline.publish("collaborator_update_" + data._id, data);
+        }
+      }
+    }, { sort: 1 });
+
+    // Contribution change event:
+    this.pipeline.subscribe("contributionChange", "contributionchange", (data) => {
+      let groupMember = this.layout.members[data.modify];
+      if (groupMember == null || groupMember.group != data.group) {
+        return;
+      }
+      if (groupMember.contribution == null) {
+        groupMember.contribution = 0;
+      }
+      groupMember.contribution += data.change;
+      this.layout.updatePercentageOfWork(this.layout.tiles[groupMember.group]);
+    });
+
+    // Preview update long event:
+    this.pipeline.subscribe("previewLongAnnotationUpdate", "long", (event) => {
+      if (event.id == null) {
+        return;
+      }
+      let tile = this.layout.tiles[event.id];
+      if (tile == null) {
+        return;
+      }
+      if (tile.editor != null) {
+        tile.editor.pipeline.publish("long", event);
+      }
+    });
+
+    // Template change event:
+    this.pipeline.subscribe("previewTemplateChange", "templatechange", async (body) => {
+      let templateRootStore = this.layout.templateRoots[body.rootID];
+      if (templateRootStore == null) {
+        this.layout.templateRoots[body.rootID] = {};
+        templateRootStore = this.layout.templateRoots[body.rootID];
+      }
+      templateRootStore.annotations = body.annotations;
+
+      let tiles = Object.keys(this.layout.tiles);
+      for (let i = 0; i < tiles.length; i++) {
+        let tile = this.layout.tiles[tiles[i]] ?? {};
+        if (tile.editor != null) {
+          tile.editor.applyRootTemplate(copyObject(templateRootStore.annotations));
+        }
+      }
+    });
+
+    // Signal strength change event:
+    this.pipeline.subscribe("signalStrengthUpdate", "signal_strength", () => {
+      this.layout.updateShortSubscribe();
+    });
+
+    // Drag members listeners:
+    this.frame.addEventListener("mousedown", (event) => { this.dragStart(event); });
+    this.pipeline.subscribe("dragMemberMove", "click_move", (data) => { this.dragMove(data.event); });
+    this.pipeline.subscribe("dragMemberEnd", "click_end", (data) => { this.dragEnd(data.event); });
+
+    // Load members:
+    let memberKeys = Object.keys(this.parent.parent.members);
+    for (let i = 0; i < memberKeys.length; i++) {
+      let memberID = memberKeys[i];
+      let member = this.parent.parent.members[memberID];
+      let session = this.layout.memberSessions[member.modify];
+      if (session == null) {
+        this.layout.memberSessions[member.modify] = [];
+        session = this.layout.memberSessions[member.modify];
+      }
+      session.push(memberID);
+      if (member.access > 3) {
+        continue;
+      }
+      this.layout.members[member.modify] = { ...(this.layout.members[member.modify] ?? {}), group: member.group, modify: member.modify };
+      if (member.group == null) {
+        this.unassignedMembers++;
+        this.layout.updateMemberTile(this.parent.parent.collaborators[member.modify]);
+      }
+    }
+    this.updateUnassignedMemberCount();
+
     // Load initial groups:
     (async () => {
       await this.checkLoadGroups();
       this.layout.addTile({ _id: "NEW_GROUP_CREATE", version: (this.parent.parent.lesson.breakout ?? {}).version }, null, true);
     })();
+    
+    // Page click listener:
+    this.frame.addEventListener("click", async (event) => {
+      if (this.dragContext.enabled == true || this.wasDragging == true) {
+        this.wasDragging = false;
+        return event.preventDefault();
+      }
+
+      let target = event.target;
+      let tile = target.closest(".broTile:not([disabled])");
+      if (tile != null) {
+        event.preventDefault();
+      }
+
+      if (target.closest("button") != null) {
+        let memberTile = target.closest(".broTileMember");
+        if (memberTile != null) {
+          return dropdownModule.open(memberTile, ManageMemberDropdown, { parent: this, collaboratorID: memberTile.getAttribute("collaborator"), title: "Manage" });
+        }
+
+        let tileOptionsButton = target.closest(".broTileHeaderOptionsButton");
+        if (tileOptionsButton != null && tile != null) {
+          return dropdownModule.open(tileOptionsButton, GroupOptionsDropdown, { parent: this, groupID: tile.getAttribute("group"), title: "Options" });
+        }
+
+        if (tile != null && tile.classList.contains("broTileAddGroup") == true) {
+          tile.setAttribute("disabled", "");
+          await sendRequest("POST", "lessons/breakout/groups/new", null, { session: this.parent.parent.session });
+          if (tile != null) {
+            tile.removeAttribute("disabled");
+          }
+          return;
+        }
+
+        return;
+      }
+
+      if (target.closest("div[contenteditable]") != null || target.closest(".broTileMembers") != null) {
+        return;
+      }
+
+      if (tile == null) {
+        return;
+      }
+
+      this.openGroup(tile.getAttribute("group"));
+    });
+
+    // Pointer down listener (cancels transition on subbuttons and text boxes):
+    this.groups.addEventListener("pointerdown", (event) => {
+      let target = event.target;
+      let tile = target.closest(".broTile");
+      if (tile == null) {
+        return;
+      }
+      let tileContent = tile.querySelector(".broTileContent");
+      if (target.closest("button") == null && target.closest("div[contenteditable]") == null && target.closest(".broTileMembers") == null) {
+        tileContent.style.removeProperty("transform");
+      } else if (tile.classList.contains("broTileAddGroup") == false) {
+        tileContent.style.transform = "scale(1)";
+      }
+    });
+
+    // Context menu listener:
+    this.frame.addEventListener("contextmenu", (event) => {
+      let target = event.target;
+      let memberTile = target.closest(".broTileMember");
+
+      if (memberTile != null) {
+        event.preventDefault();
+        return dropdownModule.open(memberTile, ManageMemberDropdown, { parent: this, collaboratorID: memberTile.getAttribute("collaborator"), title: "Manage" });
+      }
+
+      let tile = target.closest(".broTile:not([disabled])");
+      if (tile != null) {
+        event.preventDefault();
+        return dropdownModule.open(tile.querySelector(".broTileHeaderOptionsButton"), GroupOptionsDropdown, { parent: this, groupID: tile.getAttribute("group"), title: "Options" });
+      }
+    });
+
+    // Rename group listeners:
+    this.groups.addEventListener("keydown", (event) => {
+      let target = event.target;
+      let tileNameHolder = target.closest(".broTileHeaderName");
+      if (tileNameHolder != null) {
+        if (event.keyCode == 13) {
+          let tileNameText = tileNameHolder.querySelector(".broTileHeaderNameHolderText");
+          if (tileNameText != null) {
+            event.preventDefault();
+            tileNameText.blur();
+          }
+          return;
+        }
+      }
+    });
+    this.groups.addEventListener("focusout", async (event) => {
+      let target = event.target;
+      let tileNameHolder = target.closest(".broTileHeaderName");
+      if (tileNameHolder != null) {
+        let tileNameText = tileNameHolder.querySelector(".broTileHeaderNameHolderText");
+        if (tileNameText != null) {
+          tileNameText.scrollTo(0, 0);
+
+          let tile = this.layout.tiles[tileNameHolder.closest(".broTile").getAttribute("group")];
+          if (tile != null) {
+            let name = tileNameText.textContent.substring(0, 100).replace(/[^A-Za-z0-9.,_|/\-+!?@#$%^&*()\[\]{}'":;~` ]/g, "");
+            if (name.replace(/ /g, "").length < 1) {
+              tileNameText.textContent = tile.render.name ?? "Untitled Team";
+              return;
+            }
+            if (tileNameText.textContent == tile.render.name) {
+              tileNameText.textContent = tile.render.name;
+              return;
+            }
+            let oldName = tile.render.name ?? "Untitled Team";
+            tile.render.name = name;
+            tileNameText.textContent = name;
+            tileNameText.title = name;
+            let [code] = await sendRequest("POST", "lessons/breakout/groups/name?group=" + tile.render._id, { name: name }, { session: this.parent.parent.session });
+            if (code != 200) {
+              tile.render.name = oldName;
+              tileNameText.textContent = oldName;
+              tileNameText.title = oldName;
+            }
+          }
+        }
+      }
+    });
+
+    // Handle new lesson setup:
+    if ((this.parent.parent.lesson.breakout ?? {}).status == null) {
+      this.frame.insertAdjacentHTML("beforeend", `<div class="boCreateBreakoutHolder"></div>`);
+      this.setupModal = await modalModule.open(
+        import("@modules/lesson/breakout/overview/modals/NewBreakout"),
+        this.frame.querySelector(".boCreateBreakoutHolder"),
+        {
+          parent: this,
+          title: "Start a Breakout"
+        }
+      );
+    }
 
     this.updateInterface();
   }

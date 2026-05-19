@@ -1,16 +1,12 @@
-import {
-  sleep,
-  sendRequest
-} from "@/crucial";
+import { sleep, sendRequest } from "@/crucial";
 
 import { dropdown as dropdownModule } from "@modules/utility/Dropdown";
 import { alert as alertModule } from "@modules/utility/Alert";
 
-import open from "@assets/open.svg?raw";
 import moveto from "@assets/dashboard/moveto.svg?raw";
 import rename from "@assets/rename.svg?raw";
 import copy from "@assets/copy.svg?raw";
-import { trash } from "@modules/utility/core-icons";
+import { trash, open } from "@modules/utility/core-icons";
 
 export class Frame {
   html = `

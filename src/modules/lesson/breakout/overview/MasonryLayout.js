@@ -30,6 +30,7 @@ export class MasonryLayout {
   tileLayoutVersionIndex = 0;
   scrollTopOffset = 0;
   loadedTiles = {};
+  templateRoots = {};
   pendingEditors = [];
   loadingAnnotations = {};
   longSubscribedGroups = [];
@@ -272,7 +273,7 @@ export class MasonryLayout {
   addMemberTile(collaboratorID, refresh) {
     let member = this.members[collaboratorID] ?? {};
     let tile;
-    let element = waitingRoomMembersHolder;
+    let element = this.parent.waitingRoomMembersHolder;
     if (member.group != null) {
       tile = this.tiles[member.group] ?? {};
       if (tile.element == null) {
@@ -461,7 +462,7 @@ export class MasonryLayout {
             <div class="broTileMembers"></div>
           </div>`;
           this.updateTile(tile);
-          tile.element.href = "/app/lesson?lesson=" + this.parent.parent.parent.parent.id + "&team=" + tileID;
+          tile.element.href = "/app/lesson?lesson=" + this.parent.parent.parent.id + "&team=" + tileID;
           if (tile.loadedAnnotations != true) {
             tile.element.querySelector(".broTilePreview").setAttribute("disabled", "");
           }
@@ -542,19 +543,19 @@ export class MasonryLayout {
         delete existingState.zoom;
         delete existingState.centerPosition;
       }
-      tile.editor = await this.setFrame(Editor, previewHolder, {
+      tile.editor = await this.parent.setFrame(Editor, previewHolder, {
         construct: {
           page: previewContainer,
-          pageID: this.parent.pageID,
-          pageType: this.parent.pageType,
+          pageID: this.parent.parent.pageID,
+          pageType: this.parent.parent.pageType,
           id: tile.render._id,
-          lesson: this.parent.parent.parent.parent,
-          self: this.parent.parent.parent.parent.self,
-          session: this.parent.parent.parent.parent.session,
-          sessionID: this.parent.parent.parent.parent.sessionID,
-          sources: this.parent.parent.parent.parent.sources,
-          pageRenderPipeline: this.parent.parent.parent.parent.pageRenderPipeline,
-          collaborators: this.parent.parent.parent.parent.collaborators,
+          lesson: this.parent.parent.parent,
+          self: this.parent.parent.parent.self,
+          session: this.parent.parent.parent.session,
+          sessionID: this.parent.parent.parent.sessionID,
+          sources: this.parent.parent.parent.sources,
+          pageRenderPipeline: this.parent.parent.parent.pageRenderPipeline,
+          collaborators: this.parent.parent.parent.collaborators,
           backgroundColor: tile.render.background ?? "FFFFFF",
           //scrollOffset: 50, //* (1 / this.previewScale),
           //sideScrollOffset: 8, //* (1 / this.previewScale),
@@ -571,8 +572,8 @@ export class MasonryLayout {
         let standardHeight = this.previewWidth * this.tileHeightRatio;
         tile.editor.pageOffsetWidth = standardWidth * invertedScale;
         tile.editor.pageOffsetHeight = standardHeight * invertedScale;
-        let parentRectX = this.parent.groupHolderRect.x + ((this.parent.containerWidth - this.groupsWidth) / 2) - ((standardWidth - this.columnWidth) / 2);
-        let parentRectY = this.parent.groupHolderRect.y + this.parent.scrollOffset + (this.tilePadding - 8) - this.scrollTop - ((standardHeight - this.previewHeight) / 2);
+        let parentRectX = this.groupHolderRect.x + ((this.containerWidth - this.groupsWidth) / 2) - ((standardWidth - this.columnWidth) / 2);
+        let parentRectY = this.groupHolderRect.y + this.parent.scrollOffset + (this.tilePadding - 8) - this.scrollTop - ((standardHeight - this.previewHeight) / 2);
         tile.editor.pageRect = {
           scale: invertedScale,
           x: parentRectX + tile.x,
@@ -638,7 +639,7 @@ export class MasonryLayout {
             groups: getGroupAnnotations,
             roots: getGroupRoots
           }, {
-            session: this.parent.session,
+            session: this.parent.parent.session,
             streaming: true,
             onChunk: async (data) => {
               buffer += data;

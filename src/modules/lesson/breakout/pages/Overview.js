@@ -231,8 +231,6 @@ export class Page {
 
   unassignedMembers = 0;
 
-  templateRoots = {};
-
   getTemplate() {
     if (this.template != null) {
       return this.template;
@@ -345,6 +343,79 @@ export class Page {
     } else {
       this.openBoardHolder.style.removeProperty("display");
       this.bottomButtonSpacer.style.removeProperty("display");
+    }
+  }
+
+  updateSubscribe() {
+    let filter = { type: "lesson", id: this.parent.parent.id, group: this.layout.tileLayout };
+    if (this.groupUpdateSub != null) {
+      this.groupUpdateSub.edit(filter);
+    } else {
+      this.groupUpdateSub = subscribe(filter, (data) => {
+        if ((data.data ?? {}).id == null) {
+          return;
+        }
+        let tile = this.layout.tiles[data.data.id];
+        if (tile == null) {
+          return;
+        }
+        objectUpdate(data.data, tile.render);
+        this.layout.updateTile(tile);
+        if (tile.editor != null) {
+          tile.editor.pipeline.publish("set", data.data);
+        }
+        this.parent.pipeline.publish("set", data.data);
+      });
+    }
+  }
+
+  async loadGroups() {
+    if (this.loadingGroups == true || this.allGroupsLoaded == true) {
+      return;
+    }
+    this.loadingGroups = true;
+
+    let path = "lessons/breakout/groups";
+    if (this.lastGroupTime != null) {
+      path += "?after=" + this.lastGroupTime;
+    }
+    let [code, body] = await sendRequest("GET", path, null, { session: this.parent.parent.session });
+    if (code != 200) {
+      return;
+    }
+    for (let i = 0; i < body.collaborators.length; i++) {
+      let collaborator = body.collaborators[i];
+      this.parent.parent.collaborators[collaborator._id] = collaborator;
+    }
+    let beforeTileLength = this.layout.tileLayout.length - 1;
+    let bodyItems = body.groups.length;
+    if (bodyItems < 25) {
+      this.allGroupsLoaded = true;
+    }
+    for (let i = 0; i < bodyItems; i++) {
+      let group = body.groups[i];
+      let members = [];
+      for (let m = 0; m < group.members.length; m++) {
+        let member = group.members[m];
+        this.layout.members[member.modify] = { group: group._id, ...member };
+        members.push(member.modify);
+      }
+      delete group.members;
+      this.layout.addTile(group, members);
+    }
+    this.layout.refreshTileSpots(beforeTileLength);
+    this.lastGroupTime = (body.groups[bodyItems - 1] ?? {}).created;
+
+    this.updateSubscribe();
+
+    this.loadingGroups = false;
+  }
+  async checkLoadGroups() {
+    if (this.groupHolder.scrollTop + this.layout.containerHeight + 500 > this.groupHolder.scrollHeight || this.groups.clientHeight < this.layout.containerHeight) {
+      await this.loadGroups();
+      if (this.loadingGroups != true && this.allGroupsLoaded != true) {
+        checkLoadGroups();
+      }
     }
   }
 
@@ -560,9 +631,16 @@ export class Page {
       this.layout.setupColumns();
     });
     this.pipeline.subscribe("tilesScroll", "scroll", () => { this.layout.runUpdateCycle(); }, { sort: 1 });
+    this.pipeline.subscribe("tilesLoadMore", "bounds_change", () => { this.checkLoadGroups(); });
+    this.groupHolder.addEventListener("scroll", (event) => {
+      this.pipeline.publish("scroll", { event: event });
+      this.pipeline.publish("bounds_change", { type: "scroll", event: event });
+    });
     this.layout.setupColumns(true);
 
+    // Load initial groups:
     (async () => {
+      await this.checkLoadGroups();
       this.layout.addTile({ _id: "NEW_GROUP_CREATE", version: (this.parent.parent.lesson.breakout ?? {}).version }, null, true);
     })();
 

@@ -84,12 +84,12 @@ export class Page {
       return resolve(((await loadModuleFunction()) ?? {}).Page);
     }), newPage, {
       ...extra,
+      // showLoading: false
       construct: {
         pageID: id,
         pagePath: path,
         ...(extra.construct ?? {})
-      },
-      showLoading: false
+      }
     });
     let page = this.pages[id];
     if ((page ?? {}).onOpen != null) {

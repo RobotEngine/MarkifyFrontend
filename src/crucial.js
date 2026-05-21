@@ -1323,6 +1323,8 @@ import {
   fixed,
   favicon,
 
+  assetURL,
+
   userID,
   account,
 
@@ -1332,6 +1334,9 @@ import {
   setPage,
   setFrame,
   sleep,
+  timeSince,
+  formatFullDate,
+  addS,
   getParam,
   modifyParams,
   getEpoch,
@@ -1344,7 +1349,8 @@ import {
   getObject,
   copyObject,
   objectUpdate,
-  getTheme
+  getTheme,
+  textBoxError
 } from "@/crucial";
 
 */

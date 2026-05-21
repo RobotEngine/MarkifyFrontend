@@ -151,7 +151,7 @@ export const Modal = class {
     } else { // From same menu:
       this.cache = {}; // Clear cache
       
-      if (previous != true) {
+      if (previous != true && data.animateBack != true) {
         oldContent.style.removeProperty("right");
         oldContent.style.left = "0%";
         content.style.left = this.element.offsetWidth + "px";
@@ -175,7 +175,7 @@ export const Modal = class {
       oldContent.style.transition = ".4s";
       oldContent.offsetHeight;
 
-      if (previous != true) {
+      if (previous != true && data.animateBack != true) {
         oldContent.style.left = -this.element.offsetWidth + "px";;
         content.style.left = "0%";
       } else {
@@ -244,8 +244,10 @@ export const Modal = class {
       origin: this.origin,
       ...data,
       construct: {
+        modal: this,
+        parent: data.parent,
         open: this.open,
-        close: this.close
+        close: this.close,
       }
     });
     //await sleep(5000);

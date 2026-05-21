@@ -939,9 +939,9 @@ export class Page {
       this.mainPage.insertAdjacentHTML("beforeend", `<div class="eCreateBoardHolder"></div>`);
       this.editor.openModal(
         import("@modules/lesson/board/modals/NewBoard"),
-        this.mainPage.querySelector(".eCreateBoardHolder"),
+        null,
         {
-          title: "Create Board",
+          parentElement: this.frame.querySelector(".boCreateBreakoutHolder"),
           parent: this,
           callback: ({ modal }) => {
             if (this.lesson.tool.includes("board") == false) {
@@ -956,7 +956,8 @@ export class Page {
             modal.close();
             modifyParams("folder");
             modifyParams("type");
-          }
+          },
+          title: "Create Board"
         }
       );
     }

@@ -202,7 +202,7 @@ export const Dropdown = class {
     } else { // From same menu:
       this.cache = {}; // Clear cache
 
-      if (previous != true) {
+      if (previous != true && data.animateBack != true) {
         oldContent.style.removeProperty("right");
         oldContent.style.left = "0%";
         content.style.left = this.element.offsetWidth + "px";
@@ -226,7 +226,7 @@ export const Dropdown = class {
       oldContent.style.transition = ".4s";
       oldContent.offsetHeight;
 
-      if (previous != true) {
+      if (previous != true && data.animateBack != true) {
         oldContent.style.left = -this.element.offsetWidth + "px";;
         content.style.left = "0%";
       } else {

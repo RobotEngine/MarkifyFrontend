@@ -1,4 +1,6 @@
-import { getParam, sendRequest, textBoxError, getTheme } from "@/crucial";
+import { getParam, sendRequest, textBoxError, getTheme, addS } from "@/crucial";
+
+import { alert as alertModule } from "@modules/utility/Alert";
 
 import blankIcon from "@assets/lesson/new/blank.svg?raw";
 import freeboardIcon from "@assets/lesson/new/freeboard.svg?raw";
@@ -156,7 +158,7 @@ export class BlankPageModal {
       }
       frame.setAttribute("disabled", "");
       let alertText = `<b>Creating Lesson</b>Setting up your lesson!`;
-      let createAlert = await editor.openAlert("info", alertText, { time: "never" });
+      let createAlert = await alertModule.open("info", alertText, { time: "never" });
       let params = [];
       if (parent.folder != null) {
         params.push("folder=" + parent.folder);
@@ -169,7 +171,7 @@ export class BlankPageModal {
         path += "?" + params.join("&");
       }
       let [code, body] = await sendRequest("POST", path, sendData, { session: parent.session });
-      editor.closeAlert(createAlert);
+      alertModule.close(createAlert);
       frame.removeAttribute("disabled");
       if (code == 200) {
         if (parent.callback != null) {
@@ -208,7 +210,7 @@ export class Frame {
   };
   js(frame, extra) {
     this.parent = extra.parent;
-    this.editor = extra.editor;
+    //this.editor = extra.editor;
     this.callback = extra.callback;
     this.session = this.parent.parent.session ?? this.parent.parent.parent.session;
     this.requestPath = extra.requestPath ?? "lessons/board/new";
@@ -230,13 +232,13 @@ export class Frame {
 
     let blankButton = frame.querySelector(".lessonBlank");
     blankButton.addEventListener("click", () => {
-      extra.modal.open(BlankPageModal, blankButton, { title: "Blank Page", parent: this, editor: this.editor });
+      extra.modal.open(BlankPageModal, blankButton, { title: "Blank Page", parent: this }); //, editor: this.editor
     });
 
     let freeboardButton = frame.querySelector(".lessonFreeboard");
     freeboardButton.addEventListener("click", async () => {
       frame.setAttribute("disabled", "");
-      let createAlert = await this.editor.openAlert("info", `<b>Creating Lesson</b>Setting up freeboard, an unlimited whiteboard space!`, { time: "never" });
+      let createAlert = await alertModule.open("info", `<b>Creating Lesson</b>Setting up freeboard, an unlimited whiteboard space!`, { time: "never" });
       let params = [];
       if (this.folder != null) {
         params.push("folder=" + this.folder);
@@ -249,7 +251,7 @@ export class Frame {
         path += "?" + params.join("&");
       }
       let [code, body] = await sendRequest("POST", path, null, { session: this.session });
-      this.editor.closeAlert(createAlert);
+      alertModule.close(createAlert);
       frame.removeAttribute("disabled");
       if (code == 200) {
         if (this.callback != null) {
@@ -266,7 +268,7 @@ export class Frame {
         return;
       }
       if (files.length > 50) {
-        return this.editor.openAlert("warning", "<b>File Overload</b>Woah their! Markify only supports bulk uploads up to 50 files, you can add more pages in the editor.", { time: 10 });
+        return alertModule.open("warning", "<b>File Overload</b>Woah their! Markify only supports bulk uploads up to 50 files, you can add more pages in the editor.", { time: 10 });
       }
       let sendFormData = new FormData();
       let fileSize = 0;
@@ -279,12 +281,12 @@ export class Frame {
           if (file.type == "application/pdf") {
             fileSize += file.size;
             if (fileSize > this.maxFileSize) {
-              return this.editor.openAlert("error", "<b>Exceeded Size Limit</b><div>Lessons are limited to a max size of <u>5 GB</u> total</div>.", { time: 10 });
+              return alertModule.open("error", "<b>Exceeded Size Limit</b><div>Lessons are limited to a max size of <u>5 GB</u> total</div>.", { time: 10 });
             }
             sendFormData.append("file" + i, file);
             passedFiles++;
           } else {
-            this.editor.openAlert("warning", "<b>" + file.name + " Failed to Upload</b>Only PDF files are currently supported.", { time: 10 });
+            alertModule.open("warning", "<b>" + file.name + " Failed to Upload</b>Only PDF files are currently supported.", { time: 10 });
           }
         }
       }
@@ -292,7 +294,7 @@ export class Frame {
         frame.setAttribute("disabled", "");
         let alertText = `<b>Uploading Document</b>Uploading your PDF${addS(passedFiles)} and preparing the lesson.`;
         let extraData = { noFileType: true, session: this.session };
-        let uploadAlert = await this.editor.openAlert("info", alertText, { time: "never" });
+        let uploadAlert = await alertModule.open("info", alertText, { time: "never" });
         let params = [];
         if (this.folder != null) {
           params.push("folder=" + this.folder);
@@ -305,7 +307,7 @@ export class Frame {
           path += "?" + params.join("&");
         }
         let [code, body] = await sendRequest("POST", path, sendFormData, extraData);
-        this.editor.closeAlert(uploadAlert);
+        alertModule.close(uploadAlert);
         frame.removeAttribute("disabled");
         if (code == 200) {
           if (this.callback != null) {

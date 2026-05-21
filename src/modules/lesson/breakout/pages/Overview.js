@@ -1318,11 +1318,12 @@ export class Page {
 
     // Handle new lesson setup:
     if ((this.parent.parent.lesson.breakout ?? {}).status == null) {
-      this.frame.insertAdjacentHTML("beforeend", `<div class="boCreateBreakoutHolder"></div>`);
+      this.frame.insertAdjacentHTML("beforeend", `<div class="broCreateBreakoutHolder"></div>`);
       this.setupModal = await modalModule.open(
         import("@modules/lesson/breakout/overview/modals/NewBreakout"),
-        this.frame.querySelector(".boCreateBreakoutHolder"),
+        null,
         {
+          parentElement: this.frame.querySelector(".broCreateBreakoutHolder"),
           parent: this,
           title: "Start a Breakout"
         }

@@ -112,7 +112,7 @@ export class Frame {
 
     this.templateSection.addEventListener("click", () => {
       this.close();
-      this.parent.parent.openPage("secondary", "breakout/template", { template: this.parent.template, updating: true });
+      this.parent.parent.openPage("secondary", "template", { template: this.parent.template, updating: true });
     });
     this.groupSettingsSection.addEventListener("click", () => {
       this.open(this.groupSettingsSection, import("@modules/lesson/breakout/overview/modals/Options"), { parent: this.parent, editing: true });

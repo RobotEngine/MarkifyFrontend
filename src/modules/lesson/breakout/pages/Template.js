@@ -35,6 +35,9 @@ import {
   textBoxError
 } from "@/crucial";
 
+import { Editor } from "@modules/editor/Editor";
+import { REALTIME, TOOLBAR } from "@modules/editor/imports";
+
 import leftArrowIcon from "@assets/lesson/navigation/leftarrow.svg?raw";
 import rightArrowIcon from "@assets/lesson/navigation/rightarrow.svg?raw";
 import boardLogoIcon from "@assets/icon.svg?raw";
@@ -79,7 +82,7 @@ export class Page {
       </div>
     </div>
     <div class="brtToolbarHolder eToolbarHolder" toolbarholder hidden>
-      <div class="brtToolbar eToolbar" editor keeptooltip notransition></div>
+      <div class="brtToolbar eToolbar" type="editor" keeptooltip notransition></div>
     </div>
     <div class="brtBottomHolder">
       <div class="brtBottom">
@@ -164,7 +167,140 @@ export class Page {
     ".brtBottomSection[board] button:hover svg": `transform: scale(.9)`
   };
 
+  async close(skipThumbnail) {
+    if (this.editor != null) {
+      this.editor.pipeline.publish("page_close");
+    }
+    this.parent.closePage("secondary");
+    this.parent.openPage("primary", "overview");
+    if (skipThumbnail != true) {
+      if (this.editor != null && this.editor.save.synced != true) {
+        await this.editor.save.syncSave(true);
+      }
+      sendRequest("PUT", "lessons/breakout/templates/refreshthumbnail?template=" + this.template._id, null, { session: this.parent.parent.session });
+    }
+  }
+
   async js(frame, extra = {}) {
-    
+    if (extra.template == null) {
+      let setTemplateID = ((this.parent.parent.lesson ?? {}).breakout ?? {}).template;
+      if (setTemplateID == null) {
+        return;
+      }
+      extra.template = { _id: setTemplateID };
+    }
+    if (this.parent.parent.session == null) {
+      return;
+    }
+    this.template = extra.template ?? {};
+
+    frame.style.position = "relative";
+    frame.style.width = "100%";
+    frame.style.height = "100%";
+
+    this.page = frame.closest(".content");
+
+    this.topHolder = this.page.querySelector(".brtTopHolder");
+    this.top = this.topHolder.querySelector(".brtTop");
+    this.bottom = this.page.querySelector(".brtBottom");
+
+    this.leftTop = this.top.querySelector(".brtTopSection[left]");
+    this.closeButton = this.leftTop.querySelector(".brtClose");
+    this.templateName = this.leftTop.querySelector(".brtFileName");
+    this.fileButton = this.leftTop.querySelector(".brtFileDropdown");
+    this.undoButton = this.leftTop.querySelector(".brtUndo");
+    this.redoButton = this.leftTop.querySelector(".brtRedo");
+    this.status = this.leftTop.querySelector(".brtStatus");
+
+    this.rightTop = this.top.querySelector(".brtTopSection[right]");
+    this.finishButton = this.rightTop.querySelector(".brtFinish");
+    this.zoomButton = this.rightTop.querySelector(".brtZoom");
+    this.accountButton = this.rightTop.querySelector(".brtAccount");
+
+    this.scrollLeft = this.topHolder.querySelector(".brtTopScroll[left]");
+    this.scrollRight = this.topHolder.querySelector(".brtTopScroll[right]");
+
+    this.contentHolder = this.page.querySelector(".brtContentHolder");
+
+    this.toolbarHolder = this.page.querySelector(".brtToolbarHolder");
+    this.editorToolbar = this.toolbarHolder.querySelector(".brtToolbar");
+
+    this.openBoardHolder = this.bottom.querySelector(".brtBottomSection[board]");
+    this.openBoard = this.openBoardHolder.querySelector("button");
+
+    this.currentPageHolder = this.bottom.querySelector(".brtBottomSection[right]");
+    this.pageTextBox = this.currentPageHolder.querySelector(".brtCurrentPage");
+    this.increasePageButton = this.currentPageHolder.querySelector(".brtPageNav[down]");
+    this.decreasePageButton = this.currentPageHolder.querySelector(".brtPageNav[up]");
+
+    // Close button event:
+    this.closeButton.addEventListener("click", () => { this.close(); });
+
+    let fetchAnnotations = sendRequest("GET", "lessons/join/annotations?template=" + this.template._id, null, { session: this.parent.parent.session });
+
+    if (this.template.created == null) {
+      let [code, body] = await sendRequest("GET", "lessons/breakout/templates?template=" + this.template._id, null, { session: this.parent.parent.session });
+      if (code != 200) {
+        return;
+      }
+      this.template = body;
+    }
+
+    // Create editor:
+    this.editor = await this.setFrame(Editor, this.contentHolder, {
+      construct: {
+        page: this.page,
+        pageID: this.parent.pageID,
+        pageType: this.parent.pageType,
+        active: this.parent.parent.active,
+        
+        lesson: this.parent.parent,
+        self: this.parent.parent.self,
+        session: this.parent.parent.session,
+        sessionID: this.parent.parent.sessionID,
+        sources: this.parent.parent.sources,
+        pageRenderPipeline: this.parent.parent.pageRenderPipeline,
+        collaborators: this.parent.parent.collaborators,
+        settings: this.parent.parent.lesson.settings,
+        resync: this.parent.parent.resync,
+        preferenceState: this.parent.parent.preferences.state,
+        backgroundColor: this.template.background ?? "FFFFFF",
+
+        id: this.template._id,
+        parameters: [("template=" + this.template._id)]
+      }
+    });
+    this.pipeline = this.editor.pipeline;
+
+    // Load Annotations:
+    let pageParam = getParam("page");
+    let checkForJumpLink = getParam("annotation");
+    (async () => {
+      let [annoCode, annoBody] = await fetchAnnotations;
+      if (annoCode != 200 && connected == true) {
+        return this.editor.openAlert("error", `<b>Error Loading Annotations</b>Please try again later...`);
+      }
+      await this.editor.loadAnnotations(annoBody, { pageID: pageParam, jumpID: checkForJumpLink });
+      this.contentHolder.removeAttribute("disabled");
+    })();
+
+    (async () => {
+      this.editor.register(REALTIME());
+      await this.editor.register(TOOLBAR());
+
+      this.editorToolbar.removeAttribute("notransition");
+    })();
+
+    // Push changes event:
+    if (extra.updating == true) {
+      this.finishButton.textContent = "Push Changes";
+    }
+    this.finishButton.addEventListener("click", () => {
+      if (extra.updating != true) {
+        this.close();
+      } else {
+        this.editor.openDropdown(this.finishButton, "dropdowns/lesson/breakout/template/pushchanges", { parent: this });
+      }
+    });
   }
 }

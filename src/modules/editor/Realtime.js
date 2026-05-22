@@ -784,7 +784,7 @@ export class Module {
                 select.remove();
               }
             })();
-          } else {
+          } else if (elemID.endsWith("_annotation") == false) {
             selections[annoID] = select;
             if (this.editor.settings.anonymousMode != true) {
               select.removeAttribute("anonymous");

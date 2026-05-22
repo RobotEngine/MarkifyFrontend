@@ -153,11 +153,12 @@ export class Page {
     ".broOpenBoard button:hover svg": `transform: scale(.9)`,
 
     ".broTile": `position: absolute; width: var(--columnWidth); height: fit-content; left: 0px; top: 0px; z-index: 1; transition: .3s`, // will-change: transform;
+    ".broTile[disabled] *": `pointer-events: none !important`,
     ".broTileContent": `--shadow: var(--lightShadow); position: relative; display: flex; flex-direction: column; width: 100%; height: 100%; background: var(--pageColor); box-shadow: var(--shadow); border-radius: 16px; contain: strict; overflow: hidden; transition: .2s, transform .1s`,
     ".broTile:hover .broTileContent": `--shadow: var(--darkShadow) !important`,
     ".broTile:active .broTileContent": `transform: scale(.95)`,
     ".broTilePreviewContainer": `position: relative; flex-shrink: 0; width: 100%; height: var(--previewHeight); z-index: 1`,
-    ".broTilePreviewContainer:after": `content: ""; position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; pointer-events: all !important`,
+    ".broTile:not([disabled]) .broTilePreviewContainer:after": `content: ""; position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; pointer-events: all !important`,
     ".broTilePreview": `position: absolute; width: calc(var(--previewWidth) * (1 / var(--previewScale))); height: calc(var(--previewWidth) * var(--previewHeightRatio) * (1 / var(--previewScale))); left: 50%; top: 50%; transform: translate(-50%, -50%) scale(var(--previewScale)); transform-origin: center; background: var(--pageColor); contain: strict; overflow: scroll; scrollbar-width: none; transition: opacity .4s`,
     ".broTilePreview::-webkit-scrollbar": `display: none`,
     ".broTileHeader": `position: absolute; display: flex; gap: 8px; width: 100%; left: 0px; top: 0px; justify-content: space-between; z-index: 3; pointer-events: none`,
@@ -524,7 +525,6 @@ export class Page {
       this.openWaitingRoom();
     }
 
-    this.wasDragging = true;
     this.dragContext = {};
 
     this.updateUnassignedMemberCount();

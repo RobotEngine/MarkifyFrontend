@@ -1,6 +1,6 @@
 import { Setup } from "./Setup";
 
-import { assetURL, timeSince, formatFullDate, getParam, modifyParams, sendRequest } from "@/crucial";
+import { assetURL, timeSince, formatFullDate, addS, getParam, modifyParams, sendRequest } from "@/crucial";
 
 import missingIcon from "@assets/lesson/breakout/setup/error.svg?raw";
 import checkIcon from "@assets/lesson/breakout/setup/check.svg?raw";

@@ -1,33 +1,4 @@
-import {
-  body,
-  fixed,
-  favicon,
-
-  userID,
-  account,
-
-  changeGlobalImports,
-  mouseDown,
-  setPage,
-  setFrame,
-  sleep,
-  getParam,
-  modifyParams,
-  getEpoch,
-  sendRequest,
-  socket,
-  connected,
-  subscribe,
-  getLocalStore,
-  setLocalStore,
-  objectUpdate,
-  copyObject,
-  getObject,
-  textBoxError,
-  clipBoardRead,
-  promptLogin,
-  hasFeatureEnabled
-} from "@/crucial";
+import { body, account, changeGlobalImports, getParam } from "@/crucial";
 
 import { alert as alertModule } from "@modules/utility/Alert";
 

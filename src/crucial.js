@@ -1313,6 +1313,16 @@ window.addEventListener("beforeinstallprompt", (event) => {
 
 appendCSS(coreStyles);
 
+if (import.meta.hot != null) { // Forces a full page refresh only when edit happens here:
+  // Decline direct edits to this file:
+  import.meta.hot.decline();
+
+  // If any imported submodule forces this file to reload, force a full page refresh:
+  import.meta.hot.dispose(() => {
+    window.location.reload();
+  });
+}
+
 /* FULL IMPORT:
 
 import {

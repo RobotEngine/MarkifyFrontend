@@ -939,7 +939,7 @@ export class Page {
         import("@modules/lesson/board/modals/NewBoard"),
         null,
         {
-          parentElement: this.frame.querySelector(".boCreateBreakoutHolder"),
+          parentElement: this.frame.querySelector(".eCreateBoardHolder"),
           parent: this,
           callback: ({ modal }) => {
             if (this.lesson.tool.includes("board") == false) {

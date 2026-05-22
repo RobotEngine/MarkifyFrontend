@@ -292,7 +292,7 @@ export class Page extends PageFrame {
 
     this.exporting = getParam("export_browser") == "true";
     if (this.exporting == true) { // Preload Exporting:
-      import("@modules/lesson/pages/export.js");
+      import("@modules/lesson/pages/Export.js");
     }
 
     let pageHolder = page.querySelector(".lPageHolder");

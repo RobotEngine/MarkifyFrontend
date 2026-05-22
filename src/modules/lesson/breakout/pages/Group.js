@@ -3,8 +3,9 @@ import { userID, account, getParam, modifyParams, sendRequest, connected, copyOb
 import { Editor } from "@modules/editor/Editor";
 import { REALTIME, TOOLBAR } from "@modules/editor/imports";
 
-import { Frame as FileDropdown } from "@modules/lesson/breakout/group/dropdowns/File";
-import { Frame as MembersDropdown } from "@modules/lesson/breakout/group/dropdowns/Members";
+import { Frame as FileDropdown } from "../group/dropdowns/File";
+import { Frame as MembersDropdown } from "../group/dropdowns/Members";
+
 import { Frame as ZoomDropdown } from "@modules/lesson/dropdowns/Zoom";
 
 import { Frame as WelcomeModal } from "@modules/lesson/breakout/group/modals/Welcome";
@@ -282,7 +283,7 @@ export class Page {
     }
   }
 
-  async updateSplitScreenButton() {
+  updateSplitScreenButton() {
     this.boardEnabled = this.parent.parent.lesson.tool.includes("board");
     this.boardOpen = this.parent.parent.pages["board"] != null;
     this.boardVisible = this.parent.parent.maximized != true || this.parent.parent.activePageID == "board";

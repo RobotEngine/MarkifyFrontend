@@ -14,6 +14,7 @@ export class Frame {
   <button class="broFileAction" option="moveto" title="Move this lesson into a folder." dropdowntitle="Move To Folder"><div>${movetoIcon}</div>Move To Folder</button>
   <button class="broFileAction" option="deletelesson" title="Remove this lesson from your dashboard." style="--themeColor: var(--error)"><div>${trashIcon}</div>Delete Lesson</button>
   `;
+
   css = {
     ".broFileAction": `--themeColor: var(--theme); display: flex; width: 100%; padding: 4px 8px 4px 4px; border-radius: 8px; align-items: center; font-size: 16px; font-weight: 600; text-align: left; transition: .15s`,
     ".broFileAction:not(:last-child)": `margin-bottom: 4px`,
@@ -22,6 +23,7 @@ export class Frame {
     ".broFileAction:hover": `background: var(--themeColor); color: #fff`,
     ".broFileLine": `width: 100%; height: 2px; margin-bottom: 4px; background: var(--gray); border-radius: 1px`
   };
+  
   js(frame, extra) {
     let parent = extra.parent;
 
@@ -29,6 +31,7 @@ export class Frame {
     dashboardButton.addEventListener("click", async () => {
       setPage("pages/app/dashboard");
     });
+
     let copyButton = frame.querySelector('.broFileAction[option="copy"]');
     copyButton.addEventListener("click", async () => {
       if (userID == null) {

@@ -3,8 +3,9 @@ import { userID, account, getParam, modifyParams, sendRequest, connected, object
 import { Editor } from "@modules/editor/Editor";
 import { REALTIME, TOOLBAR } from "@modules/editor/imports";
 
-import { Frame as FileDropdown } from "@modules/lesson/breakout/template/dropdowns/File";
-import { Frame as PushChangesDropdown } from "@modules/lesson/breakout/template/dropdowns/PushChanges";
+import { Frame as FileDropdown } from "../template/dropdowns/File";
+import { Frame as PushChangesDropdown } from "../template/dropdowns/PushChanges";
+
 import { Frame as ZoomDropdown } from "@modules/lesson/dropdowns/Zoom";
 
 import leftArrowIcon from "@assets/lesson/navigation/leftarrow.svg?raw";

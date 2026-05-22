@@ -29,6 +29,8 @@ import {
   hasFeatureEnabled
 } from "@/crucial";
 
+import { alert as alertModule } from "@modules/utility/Alert";
+
 import { Pipeline } from "@modules/editor/Pipeline";
 
 const breakoutPages = changeGlobalImports(import.meta.glob("@modules/lesson/breakout/pages/**/*.js"));
@@ -182,7 +184,57 @@ export class Page {
       this.pipeline.publish("contextmenu", { event: event });
     });
 
-    // Just for testing (change later):
-    await this.openPage("primary", "overview");
+    // Member updates:
+    this.pipeline.subscribe("selfMemberUpdate", "update", (data) => {
+      if (data.hasOwnProperty("group") == false) {
+        return;
+      }
+      let member = this.parent.members[data._id] ?? {};
+      if (this.parent.self.modify != member.modify) {
+        return;
+      }
+      if (this.parent.self.group != this.currentGroupID && this.parent.self.access < 4) {
+        this.closePage("primary");
+        if (this.parent.self.group != null) {
+          this.openPage("primary", "group");
+        } else {
+          this.openPage("primary", "groups");
+        }
+        this.currentGroupID = this.parent.self.group;
+      }
+    }, { sort: 1 });
+    this.pipeline.subscribe("selfMemberUpdate", "self", (data) => {
+      switch (data.task) {
+        case "movegroup":
+          if (data.group != null) {
+            alertModule.open("info", "<b>You've Been Moved</b>The lesson owner has moved you to a team.");
+          } else {
+            alertModule.open("warning", "<b>You've Been Removed</b>The lesson owner has removed you from the team.");
+          }
+      }
+    }, { sort: 1 });
+
+    // Initialize Breakout:
+    if (this.parent.self.access < 4) { // Open to a Member View:
+      //await sleep(500); // TEMP: REMOVE LATER!!!
+
+      if (this.parent.self.group != null) { // Open to the Group:
+        this.currentGroupID = this.parent.self.group;
+        await this.openPage("primary", "group");
+      } else {
+        await this.openPage("secondary", "groups");
+      }
+    } else { // Open to Overview:
+      let team = getParam("team") ?? "";
+      if (team == "") {
+        if (account.breakoutOnboard != null) {
+          await this.openPage("primary", "overview");
+        } else {
+          await this.openPage("primary", "tutorial");
+        }
+      } else {
+        await this.openPage("secondary", "group", { groupID: team });
+      }
+    }
   }
 }

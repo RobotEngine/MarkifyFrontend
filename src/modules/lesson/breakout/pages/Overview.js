@@ -3,14 +3,14 @@ import { userID, account, mouseDown, setPage, sleep, modifyParams, sendRequest, 
 import { dropdown as dropdownModule } from "@modules/utility/Dropdown";
 import { modal as modalModule } from "@modules/utility/Modal";
 
+import { Pipeline } from "@modules/editor/Pipeline";
+
+import { MasonryLayout } from "../overview/MasonryLayout";
+
 import { Frame as FileDropdown } from "../overview/dropdowns/File";
 import { Frame as ManageDropdown } from "../overview/dropdowns/Manage";
 import { Frame as ManageMemberDropdown } from "../overview/dropdowns/ManageMember";
 import { Frame as GroupOptionsDropdown } from "../overview/dropdowns/GroupOptions";
-
-import { MasonryLayout } from "../overview/MasonryLayout";
-
-import { Pipeline } from "@modules/editor/Pipeline";
 
 import leftArrowIcon from "@assets/lesson/navigation/leftarrow.svg?raw";
 import rightArrowIcon from "@assets/lesson/navigation/rightarrow.svg?raw";
@@ -32,7 +32,7 @@ export class Page {
         <div class="broTopSection" left>
           <a class="broLogo" href="/app/dashboard" draggable="false">${breakoutLogoIcon}</a>
           <div class="broFileNameHolder border"><div class="broFileName" spellcheck="false" onpaste="clipBoardRead(event)" contenteditable></div></div>
-          <button class="broFileDropdown">File</button>
+          <button class="broFileDropdown" title="File Options">File</button>
           <button class="broStart" disabled></button>
           <button class="broPause" disabled>Pause</button>
         </div>
@@ -301,7 +301,7 @@ export class Page {
     this.waitingRoom.removeAttribute("open");
   }
 
-  async updateSplitScreenButton() {
+  updateSplitScreenButton() {
     this.boardEnabled = this.parent.parent.lesson.tool.includes("board");
     this.boardOpen = this.parent.parent.pages["board"] != null;
     this.boardVisible = this.parent.parent.maximized != true || this.parent.parent.activePageID == "board";
@@ -368,6 +368,7 @@ export class Page {
     this.waitingRoomOpenButtonCount.textContent = this.unassignedMembers;
   }
 
+  pendingMemberAssignment = {}; // May recieve member update events before the new group event.
   updateMember = (modify, data) => {
     let groupMember = this.layout.members[modify];
     if (groupMember == null) {
@@ -395,10 +396,10 @@ export class Page {
       if (data.group != null) {
         let groupTile = this.layout.tiles[data.group];
         if (groupTile == null) {
-          let pending = pendingMemberAssignment[data.group];
+          let pending = this.pendingMemberAssignment[data.group];
           if (pending == null) {
-            pendingMemberAssignment[data.group] = [];
-            pending = pendingMemberAssignment[data.group];
+            this.pendingMemberAssignment[data.group] = [];
+            pending = this.pendingMemberAssignment[data.group];
           }
           if (pending.includes(data.modify) == false) {
             pending.push(data.modify);
@@ -942,7 +943,7 @@ export class Page {
       }
     });
 
-    // Tile Layout events:
+    // Tile layout events:
     this.pipeline.subscribe("tilesResize", "resize", (event) => {
       this.layout.resized = true;
       this.layout.lastResizeWasSimulated = event.simulated == true;
@@ -957,10 +958,9 @@ export class Page {
     this.layout.setupColumns(true);
 
     // Group events:
-    let pendingMemberAssignment = {}; // May recieve member update events before the new group event.
     this.pipeline.subscribe("createGroup", "creategroup", async (data) => {
-      await this.layout.addTile(data, pendingMemberAssignment[data._id] ?? [], true);
-      delete pendingMemberAssignment[data._id];
+      await this.layout.addTile(data, this.pendingMemberAssignment[data._id] ?? [], true);
+      delete this.pendingMemberAssignment[data._id];
       this.updateSubscribe();
     });
     this.pipeline.subscribe("removeGroup", "removegroup", (data) => {
@@ -1008,10 +1008,10 @@ export class Page {
       if (data.group != null) {
         let groupTile = this.layout.tiles[data.group];
         if (groupTile == null) {
-          let pending = pendingMemberAssignment[data.group];
+          let pending = this.pendingMemberAssignment[data.group];
           if (pending == null) {
-            pendingMemberAssignment[data.group] = [];
-            pending = pendingMemberAssignment[data.group];
+            this.pendingMemberAssignment[data.group] = [];
+            pending = this.pendingMemberAssignment[data.group];
           }
           if (pending.includes(data.modify) == false) {
             pending.push(data.modify);
@@ -1188,7 +1188,7 @@ export class Page {
       this.layout.addTile({ _id: "NEW_GROUP_CREATE", version: (this.parent.parent.lesson.breakout ?? {}).version }, null, true);
     })();
     
-    // Page click listener:
+    // Click listener:
     this.frame.addEventListener("click", async (event) => {
       if (this.dragContext.enabled == true || this.wasDragging == true) {
         this.wasDragging = false;

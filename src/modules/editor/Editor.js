@@ -470,6 +470,8 @@ export class Editor {
       return;
     }
 
+    let annotationRect = this.utils.annotationsRect();
+
     // Update Background Dots:
     let dotSize = 25;
     if (this.zoom < .25) {
@@ -485,7 +487,6 @@ export class Editor {
     let backgroundHeight = Math.ceil((this.pageOffsetHeight + (backgroundPaddingHeight * 2)) / scaledDotSize) * scaledDotSize;
     this.background.style.width = (backgroundWidth / this.zoom) + "px";
     this.background.style.height = (backgroundHeight / this.zoom) + "px";
-    let annotationRect = this.utils.annotationsRect();
     let originCorrectX = (annotationRect.left - (backgroundWidth / 2)) % scaledDotSize;
     let originCorrectY = (annotationRect.top - (backgroundHeight / 2)) % scaledDotSize;
     this.background.style.transform = "matrix(1,0,0,1," + (this.scrollLeft + originCorrectX - backgroundPaddingWidth) + "," + (this.scrollTop + originCorrectY - backgroundPaddingHeight) + ") scale(var(--zoom))";

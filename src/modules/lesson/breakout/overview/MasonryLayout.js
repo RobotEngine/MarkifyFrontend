@@ -589,7 +589,9 @@ export class MasonryLayout {
         if (this.parent.resized == true) {
           await tile.editor.render.setMarginSize();
         }
-        //await tile.editor.updateChunks();
+        if (tile.editor != null) {
+          tile.editor.updateChunks();
+        }
       }
       tile.editor.pipeline.subscribe("overviewZoomChange" , "zoom_change", () => {
         for (let i = 0; i < tile.editor.visibleChunks.length; i++) {

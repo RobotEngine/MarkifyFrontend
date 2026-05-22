@@ -1,4 +1,4 @@
-import { userID, setPage, promptLogin, sendRequest } from "@/crucial";
+import { userID, promptLogin, sendRequest } from "@/crucial";
 
 import { Frame as ExportDropdown } from "@modules/lesson/dropdowns/Export";
 import { Frame as BoardStyleDropdown } from "@modules/lesson/dropdowns/BoardStyle";
@@ -86,7 +86,7 @@ export class Frame {
     let jumptop = frame.querySelector('.brtFileAction[option="jumptop"]');
     jumptop.addEventListener("click", () => {
       if (editor.annotationPages.length > 0) {
-        editor.setPage(1, false);
+        editor.setCurrentPage(1, false);
         this.close();
       }
     });
@@ -100,7 +100,7 @@ export class Frame {
     let jumpend = frame.querySelector('.brtFileAction[option="jumpend"]');
     jumpend.addEventListener("click", () => {
       if (editor.annotationPages.length > 0) {
-        editor.setPage(editor.annotationPages.length, false);
+        editor.setCurrentPage(editor.annotationPages.length, false);
         this.close();
       }
     });

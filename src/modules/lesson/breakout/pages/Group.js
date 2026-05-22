@@ -1,47 +1,13 @@
-import {
-  head,
-  body,
-  app,
-  PageFrame,
-  fixed,
-  favicon,
-
-  assetURL,
-
-  userID,
-  account,
-
-  changeGlobalImports,
-  mouseDown,
-  appendCSS,
-  setPage,
-  setFrame,
-  sleep,
-  timeSince,
-  formatFullDate,
-  addS,
-  getParam,
-  modifyParams,
-  getEpoch,
-  sendRequest,
-  socket,
-  connected,
-  subscribe,
-  getLocalStore,
-  setLocalStore,
-  getObject,
-  copyObject,
-  objectUpdate,
-  objectEqual,
-  getTheme,
-  textBoxError,
-  clipBoardRead
-} from "@/crucial";
+import { userID, account, getParam, modifyParams, sendRequest, connected, copyObject, objectUpdate, textBoxError, clipBoardRead } from "@/crucial";
 
 import { Editor } from "@modules/editor/Editor";
 import { REALTIME, TOOLBAR } from "@modules/editor/imports";
 
+import { Frame as FileDropdown } from "@modules/lesson/breakout/group/dropdowns/File";
+import { Frame as MembersDropdown } from "@modules/lesson/breakout/group/dropdowns/Members";
 import { Frame as ZoomDropdown } from "@modules/lesson/dropdowns/Zoom";
+
+import { Frame as WelcomeModal } from "@modules/lesson/breakout/group/modals/Welcome";
 
 import leftArrowIcon from "@assets/lesson/navigation/leftarrow.svg?raw";
 import rightArrowIcon from "@assets/lesson/navigation/rightarrow.svg?raw";
@@ -359,6 +325,76 @@ export class Page {
     }
   }
 
+  updateMemberCount(button) {
+    if (button == null) {
+      button = this.membersButton;
+    }
+
+    let memberCountTx = button.querySelector(".brgMemberCount");
+
+    memberCountTx.textContent = this.memberCount;
+    if (this.memberCount > 1) {
+      memberCountTx.style.display = "flex";
+      memberCountTx.parentElement.style.padding = "4px 10px 4px 4px";
+    } else {
+      memberCountTx.style.removeProperty("display");
+      memberCountTx.parentElement.style.removeProperty("padding");
+    }
+
+    let config = this.parent.parent.lesson.breakout ?? {};
+    let options = config.options ?? {};
+    if ((options.maxSize ?? 0) > 0) {
+      let memberCount = 0;
+      let memberKeys = Object.keys(this.members);
+      for (let i = 0; i < memberKeys.length; i++) {
+        let key = memberKeys[i];
+        let member = this.members[key] ?? [];
+        if (member.length == 0) {
+          memberCount++;
+          continue;
+        }
+        let lessonMember = this.parent.parent.members[member[0]] ?? {};
+        if (lessonMember.group == this.group._id && lessonMember.access < 4) {
+          memberCount++;
+        }
+      }
+      if (memberCount < options.maxSize) {
+        this.joinGroupButton.removeAttribute("disabled");
+      } else {
+        this.joinGroupButton.setAttribute("disabled", "");
+      }
+    } else {
+      this.joinGroupButton.removeAttribute("disabled");
+    }
+
+    this.updateTopBar();
+  }
+
+  async promptWelcomeModal() {
+    if (this.parent.parent.self.group != this.group._id) {
+      return;
+    }
+    if (this.welcomeRead == true) {
+      return;
+    }
+    if (this.parent.parent.self.access > 3) {
+      return;
+    }
+    let configuration = this.parent.parent.lesson.breakout ?? {};
+    let options = configuration.options ?? {};
+    if (options.pickTeam == true || extra.members != null) {
+      return;
+    }
+    //if (Object.keys(this.members).length < 1) {
+    let auto = configuration.auto ?? {};
+    if ((auto.size ?? 1) < 2 || auto.enabled == false) {
+      return;
+    }
+    this.welcomeRead = true;
+    this.frame.insertAdjacentHTML("beforeend", `<div class="boCreateBreakoutHolder"></div>`);
+    this.welcomeModal = await this.editor.openModal(WelcomeModal, this.frame.querySelector(".boCreateBreakoutHolder"), { parent: this, title: "Your Team" });
+  }
+
   async js(frame, extra = {}) {
     this.extra = extra;
     if (this.parent.parent.session == null) {
@@ -542,6 +578,12 @@ export class Page {
       this.contentHolder.removeAttribute("disabled");
     })();
 
+    // Template change event:
+    this.pipeline.subscribe("templateChange", "templatechange", (body) => {
+      this.editor.applyRootTemplate(body.annotations);
+      this.editor.openAlert("info", "<b>Root Template Updated</b>The lesson owner has updated the base document.");
+    });
+
     // Load additional editor modules:
     (async () => {
       let realtimeModule = REALTIME();
@@ -676,6 +718,18 @@ export class Page {
     this.pipeline.subscribe("statusSavingUpdate", "save_status", (event) => { this.updateStatus(event.saving); });
     this.updateStatus();
 
+    // Join group listener:
+    this.joinGroupButton.addEventListener("click", async () => {
+      this.joinGroupButton.setAttribute("disabled", "");
+      await sendRequest("PUT", "lessons/breakout/groups/join?group=" + this.group._id, null, { session: this.parent.parent.session });
+      this.joinGroupButton.removeAttribute("disabled");
+    });
+
+    // Members dropdown:
+    this.membersButton.addEventListener("click", () => {
+      this.editor.openDropdown(this.membersButton, MembersDropdown, { parent: this });
+    });
+
     // Zoom event:
     this.pipeline.subscribe("zoomTextUpdate", "zoom_change", (event) => {
       this.zoomButton.textContent = Math.round(event.zoom * 100) + "%";
@@ -776,6 +830,109 @@ export class Page {
     this.pipeline.subscribe("pageSwitch", "page_switch", () => { this.updateSplitScreenButton(); });
     this.pipeline.subscribe("pageMaximize", "maximize", () => { this.updateSplitScreenButton(); });
     this.updateSplitScreenButton();
+
+    // Member events:
+    this.pipeline.subscribe("memberJoin", "join", (data) => {
+      let groupMember = this.members[data.modify];
+      if (data.group == this.group._id || data.previewGroup == this.group._id) {
+        if (groupMember == null) {
+          this.members[data.modify] = [];
+          groupMember = this.members[data.modify];
+        }
+        if (groupMember.includes(data._id) == false) {
+          groupMember.push(data._id);
+          this.memberCount++;
+          this.updateMemberCount();
+        }
+      } else if (groupMember != null) {
+        let index = groupMember.indexOf(data._id);
+        if (index > -1) {
+          groupMember.splice(index, 1);
+          this.memberCount--;
+        }
+        if (groupMember.length < 1 && (data.access > 3 || data.group != this.group._id)) {
+          delete this.members[data.modify];
+        }
+        if (index > -1) {
+          this.updateMemberCount();
+        }
+      }
+    }, { sort: 1 });
+    this.pipeline.subscribe("memberUpdate", "update", (data) => {
+      if (data.hasOwnProperty("group") == true || data.hasOwnProperty("previewGroup") == true) {
+        let member = this.parent.parent.members[data._id];
+        if (member == null) {
+          return;
+        }
+        let groupMember = this.members[member.modify];
+        if (data.group == this.group._id || data.previewGroup == this.group._id) {
+          if (groupMember == null) {
+            this.members[member.modify] = [];
+            groupMember = this.members[member.modify];
+          }
+          if (groupMember.includes(data._id) == false) {
+            groupMember.push(data._id);
+            this.memberCount++;
+            this.updateMemberCount();
+          }
+        } else if (groupMember != null) {
+          let index = groupMember.indexOf(data._id);
+          if (index > -1) {
+            groupMember.splice(index, 1);
+            this.memberCount--;
+          }
+          if (groupMember.length < 1 && (member.access > 3 || member.group != this.group._id)) {
+            delete this.members[member.modify];
+          }
+          if (index > -1) {
+            this.updateMemberCount();
+          }
+          this.editor.removeRealtime(data._id);
+        }
+      }
+    }, { sort: 1 });
+    this.pipeline.subscribe("memberLeave", "leave", (data) => {
+      if (data.member != null) {
+        let groupMember = this.members[data.member.modify];
+        if (groupMember != null) {
+          let index = groupMember.indexOf(data.member._id);
+          if (index > -1) {
+            groupMember.splice(index, 1);
+            this.memberCount--;
+          }
+          if (groupMember.length < 1 && data.member.group != this.group._id) {
+            delete this.members[data.member.modify];
+          }
+          if (index > -1) {
+            this.updateMemberCount();
+          }
+        }
+      }
+    }, { sort: 1 });
+    this.updateMemberCount();
+
+    // Promot welcome modal event:
+    this.pipeline.subscribe("memberAssign", "memberassign", (data) => {
+      this.parent.parent.collaborators[data.collaborator._id] = data.collaborator;
+      let groupMember = this.members[data.collaborator._id];
+      if (data.group == this.group._id || data.previewGroup == this.group._id) {
+        if (groupMember == null) {
+          this.members[data.collaborator._id] = [];
+        }
+        this.promptWelcomeModal();
+      } else if (groupMember != null) {
+        for (let i = 0; i < groupMember.length; i++) {
+          this.editor.removeRealtime(groupMember[i]);
+        }
+        this.memberCount -= groupMember.length;
+        delete this.members[data.collaborator._id];
+        this.updateMemberCount();
+      }
+    }, { sort: 1 });
+    this.promptWelcomeModal();
+
+    // Set URL parameter:
+    modifyParams("team", this.group._id);
 
     this.updateInterface();
   }

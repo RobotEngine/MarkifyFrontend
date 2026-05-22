@@ -599,7 +599,7 @@ export class Frame {
         observeButton.addEventListener("click", async (event) => {
           let memberid = event.target.closest(".eMemberFrame").getAttribute("memberid");
           if (editor.realtime.observing == memberid) {
-            return editor.realtime.module.exitObserve();
+            return editor.exitObserve();
           }
           let member = lesson.members[memberid];
           if (member == null) {
@@ -617,7 +617,7 @@ export class Frame {
           observeButton.setAttribute("disabled", "");
           let prevObserve = editor.realtime.observing;
           editor.realtime.observing = memberid;
-          editor.realtime.module.setShortSub(editor.visibleChunks);
+          editor.setShortSub(editor.visibleChunks);
           editor.closeAlert(editor.realtime.observeLoading);
           clearTimeout(editor.realtime.observeTimeout);
           let [code] = await sendRequest("GET", "lessons/members/observe?member=" + memberid, null, { session: editor.session });
@@ -626,15 +626,15 @@ export class Frame {
             editor.realtime.observeTimeout = setTimeout(() => {
               editor.closeAlert(editor.realtime.observeLoading);
               editor.openAlert("error", `<b>Observe Timeout</b>Failed to connect to their screen, please try again later...`);
-              editor.realtime.module.exitObserve();
+              editor.exitObserve();
             }, 10000);
           } else {
             if (prevObserve != null) {
               editor.realtime.observing = prevObserve;
-              editor.realtime.module.exitObserve();
+              editor.exitObserve();
             }
             editor.realtime.observing = null;
-            editor.realtime.module.setShortSub(editor.visibleChunks);
+            editor.setShortSub(editor.visibleChunks);
           }
           observeButton.removeAttribute("disabled");
         });
@@ -649,7 +649,7 @@ export class Frame {
             return editor.openAlert("error", `<b>Unable to Connect</b>Your connection is too weak to use spotlight.`);
           }
           if (editor.realtime.observing != null) {
-            editor.realtime.module.exitObserve();
+            editor.exitObserve();
           }
           spotlightButton.setAttribute("disabled", "");
           editor.openAlert("info", `<b>Spotlight</b>Letting members know about the spotlight...`);

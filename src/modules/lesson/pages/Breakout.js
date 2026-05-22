@@ -1,0 +1,211 @@
+import { body, account, changeGlobalImports, getParam } from "@/crucial";
+
+import { alert as alertModule } from "@modules/utility/Alert";
+
+import { Pipeline } from "@modules/editor/Pipeline";
+
+const breakoutPages = changeGlobalImports(import.meta.glob("@modules/lesson/breakout/pages/**/*.js"));
+const breakoutPagesPath = "/src/modules/lesson/breakout/pages/";
+
+export class Page {
+  constructor() {
+    this.pipeline = new Pipeline(this.pages);
+  }
+  
+  html = ``;
+  css = {
+    ".brPage": `position: absolute; display: block; width: 100%; height: 100%; left: 0px; top: 0px; z-index: 2; pointer-events: all; transition: .2s`,
+    ".brPage[hidden]": `z-index: 1`,
+  };
+
+  pages = {};
+  async openPage(id, path, extra = {}) { // primary, secondary, tertiary
+    let otherPages = this.frame.querySelectorAll(".brPage:not([hidden])");
+    for (let i = 0; i < otherPages.length; i++) {
+      let otherPage = otherPages[i];
+      if (otherPage.getAttribute("pageid") != id || otherPage.getAttribute("path") != path) {
+        otherPage.setAttribute("hidden", "");
+      }
+    }
+
+    this.currentPage = id;
+    this.currentPagePath = path;
+    
+    let existingPage = this.frame.querySelector('.brPage[pageid="' + id + '"][path="' + path + '"]:not([closing])');
+    if (existingPage != null) {
+      existingPage.removeAttribute("hidden");
+      let page = this.pages[id];
+      if ((page ?? {}).onOpen != null) {
+        page.onOpen();
+      }
+      return page;
+    }
+
+    this.closePage(id);
+
+    this.frame.insertAdjacentHTML("beforeend", `<div class="brPage" new></div>`);
+    let newPage = this.frame.querySelector(".brPage[new]");
+    newPage.removeAttribute("new");
+    newPage.setAttribute("pageid", id);
+    newPage.setAttribute("path", path);
+
+    this.pages[id] = await this.setFrame(new Promise(async (resolve) => {
+      let loadModuleFunction = breakoutPages[breakoutPagesPath + path + ".js"];
+      if (loadModuleFunction == null) {
+        return resolve();
+      }
+      return resolve(((await loadModuleFunction()) ?? {}).Page);
+    }), newPage, {
+      ...extra,
+      // showLoading: false
+      construct: {
+        pageID: id,
+        pagePath: path,
+        ...(extra.construct ?? {})
+      }
+    });
+    let page = this.pages[id];
+    if ((page ?? {}).onOpen != null) {
+      page.onOpen();
+    }
+    return page;
+  }
+  closePage(id) {
+    if (this.currentPage == id) {
+      this.currentPage = null;
+    }
+    if (this.currentPagePath == id) {
+      this.currentPagePath = null;
+    }
+    let pageData = this.pages[id] ?? {};
+    if (pageData.onClose != null) {
+      pageData.onClose();
+    }
+    delete this.pages[id];
+    let page = this.frame.querySelector('.brPage[pageid="' + id + '"]');
+    if (page == null) {
+      return;
+    }
+    page.setAttribute("closing", "");
+    page.setAttribute("hidden", "");
+    setTimeout(() => {
+      if (page != null) {
+        page.remove();
+      }
+    }, 200);
+  }
+
+  updateActivePage() {
+    this.active = this.parent.activePageID == this.pageID;
+    if (this.active == false) {
+      this.pageHolder.removeAttribute("active");
+    } else {
+      this.pageHolder.setAttribute("active", "");
+    }
+  }
+
+  async js(frame, extra) {
+    frame.style.position = "relative";
+    frame.style.width = "100%";
+    frame.style.height = "100%";
+
+    this.session = this.parent.session;
+
+    let page = frame;
+
+    this.pageHolder.style.setProperty("--themeRGB", "var(--breakoutThemeRGB)");
+    this.pageHolder.style.setProperty("--theme", "var(--breakoutTheme)");
+    this.pageHolder.style.setProperty("--secondaryRGB", "var(--breakoutSecondaryRGB)");
+    this.pageHolder.style.setProperty("--secondary", "var(--breakoutSecondary)");
+    this.pageHolder.style.setProperty("--hoverRGB", "var(--breakoutHoverRGB)");
+    this.pageHolder.style.setProperty("--hover", "var(--breakoutHover)");
+    this.pageHolder.style.setProperty("--lightShadow", "var(--breakoutLightShadow)");
+    this.pageHolder.style.setProperty("--darkShadow", "var(--breakoutDarkShadow)");
+
+    let bodyStyle = window.getComputedStyle(body);
+    page.style.setProperty("--boardHover", bodyStyle.getPropertyValue("--hover"));
+    page.style.setProperty("--boardLightShadow", bodyStyle.getPropertyValue("--lightShadow"));
+    page.style.setProperty("--boardDarkShadow", bodyStyle.getPropertyValue("--darkShadow"));
+
+    // Handle page events:
+    this.pipeline.subscribe("checkActivePage", "click_start", () => {
+      if (this.parent.activePageID != this.pageID) {
+        this.parent.activePageID = this.pageID;
+        this.parent.pushToPipelines(null, "page_switch", { pageType: this.pageType, pageID: this.pageID });
+      }
+    });
+    this.pipeline.subscribe("checkPageSwitch", "page_switch", () => { this.updateActivePage(); }, { sort: 1 });
+    this.updateActivePage();
+
+    // Main events:
+    page.addEventListener("pointerdown", (event) => {
+      this.pipeline.publish("pointerdown", { event: event });
+      this.pipeline.publish("click_start", { type: "pointerdown", event: event });
+    }, { passive: false });
+    page.addEventListener("touchstart", (event) => {
+      this.pipeline.publish("touchstart", { event: event });
+    }, { passive: false });
+    page.addEventListener("click", (event) => {
+      this.pipeline.publish("click", { event: event });
+    }, { passive: false });
+    page.addEventListener("mouseleave", (event) => {
+      this.pipeline.publish("mouseleave", { event: event });
+    });
+    page.addEventListener("contextmenu", (event) => {
+      this.pipeline.publish("contextmenu", { event: event });
+    });
+
+    // Member updates:
+    this.pipeline.subscribe("selfMemberUpdate", "update", (data) => {
+      if (data.hasOwnProperty("group") == false) {
+        return;
+      }
+      let member = this.parent.members[data._id] ?? {};
+      if (this.parent.self.modify != member.modify) {
+        return;
+      }
+      if (this.parent.self.group != this.currentGroupID && this.parent.self.access < 4) {
+        this.closePage("primary");
+        if (this.parent.self.group != null) {
+          this.openPage("primary", "group");
+        } else {
+          this.openPage("primary", "groups");
+        }
+        this.currentGroupID = this.parent.self.group;
+      }
+    }, { sort: 1 });
+    this.pipeline.subscribe("selfMemberUpdate", "self", (data) => {
+      switch (data.task) {
+        case "movegroup":
+          if (data.group != null) {
+            alertModule.open("info", "<b>You've Been Moved</b>The lesson owner has moved you to a team.");
+          } else {
+            alertModule.open("warning", "<b>You've Been Removed</b>The lesson owner has removed you from the team.");
+          }
+      }
+    }, { sort: 1 });
+
+    // Initialize Breakout:
+    if (this.parent.self.access < 4) { // Open to a Member View:
+      //await sleep(500); // TEMP: REMOVE LATER!!!
+
+      if (this.parent.self.group != null) { // Open to the Group:
+        this.currentGroupID = this.parent.self.group;
+        await this.openPage("primary", "group");
+      } else {
+        await this.openPage("secondary", "groups");
+      }
+    } else { // Open to Overview:
+      let team = getParam("team") ?? "";
+      if (team == "") {
+        if (account.breakoutOnboard != null) {
+          await this.openPage("primary", "overview");
+        } else {
+          await this.openPage("primary", "tutorial");
+        }
+      } else {
+        await this.openPage("secondary", "group", { groupID: team });
+      }
+    }
+  }
+}

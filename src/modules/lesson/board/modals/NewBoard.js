@@ -142,8 +142,8 @@ export class BlankPageModal {
         width = parseFloat(selectedSize.getAttribute("width"));
         height = parseFloat(selectedSize.getAttribute("height"));
       } else {
-        width = parseFloat(customSizeHolder.querySelector(".blankNumberHolder[width] div").textContent) * ppi;
-        height = parseFloat(customSizeHolder.querySelector(".blankNumberHolder[height] div").textContent) * ppi;
+        width = parseFloat(customSizeHolder.querySelector(".blankNumberHolder[width] div").textContent) * this.ppi;
+        height = parseFloat(customSizeHolder.querySelector(".blankNumberHolder[height] div").textContent) * this.ppi;
       }
       let selectedOri = frame.querySelector(".blankSelection button[selected]");
       if (selectedOri.textContent == "Landscape") {

@@ -83,7 +83,13 @@ export const Modal = class {
       this.parent = data.parent ?? window;
     }
     if (this.parentElement == null) {
-      this.parentElement = data.parentElement ?? this.button.closest("div[modalholder]") ?? fixed;
+      if (data.parentElement != null) {
+        this.parentElement = data.parentElement;
+      } else if (this.button != null) {
+        this.parentElement = this.button.closest("div[modalholder]") ?? fixed;
+      } else {
+        this.parentElement = fixed;
+      }
     }
 
     let setTitleHTML = data.title;

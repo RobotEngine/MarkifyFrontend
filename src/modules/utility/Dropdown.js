@@ -133,7 +133,13 @@ export const Dropdown = class {
     }
 
     if (this.parentElement == null) {
-      this.parentElement = data.parentElement ?? this.button.closest("div[dropdownholder]") ?? fixed;
+      if (data.parentElement != null) {
+        this.parentElement = data.parentElement;
+      } else if (this.button != null) {
+        this.parentElement = this.button.closest("div[dropdownholder]") ?? fixed;
+      } else {
+        this.parentElement = fixed;
+      }
     }
 
     let setTitleHTML = data.title;

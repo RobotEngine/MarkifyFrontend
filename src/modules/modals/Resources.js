@@ -257,7 +257,7 @@ export const resources = class {
       let info = resource.pages[currentPage];
 
       if (info == null) {
-        return this.open(import("@modules/modals/resources"), null, { history: false });
+        return this.open(Frame, null, { history: false });
       }
 
       let prevImage = imageContent.querySelector("img:not([old])");

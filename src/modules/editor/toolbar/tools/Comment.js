@@ -69,7 +69,7 @@ class MoreDropdown {
         }
         await parent.editor.save.push(save);
         parent.editor.realtimeSelect[save._id] = save;
-        await parent.editor.realtime.forceShort();
+        await parent.editor.forceShort();
       });
       commentContent.querySelector(".eCommentEditActions button[cancel]").addEventListener("click", () => {
         parent.lastEditQuill.disable();
@@ -115,7 +115,7 @@ class MoreDropdown {
       let save = { _id: commentID, remove: true };
       await parent.editor.save.push(save);
       parent.editor.realtimeSelect[save._id] = save;
-      await parent.editor.realtime.forceShort();
+      await parent.editor.forceShort();
     });
     if (parent.editor.utils.canMemberModify(render) != true) {
       deleteButton.remove();
@@ -564,7 +564,7 @@ export class Tool {
         await this.editor.save.push(annotation.render);
 
         this.editor.realtimeSelect[annotation.render._id] = { ...annotation.render, done: true };
-        await this.editor.realtime.forceShort();
+        await this.editor.forceShort();
         
         this.closeCommentFrame();
       });
@@ -776,7 +776,7 @@ export class Tool {
         await this.editor.save.push(newComment);
 
         this.editor.realtimeSelect[newComment._id] = { ...newComment, done: true };
-        await this.editor.realtime.forceShort();
+        await this.editor.forceShort();
       });
 
       this.updateReplyShadow = () => {

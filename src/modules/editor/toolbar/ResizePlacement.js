@@ -152,7 +152,7 @@ export class ResizePlacement {
 
       this.editor.selecting[this.annotation.render._id] = { ...this.annotation.render, done: true };
       delete this.editor.selecting["cursor"];
-      await this.editor.realtime.forceShort();
+      await this.editor.forceShort();
 
       await this.toolbar.toolbar.startTool(this.toolbar.getToolbar().querySelector('.eTool[tool="selection"]'));
       await this.toolbar.toolbar.startTool(this.toolbar.getToolbar().querySelector('.eTool[tool="select"]'));

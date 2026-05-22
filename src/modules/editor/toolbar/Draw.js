@@ -314,7 +314,7 @@ export class Draw {
     this.editor.render.remove(annotation);
     
     this.editor.realtimeSelect[annotationRender._id] = { ...annotationRender, done: true };
-    await this.editor.realtime.forceShort();
+    await this.editor.forceShort();
   }
   touchstart(event) { // Added due to Safari
     if (this.graceful == true) {
@@ -354,7 +354,7 @@ export class Draw {
     }
     if (this.annotation.render != null && this.annotation.render.done != true) {
       this.editor.realtimeSelect[this.annotation.render._id] = { remove: true };
-      this.editor.realtime.forceShort();
+      this.editor.forceShort();
       delete this.editor.realtimeSelect[this.annotation.render._id];
     }
     this.editor.render.remove(this.annotation);

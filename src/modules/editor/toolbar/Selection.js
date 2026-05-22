@@ -67,7 +67,7 @@ export class Selection {
               await this.editor.history.push("add", [render]);
               await this.editor.save.push({ _id: annoID, remove: true });
               this.editor.realtimeSelect[annoID] = { ...this.editor.realtimeSelect[annoID], _id: annoID, remove: true };
-              await this.editor.realtime.forceShort();
+              await this.editor.forceShort();
             }
           }
         }
@@ -2514,7 +2514,7 @@ export class Selection {
     }
 
     this.editor.realtimeSelect = { ...realtimeSelectSet, ...this.editor.realtimeSelect };
-    await this.editor.realtime.forceShort();
+    await this.editor.forceShort();
     this.editor.realtimeSelect = {};
     this.editor.selecting = {};
 

@@ -100,7 +100,7 @@ export class Frame {
       }
 
       parent.parent.openPage("timeline", "timeline", {
-        exitPage: "overview",
+        exitPage: ["primary", "overview"],
         configuration: {
           id: groupMember.group,
           parameters: [("group=" + groupMember.group)],

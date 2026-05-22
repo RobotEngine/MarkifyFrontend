@@ -111,7 +111,7 @@ export class Tool {
             this.removeAnnotaions[render._id] = render;
             this.editor.render.hide(annotation);
             this.PUBLISH.u = { _id: render._id, remove: true };
-            await this.editor.realtime.forceShort();
+            await this.editor.forceShort();
             delete this.PUBLISH.u;
             continue;
           }

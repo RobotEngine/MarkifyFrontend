@@ -1,42 +1,11 @@
-import {
-  head,
-  body,
-  app,
-  PageFrame,
-  fixed,
-  favicon,
-
-  assetURL,
-
-  userID,
-  account,
-
-  changeGlobalImports,
-  mouseDown,
-  appendCSS,
-  setPage,
-  setFrame,
-  sleep,
-  timeSince,
-  formatFullDate,
-  getParam,
-  modifyParams,
-  getEpoch,
-  sendRequest,
-  socket,
-  connected,
-  subscribe,
-  getLocalStore,
-  setLocalStore,
-  getObject,
-  copyObject,
-  objectUpdate,
-  getTheme,
-  textBoxError
-} from "@/crucial";
+import { userID, account, getParam, modifyParams, sendRequest, connected, objectUpdate, textBoxError, clipBoardRead } from "@/crucial";
 
 import { Editor } from "@modules/editor/Editor";
 import { REALTIME, TOOLBAR } from "@modules/editor/imports";
+
+import { Frame as FileDropdown } from "@modules/lesson/breakout/template/dropdowns/File";
+import { Frame as PushChangesDropdown } from "@modules/lesson/breakout/template/dropdowns/PushChanges";
+import { Frame as ZoomDropdown } from "@modules/lesson/dropdowns/Zoom";
 
 import leftArrowIcon from "@assets/lesson/navigation/leftarrow.svg?raw";
 import rightArrowIcon from "@assets/lesson/navigation/rightarrow.svg?raw";
@@ -60,10 +29,10 @@ export class Page {
         <div class="brtTopSection" left>
           <a class="brtClose">${closeIcon}</a>
           <div class="brtFileNameHolder border"><div class="brtFileName" spellcheck="false" contenteditable></div></div>
-          <button class="brtFileDropdown">File</button>
+          <button class="brtFileDropdown" title="File Options">File</button>
           <div class="brtTopDivider"></div>
-          <button class="brtSaveProgress brtUndo" disabled>${undoIcon}</button>
-          <button class="brtSaveProgress brtRedo" disabled>${redoIcon}</button>
+          <button class="brtSaveProgress brtUndo" title="Undo Edit" disabled>${undoIcon}</button>
+          <button class="brtSaveProgress brtRedo" title="Redo Edit" disabled>${redoIcon}</button>
           <div class="brtStatusHolder"><div class="brtStatus">
             <div strength="3" title="Strong Connection | All features seamlessly synced to the cloud.">${fullStatusIcon}</div>
             <div strength="2" title="Weak Connection | Cloud-saved annotations, limited real-time features.">${weakStatusIcon}</div>
@@ -181,6 +150,94 @@ export class Page {
     }
   }
 
+  updateTopBar(ignoreAttr) {
+    if (ignoreAttr != true) {
+      this.topHolder.removeAttribute("scroll");
+    }
+    if (this.top.scrollWidth > this.top.clientWidth) {
+      if (ignoreAttr != true) {
+        this.topHolder.setAttribute("scroll", "");
+      }
+      if (Math.floor(this.top.scrollLeft) > 0) {
+        this.topScrollLeft.style.opacity = 1;
+        this.topScrollLeft.style.pointerEvents = "all";
+      } else {
+        this.topScrollLeft.style.opacity = 0;
+        this.topScrollLeft.style.pointerEvents = "none";
+      }
+      if (Math.floor(this.top.scrollWidth - this.top.scrollLeft) > Math.floor(this.top.clientWidth)) {
+        this.topScrollRight.style.opacity = 1;
+        this.topScrollRight.style.pointerEvents = "all";
+      } else {
+        this.topScrollRight.style.opacity = 0;
+        this.topScrollRight.style.pointerEvents = "none";
+      }
+    } else {
+      this.topScrollLeft.style.opacity = 0;
+      this.topScrollLeft.style.pointerEvents = "none";
+      this.topScrollRight.style.opacity = 0;
+      this.topScrollRight.style.pointerEvents = "none";
+    }
+  }
+  updateInterface() {
+    let toolbarSetting = (account.settings ?? {}).toolbar ?? "left";
+    if (this.toolbarHolder.hasAttribute(toolbarSetting) == false) {
+      if (toolbarSetting != "right") {
+        this.toolbarHolder.setAttribute("left", "");
+        this.toolbarHolder.removeAttribute("right");
+      } else {
+        this.toolbarHolder.setAttribute("right", "");
+        this.toolbarHolder.removeAttribute("left");
+      }
+      this.editor.updateToolbar();
+    }
+
+    this.updateTopBar();
+  }
+
+  updateStatus(saving) {
+    if (this.currentStatusStrength != this.parent.parent.signalStrength) {
+      for (let i = 0; i < this.status.children.length; i++) {
+        let child = this.status.children[i];
+        if (parseInt(child.getAttribute("strength")) != this.parent.parent.signalStrength) {
+          child.setAttribute("hidden", "");
+        } else {
+          child.removeAttribute("hidden");
+        }
+      }
+      this.currentStatusStrength = this.parent.parent.signalStrength;
+    }
+    this.currentStatusSaving = saving ?? this.currentStatusSaving;
+    if (this.currentStatusSaving == true) {
+      this.status.setAttribute("saving", "");
+    } else {
+      this.status.removeAttribute("saving");
+    }
+  }
+
+  updateSplitScreenButton() {
+    this.boardEnabled = this.parent.parent.lesson.tool.includes("board");
+    this.boardOpen = this.parent.parent.pages["board"] != null;
+    this.boardVisible = this.parent.parent.maximized != true || this.parent.parent.activePageID == "board";
+
+    let showBoardButton = false;
+    if (this.boardEnabled == true) {
+      if (this.boardOpen == false || this.boardVisible == false) {
+        showBoardButton = true;
+      }
+    } else if (this.parent.parent.self.access > 3) {
+      if (this.boardOpen == false || this.boardVisible == false) {
+        showBoardButton = true;
+      }
+    }
+
+    if (showBoardButton == true) {
+      this.openBoardHolder.style.display = "flex";
+    } else {
+      this.openBoardHolder.style.removeProperty("display");
+    }
+  }
+
   async js(frame, extra = {}) {
     if (extra.template == null) {
       let setTemplateID = ((this.parent.parent.lesson ?? {}).breakout ?? {}).template;
@@ -217,8 +274,8 @@ export class Page {
     this.zoomButton = this.rightTop.querySelector(".brtZoom");
     this.accountButton = this.rightTop.querySelector(".brtAccount");
 
-    this.scrollLeft = this.topHolder.querySelector(".brtTopScroll[left]");
-    this.scrollRight = this.topHolder.querySelector(".brtTopScroll[right]");
+    this.topScrollLeft = this.topHolder.querySelector(".brtTopScroll[left]");
+    this.topScrollRight = this.topHolder.querySelector(".brtTopScroll[right]");
 
     this.contentHolder = this.page.querySelector(".brtContentHolder");
 
@@ -233,11 +290,11 @@ export class Page {
     this.increasePageButton = this.currentPageHolder.querySelector(".brtPageNav[down]");
     this.decreasePageButton = this.currentPageHolder.querySelector(".brtPageNav[up]");
 
-    // Close button event:
+    // Exit button event:
     this.closeButton.addEventListener("click", () => { this.close(); });
 
+    // Load template and fetch annotations:
     let fetchAnnotations = sendRequest("GET", "lessons/join/annotations?template=" + this.template._id, null, { session: this.parent.parent.session });
-
     if (this.template.created == null) {
       let [code, body] = await sendRequest("GET", "lessons/breakout/templates?template=" + this.template._id, null, { session: this.parent.parent.session });
       if (code != 200) {
@@ -284,12 +341,123 @@ export class Page {
       this.contentHolder.removeAttribute("disabled");
     })();
 
+    // Load additional editor modules:
     (async () => {
       this.editor.register(REALTIME());
       await this.editor.register(TOOLBAR());
 
       this.editorToolbar.removeAttribute("notransition");
     })();
+
+    // Top bar events:
+    this.topScrollLeft.addEventListener("click", () => {
+      this.top.scrollTo({ left: this.top.scrollLeft - 200, behavior: "smooth" });
+    });
+    this.topScrollRight.addEventListener("click", () => {
+      this.top.scrollTo({ left: this.top.scrollLeft + 200, behavior: "smooth" });
+    });
+    this.pipeline.subscribe("topbarResize", "resize", () => { this.updateTopBar(); });
+    this.pipeline.subscribe("topbarVisibilityChange", "visibilitychange", () => { this.updateTopBar(); });
+    this.pipeline.subscribe("topbarScroll", "topbar_scroll", () => { this.updateTopBar(true); });
+    this.top.addEventListener("scroll", (event) => { this.pipeline.publish("topbar_scroll", { event }); });
+
+    // Interface events:
+    this.pipeline.subscribe("interfaceUpdate", "refresh_interface", () => { this.updateInterface(); });
+    this.pipeline.subscribe("templateSet", "set", (body) => {
+      if (body.id != this.template._id) {
+        return;
+      }
+      objectUpdate(body, this.template);
+
+      if (body.hasOwnProperty("name") == true && document.activeElement.closest(".brtFileName") != this.templateName) {
+        let name = this.template.name ?? "Untitled Template";
+        this.templateName.textContent = name;
+        this.templateName.title = name;
+      }
+
+      if (body.hasOwnProperty("background") == true) {
+        this.editor.updateBackground(body.background);
+      }
+
+      this.updateInterface();
+    });
+    this.pipeline.subscribe("accountUpdate", "account_settings", (event) => {
+      if (event.settings.hasOwnProperty("toolbar") == true) {
+        this.updateInterface();
+        this.pipeline.publish("redraw_selection", { redraw: true });
+      }
+      if (event.settings.hasOwnProperty("actionbar") == true) {
+        this.pipeline.publish("redraw_selection", { redraw: true });
+      }
+    });
+
+    // Lesson name events:
+    let name = this.template.name ?? "Untitled Lesson";
+    this.templateName.textContent = name;
+    this.templateName.title = name;
+    this.templateName.addEventListener("keydown", (event) => {
+      if (event.keyCode == 13) {
+        event.preventDefault();
+        this.templateName.blur();
+      }
+    });
+    this.templateName.addEventListener("input", () => { this.updateTopBar(); });
+    this.templateName.addEventListener("focusout", async () => {
+      this.templateName.scrollTo(0, 0);
+      this.templateName.parentElement.style.setProperty("--borderWidth", "0px");
+      this.updateTopBar();
+
+      let name = this.templateName.textContent.substring(0, 100).replace(/[^A-Za-z0-9.,_|/\-+!?@#$%^&*()\[\]{}'":;~` ]/g, "");
+      if (name.replace(/ /g, "").length < 1) {
+        this.templateName.textContent = this.template.name;
+        return;
+      }
+      if (this.templateName.textContent == this.template.name) {
+        this.templateName.textContent = this.template.name;
+        return;
+      }
+      let oldName = this.template.name;
+      this.template.name = name;
+      this.templateName.textContent = name;
+      this.templateName.title = name;
+      let [code] = await sendRequest("POST", "lessons/breakout/templates/name?template=" + this.template._id, { name }, { session: this.parent.parent.session });
+      if (code != 200) {
+        this.template.name = oldName;
+        this.templateName.textContent = oldName;
+        this.templateName.title = oldName;
+      }
+    });
+    this.templateName.addEventListener("focus", async () => {
+      this.templateName.parentElement.style.setProperty("--borderWidth", "4px");
+      this.updateTopBar();
+    });
+    this.templateName.addEventListener("paste", clipBoardRead);
+
+    // File dropdown:
+    this.fileButton.addEventListener("click", () => {
+      this.editor.openDropdown(this.fileButton, FileDropdown, { parent: this });
+    });
+    
+    // Undo/Redo history events:
+    this.pipeline.subscribe("updateHistory", "history_update", (data) => {
+      if (data.history.length > 0 && data.location > -1 && this.editor.self.access > 0) {
+        this.undoButton.removeAttribute("disabled");
+      } else {
+        this.undoButton.setAttribute("disabled", "");
+      }
+      if (data.history.length > data.location + 1 && this.editor.self.access > 0) {
+        this.redoButton.removeAttribute("disabled");
+      } else {
+        this.redoButton.setAttribute("disabled", "");
+      }
+    });
+    this.undoButton.addEventListener("click", () => { this.editor.history.undo(); });
+    this.redoButton.addEventListener("click", () => { this.editor.history.redo(); });
+
+    // Status events:
+    this.pipeline.subscribe("statusSignalStrengthUpdate", "signal_strength", () => { this.updateStatus(); });
+    this.pipeline.subscribe("statusSavingUpdate", "save_status", (event) => { this.updateStatus(event.saving); });
+    this.updateStatus();
 
     // Push changes event:
     if (extra.updating == true) {
@@ -299,8 +467,118 @@ export class Page {
       if (extra.updating != true) {
         this.close();
       } else {
-        this.editor.openDropdown(this.finishButton, "dropdowns/lesson/breakout/template/pushchanges", { parent: this });
+        this.editor.openDropdown(this.finishButton, PushChangesDropdown, { parent: this });
       }
     });
+
+    // Zoom event:
+    this.pipeline.subscribe("zoomTextUpdate", "zoom_change", (event) => {
+      this.zoomButton.textContent = Math.round(event.zoom * 100) + "%";
+      this.updateTopBar();
+    });
+    this.zoomButton.addEventListener("click", () => {
+      this.editor.openDropdown(this.zoomButton, ZoomDropdown);
+    });
+
+    // Account setup:
+    if (userID != null) {
+      this.accountButton.querySelector("div").textContent = account.user;
+      if (account.image != null) {
+       this.accountButton.querySelector("img").src = account.image;
+      }
+      this.accountButton.addEventListener("click", () => {
+        this.editor.openDropdown(this.accountButton, import("@modules/dropdowns/Account"), { parent: this });
+      });
+    }
+
+    // Page changer events:
+    this.pipeline.subscribe("pageTextUpdate", "page_change", (event) => {
+      if (this.editor.currentPage > 0) {
+        this.currentPageHolder.style.display = "flex";
+        modifyParams("page", event.pageId);
+      } else {
+        this.currentPageHolder.style.display = "none";
+        modifyParams("page");
+        return;
+      }
+
+      this.pageTextBox.innerHTML = "<b>" + this.editor.currentPage + "</b> / " + this.editor.annotationPages.length;
+
+      if (this.editor.currentPage > this.editor.annotationPages.length - 1) {
+        this.increasePageButton.setAttribute("disabled", "");
+      } else {
+        this.increasePageButton.removeAttribute("disabled");
+      }
+      if (this.editor.currentPage < 2) {
+        this.decreasePageButton.setAttribute("disabled", "");
+      } else {
+        this.decreasePageButton.removeAttribute("disabled");
+      }
+    });
+    this.increasePageButton.addEventListener("click", () => {
+      this.editor.setCurrentPage(this.editor.currentPage + 1);
+    });
+    this.decreasePageButton.addEventListener("click", () => {
+      this.editor.setCurrentPage(this.editor.currentPage - 1);
+    });
+    let alreadyRunningFocus = false;
+    this.pageTextBox.addEventListener("focus", async () => {
+      if (alreadyRunningFocus == true) {
+        return;
+      }
+      alreadyRunningFocus = true;
+      this.pageTextBox.blur();
+      this.pageTextBox.innerHTML = "";
+      this.pageTextBox.focus();
+      alreadyRunningFocus = false;
+    });
+    this.pageTextBox.addEventListener("keydown", (event) => {
+      if (event.keyCode == 13) {
+        event.preventDefault();
+        return this.pageTextBox.blur();
+      }
+      if (String.fromCharCode(event.keyCode).match(/(\w|\s)/g) && event.key.length == 1) {
+        let textInt = parseInt(this.pageTextBox.textContent + event.key);
+        if (parseInt(event.key) != event.key) {
+          event.preventDefault();
+          textBoxError(this.pageTextBox, "Must be a number");
+        } else if (textInt > this.editor.annotationPages.length) {
+          event.preventDefault();
+          textBoxError(this.pageTextBox, "Maximum of page number " + this.editor.annotationPages.length);
+        } else if (textInt < 1) {
+          event.preventDefault();
+          textBoxError(this.pageTextBox, "Minimum of the first page");
+        }
+      }
+    });
+    this.pageTextBox.addEventListener("focusout", () => {
+      if (this.pageTextBox.textContent == "") {
+        this.pageTextBox.innerHTML = "<b>" + this.editor.currentPage + "</b> / " + this.editor.annotationPages.length;
+        return;
+      }
+      let setPage = parseInt(this.pageTextBox.textContent) ?? 1;
+      this.pageTextBox.innerHTML = "<b>" + setPage + "</b> / " + this.editor.annotationPages.length;
+      this.editor.setCurrentPage(setPage, false);
+    });
+
+    // Splitscreen update events:
+    this.openBoard.addEventListener("click", async () => {
+      this.openBoardHolder.style.removeProperty("display");
+
+      if (this.boardOpen == false) {
+        await this.parent.parent.addPage("board", "board", { insertBefore: this.parent.pageHolder, percent: .5 });
+      }
+      if (this.boardVisible == false) {
+        this.parent.parent.activePageID = "board";
+        this.parent.parent.pushToPipelines(null, "page_switch", { pageID: "board" });
+      }
+    });
+    this.pipeline.subscribe("pageAdd", "page_add", () => { this.updateSplitScreenButton(); });
+    this.pipeline.subscribe("pageRemove", "page_remove", () => { this.updateSplitScreenButton(); });
+    this.pipeline.subscribe("pageSwitch", "page_switch", () => { this.updateSplitScreenButton(); });
+    this.pipeline.subscribe("pageMaximize", "maximize", () => { this.updateSplitScreenButton(); });
+    this.updateSplitScreenButton();
+
+    this.updateInterface();
   }
 }

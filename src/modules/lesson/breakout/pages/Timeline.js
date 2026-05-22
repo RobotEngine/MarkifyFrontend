@@ -9,7 +9,7 @@ export class Page {
     let construct = {
       close: () => {
         this.parent.closePage("timeline");
-        this.parent.openPage("primary", extra.exitPage);
+        this.parent.openPage(extra.exitPage[0], extra.exitPage[1]);
       },
 
       lesson: this.parent.parent,
@@ -29,7 +29,10 @@ export class Page {
     this.timeline = await this.setFrame(
       Timeline,
       frame.querySelector(".brtTimelineHolder"),
-      { construct }
+      {
+        showLoading: false,
+        construct
+      }
     );
     this.pipeline = this.timeline.pipeline;
   }

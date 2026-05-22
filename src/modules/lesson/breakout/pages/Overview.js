@@ -207,7 +207,7 @@ export class Page {
 
   dragContext = {};
   wasDragging = false;
-  scrollOffset = 32;
+  dragScrollOffset = 32;
   scrollY = 0;
   scrollIntervalRunning = false;
 
@@ -638,14 +638,14 @@ export class Page {
     this.dragContext.element.style.top = (mouseY - (this.dragContext.offsetY ?? 0)) + "px";
 
     this.scrollY = 0;
-    let topPos = this.scrollOffset - mouseY;
+    let topPos = this.dragScrollOffset - mouseY;
     if (topPos > 0) {
-      let percentage = 1 + ((topPos - this.scrollOffset) / this.scrollOffset);
+      let percentage = 1 + ((topPos - this.dragScrollOffset) / this.dragScrollOffset);
       this.scrollY = -Math.min(10 * percentage, 10);
     }
-    let bottomPos = mouseY - this.page.offsetHeight + this.scrollOffset;
+    let bottomPos = mouseY - this.page.offsetHeight + this.dragScrollOffset;
     if (bottomPos > 0) {
-      let percentage = 1 + ((bottomPos - this.scrollOffset) / this.scrollOffset);
+      let percentage = 1 + ((bottomPos - this.dragScrollOffset) / this.dragScrollOffset);
       this.scrollY = Math.min(10 * percentage, 10);
     }
     if (this.dragContext.autoScrollActive == true) {
@@ -714,7 +714,7 @@ export class Page {
       editor = tileData.editor;
     }
     this.parent.parent.self.group = groupID;
-    this.parent.openPage("secondary", "breakout/group", { group: tileData.render, members: tileData.members, editor });
+    this.parent.openPage("secondary", "group", { group: tileData.render, members: tileData.members, editor });
   }
   onOpen() { // When returning here, leave the group:
     if (this.parent.parent.self.group != null) {

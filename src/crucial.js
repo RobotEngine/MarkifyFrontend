@@ -416,7 +416,7 @@ export const setFrame = async (modulePromise, frame, extra, parent) => {
     svgHolder.style.height = svgHolder.clientHeight + "px";
   }
   if (continueLoading == true) {
-    frameSet.insertAdjacentHTML("beforeend", `<div class="content" style="opacity: 0; transition: all .3s, max-height 0s" new>${module.html}</div>`);
+    frameSet.insertAdjacentHTML("beforeend", `<div class="content" style="opacity: 0; transition: all .3s, max-height 0s" new>${(module.html ?? "")}</div>`);
     let frameContent = frameSet.querySelector(".content[new]");
     module.frame = frameContent;
     frameContent.removeAttribute("new");
@@ -1349,8 +1349,10 @@ import {
   getObject,
   copyObject,
   objectUpdate,
+  objectEqual,
   getTheme,
-  textBoxError
+  textBoxError,
+  clipBoardRead
 } from "@/crucial";
 
 */

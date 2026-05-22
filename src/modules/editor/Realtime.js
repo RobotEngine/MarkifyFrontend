@@ -78,7 +78,7 @@ export class Module {
         this.editor.self.access < this.editor.minimumEditingAccess
         || this.editor.viewer == true
       )
-      && this.editor.realtime.observed < 1
+      && this.editor.realtime.observedCount < 1
     ) { // Not an editor!
       return;
     }
@@ -98,7 +98,7 @@ export class Module {
         let standardFilter = { c: "member" };
         if (this.editor.self.access >= this.editor.minimumEditingAccess) {
           standardFilter.c = "short_" + this.editor.id;
-        } else if (this.editor.realtime.observed > 0) {
+        } else if (this.editor.realtime.observedCount > 0) {
           standardFilter.o = this.editor.sessionID;
         }
         let filter = { ...standardFilter };
@@ -234,7 +234,7 @@ export class Module {
           return;
         }
         let standardFilter = { c: "short_" + this.editor.id };
-        if (this.editor.realtime.observed && this.editor.self.access < this.editor.minimumEditingAccess) {
+        if (this.editor.realtime.observedCount > 0 && this.editor.self.access < this.editor.minimumEditingAccess) {
           standardFilter.o = this.editor.sessionID;
         }
         socket.publish({ ...standardFilter, p: this.lastCursorChunk }, [ this.editor.sessionID, "" ]);
@@ -582,12 +582,12 @@ export class Module {
     this.editor.pipeline.subscribe("realtimePublishClickEnd", "click_end", () => { this.publishShort(); }, { sort: 2 });
     this.editor.pipeline.subscribe("realtimePublishBoundChange", "bounds_change", () => {
       this.publishShort();
-      if (this.editor.realtime.observed > 0) {
+      if (this.editor.realtime.observedCount > 0) {
         this.publishShort(null, "observe");
       }
     }, { sort: 2 });
     this.editor.pipeline.subscribe("realtimePublishResize", "resize", () => {
-      if (this.editor.realtime.observed > 0) {
+      if (this.editor.realtime.observedCount > 0) {
         this.publishShort(null, "observe");
       }
     });

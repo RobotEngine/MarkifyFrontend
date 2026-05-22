@@ -1,4 +1,4 @@
-import { userID, sendRequest, getLocalStore, getObject, copyObject, objectUpdate } from "@/crucial";
+import { userID, sendRequest, getLocalStore, getObject, copyObject, objectUpdate, objectEqual } from "@/crucial";
 
 import { dropdown as dropdownModule } from "@modules/utility/Dropdown";
 import { modal as modalModule } from "@modules/utility/Modal";
@@ -127,12 +127,8 @@ export class Editor {
     enabled: true,
     subscribes: [],
     tool: 0, // 0: Pointer; 1: Markup; 2: Pen; 3: Erase
-    observed: 0,
-    forceShort: async () => {
-      if (this.realtime.module != null) {
-        await this.realtime.module.publishShort(null, null, true);
-      }
-    }
+    observed: {},
+    observedCount: 0
   };
 
   annotations = {};
@@ -232,9 +228,33 @@ export class Editor {
     }
   }
 
+  updateToolbar() {
+    if (this.toolbar != null) {
+      this.toolbar.toolbar.update();
+    }
+  }
+  async startTool(button, noExtend, passData) {
+    if (this.toolbar != null) {
+      await this.editor.toolbar.toolbar.startTool(button, noExtend, passData);
+    }
+  }
+
+  async publishShort(event, type, ignoreSame) {
+    if (this.realtime.module != null) {
+      await this.realtime.module.publishShort(event, type, ignoreSame);
+    }
+  }
+  async forceShort() {
+    await this.publishShort(null, null, true);
+  }
   setShortSub() {
     if (this.realtime.module != null) {
       this.realtime.module.setShortSub(this.visibleChunks);
+    }
+  }
+  closeShortSub() {
+    if (this.realtime.module != null) {
+      this.realtime.module.closeShortSub();
     }
   }
   removeSelection(annoID, memberID, member) {
@@ -250,6 +270,11 @@ export class Editor {
   adjustRealtimeHolder() {
     if (this.realtime.module != null) {
       this.realtime.module.adjustRealtimeHolder();
+    }
+  }
+  setObserveFrame(member) {
+    if (this.realtime.module != null) {
+      this.realtime.module.setObserveFrame(member);
     }
   }
   exitObserve() {
@@ -1123,9 +1148,9 @@ export class Editor {
         this.openAlert("warning", "<b>Member Left</b>The member you were observing left.");
       }
       this.removeRealtime(data._id);
-      //delete this.realtime.module.members[data._id];
-      if (data.member != null && data.member.observe == this.sessionID) {
-        this.realtime.observed--;
+      if (data.member != null && this.realtime.observed[data._id] != null) {
+        delete this.realtime.observed[data._id];
+        this.realtime.observedCount = Object.keys(this.realtime.observed).length;
       }
     });
 

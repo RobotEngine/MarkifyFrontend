@@ -17,10 +17,12 @@ import weakStatusIcon from "@assets/lesson/status/weak.svg?raw";
 import noneStatusIcon from "@assets/lesson/status/none.svg?raw";
 import endEditorsIcon from "@assets/lesson/share/endeditors.svg?raw";
 import settingsIcon from "@assets/lesson/share/settings.svg?raw";
+import observeIcon from "@assets/lesson/members/observe.svg?raw";
 import increasePageIcon from "@assets/lesson/navigation/plus.svg?raw";
 import decreasePageIcon from "@assets/lesson/navigation/minus.svg?raw";
 import breakoutLogoIcon from "@assets/breakout.svg?raw";
 import raisehandIcon from "@assets/lesson/share/raisehand.svg?raw";
+import { close as closeIcon } from "@modules/utility/core-icons";
 
 export class Page {
   html = `
@@ -33,11 +35,11 @@ export class Page {
           <div class="eTopSection" left>
             <a class="eLogo" href="/app/dashboard" draggable="false">${boardLogoIcon}</a>
             <div class="eFileNameHolder border"><div class="eFileName" spellcheck="false"></div></div>
-            <button class="eFileDropdown">File</button>
+            <button class="eFileDropdown" title="File Options">File</button>
             <button class="eCreateCopy">Create Copy</button>
             <div class="eTopDivider"></div>
-            <button class="eSaveProgress eUndo" disabled>${undoIcon}</button>
-            <button class="eSaveProgress eRedo" disabled>${redoIcon}</button>
+            <button class="eSaveProgress eUndo" title="Undo Edit" disabled>${undoIcon}</button>
+            <button class="eSaveProgress eRedo" title="Redo Edit" disabled>${redoIcon}</button>
             <div class="eStatusHolder"><div class="eStatus">
               <div strength="3" title="Strong Connection | All features seamlessly synced to the cloud.">${fullStatusIcon}</div>
               <div strength="2" title="Weak Connection | Cloud-saved annotations, limited real-time features.">${weakStatusIcon}</div>
@@ -72,10 +74,10 @@ export class Page {
       <div class="eBottomHolder">
         <div class="eBottom">
           <div class="eBottomSection" observebottomsection left>
-            <img class="eObserveIcon" src="../images/editor/members/observe.svg" />
+            <div class="eObserveIcon">${observeIcon}</div>
             <div class="eObserveText">Observing</div>
             <div class="eObserveCursor" observecursor></div>
-            <button class="eObserveExit buttonAnim border" observeexit></button>
+            <button class="eObserveExit buttonAnim border" observeexit>${closeIcon}</button>
           </div>
           <div class="eBottomSectionSpacer"></div>
           <div class="eBottomSection" right>
@@ -163,6 +165,7 @@ export class Page {
     ".eBottomSection:last-child": `border-top-right-radius: 0`,
     ".eBottomSectionSpacer": `flex: 1`,
     ".eObserveIcon": `width: 34px; height: 34px; margin: 2px`,
+    ".eObserveIcon svg": `width: 100%; height: 100%`,
     ".eObserveText": `margin: 0 6px`,
     ".eObserveCursor": `box-sizing: border-box; display: flex; padding: 2px 6px; margin-right: 4px; background: var(--theme); color: #fff; border: solid 3px var(--pageColor); box-shadow: 0 0 6px rgb(0 0 0 / 25%); border-radius: 8px 14px 14px; font-size: 14px; font-weight: 700`,
     ".eObserveExit": `display: flex; position: relative; width: 22px; height: 22px; margin: 8px; justify-content: center; align-items: center; --borderWidth: 3px; --borderRadius: 14px`,
@@ -263,10 +266,7 @@ export class Page {
         this.toolbarHolder.setAttribute("right", "");
         this.toolbarHolder.removeAttribute("left");
       }
-
-      if (this.editor.toolbar != null) {
-        this.editor.toolbar.toolbar.update();
-      }
+      this.editor.updateToolbar();
     }
 
     this.updateTopBar();
@@ -562,9 +562,7 @@ export class Page {
             this.handButton.setAttribute("tooltip", "Raise Hand");
           }
         }
-        if (this.editor.toolbar != null) {
-          this.editor.toolbar.toolbar.update();
-        }
+        this.editor.updateToolbar();
         this.handButton.removeAttribute("disabled", "");
       });
 
@@ -586,7 +584,7 @@ export class Page {
 
     // Interface events:
     this.pipeline.subscribe("interfaceUpdate", "refresh_interface", () => { this.updateInterface(); });
-    this.pipeline.subscribe("boardLessonSet", "set", (body) => {
+    this.pipeline.subscribe("lessonSet", "set", (body) => {
       if (body.hasOwnProperty("name") == true && (document.activeElement == null || document.activeElement.closest(".eFileName") != this.lessonName)) {
         let name = this.lesson.name ?? "Untitled Lesson";
         this.lessonName.textContent = name;
@@ -624,7 +622,7 @@ export class Page {
     });
 
     // Lesson name events:
-    let name = this.lesson.name ?? "Untitled Lesson";;
+    let name = this.lesson.name ?? "Untitled Lesson";
     this.lessonName.textContent = name;
     this.lessonName.title = name;
     this.lessonName.addEventListener("keydown", (event) => {
@@ -652,7 +650,7 @@ export class Page {
       this.lesson.name = name;
       this.lessonName.textContent = name;
       this.lessonName.title = name;
-      let [code] = await sendRequest("POST", "lessons/name", { name: name }, { session: this.session });
+      let [code] = await sendRequest("POST", "lessons/name", { name }, { session: this.session });
       if (code != 200) {
         this.lesson.name = oldName;
         this.lessonName.textContent = oldName;
@@ -712,37 +710,37 @@ export class Page {
     this.pipeline.subscribe("boardMemberUpdate", "update", async (body) => {
       let member = this.parent.members[body._id];
 
-      if (this.editor.realtime.module != null) {
-        if (body.observe == this.editor.sessionID) { // Being observed:
-          this.editor.realtime.observed++;
-          this.editor.realtime.module.publishShort(null, "observe", true);
-        } else if (body.hasOwnProperty("observe") == true && body.observe != this.editor.sessionID) {
-          this.editor.realtime.observed--;
-        }
-        if (body.weak == true) {
-          this.editor.realtime.module.removeRealtime(body._id);
-          if (this.editor.realtime.observing == body._id) {
-            this.editor.realtime.module.exitObserve();
-            this.editor.openAlert("warning", "<b>Observing Ended</b>The member you where observing has too weak a connection, try again later...");
-          }
-        }
-        if (body.observe != null && this.editor.realtime.observing == body._id) {
-          this.editor.realtime.module.exitObserve();
-          this.editor.openAlert("warning", "<b>Observing Ended</b>The member your observing started watching someone.");
-        }
+      if (body.observe == this.editor.sessionID) { // Being observed:
+        this.editor.realtime.observed[body._id] = true;
+        this.editor.realtime.observedCount = Object.keys(this.editor.realtime.observed).length;
+        this.editor.publishShort(null, "observe", true);
+      } else if (body.hasOwnProperty("observe") == true && body.observe != this.editor.sessionID && this.editor.realtime.observed[body._id] != null) {
+        delete this.editor.realtime.observed[body._id];
+        this.editor.realtime.observedCount = Object.keys(this.editor.realtime.observed).length;
+      }
+      if (body.weak == true) {
+        this.editor.removeRealtime(body._id);
         if (this.editor.realtime.observing == body._id) {
-          this.editor.realtime.module.setObserveFrame(member);
+          this.editor.exitObserve();
+          this.editor.openAlert("warning", "<b>Observing Ended</b>The member you where observing has too weak a connection, try again later...");
         }
+      }
+      if (body.observe != null && this.editor.realtime.observing == body._id) {
+        this.editor.exitObserve();
+        this.editor.openAlert("warning", "<b>Observing Ended</b>The member your observing started watching someone.");
+      }
+      if (this.editor.realtime.observing == body._id) {
+        this.editor.setObserveFrame(member);
       }
 
       if (body._id == this.parent.sessionID) {
         this.updateInterface();
 
-        if (body.access != null && this.editor.toolbar != null) {
+        if (body.access != null) {
           if (body.access == 0) {
-            this.editor.toolbar.toolbar.startTool(this.viewerToolbar.querySelector('.eTool[tool="select"]'));
+            this.editor.startTool(this.viewerToolbar.querySelector('.eTool[tool="select"]'));
           } else {
-            this.editor.toolbar.toolbar.startTool(this.editorToolbar.querySelector('.eTool[tool="selection"]'), true);
+            this.editor.startTool(this.editorToolbar.querySelector('.eTool[tool="selection"]'), true);
             this.editor.openAlert("info", "<b>You're Now an Editor</b>You have been granted editing access to the lesson!");
           }
         }
@@ -892,7 +890,7 @@ export class Page {
 
     // Handle spotlight:
     this.pipeline.subscribe("spotlightStart", "spotlight", async (body) => {
-      if (this.editor.realtime.module == null || this.parent.signalStrength < 3) {
+      if (this.parent.signalStrength < 3) {
         return;
       }
       if (body.member == this.editor.sessionID || body.member == this.editor.realtime.observing) {
@@ -910,7 +908,7 @@ export class Page {
       }
       let prevObserve = this.editor.realtime.observing;
       this.editor.realtime.observing = body.member;
-      this.editor.realtime.module.setShortSub(this.editor.visibleChunks);
+      this.editor.setShortSub(this.editor.visibleChunks);
       this.pipeline.publish("observe_enable", { memberID: body.member });
       this.editor.closeAlert(this.editor.realtime.observeLoading);
       clearTimeout(this.editor.realtime.observeTimeout);
@@ -920,15 +918,15 @@ export class Page {
         this.editor.realtime.observeTimeout = setTimeout(() => {
           this.editor.closeAlert(this.editor.realtime.observeLoading);
           this.editor.openAlert("error", `<b>Observe Timeout</b>Failed to connect to their screen, please try again later...`);
-          this.editor.realtime.module.exitObserve();
+          this.editor.exitObserve();
         }, 20000);
       } else {
         if (prevObserve != null) {
           this.editor.realtime.observing = prevObserve;
-          this.editor.realtime.module.exitObserve();
+          this.editor.exitObserve();
         }
         this.editor.realtime.observing = null;
-        this.editor.realtime.module.setShortSub(this.visibleChunks);
+        this.editor.setShortSub(this.visibleChunks);
         this.pipeline.publish("observe_exit", { memberID: body.member });
       }
     });

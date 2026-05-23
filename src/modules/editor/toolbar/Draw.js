@@ -1,4 +1,4 @@
-import { mouseDown, sleep } from "@/crucial";
+import { mouseDown, stylusActive, sleep } from "@/crucial";
 
 import { round, distance, lowPassFilter, horizontalLine, simplifyPath, relativelyStraight } from "../math";
 

@@ -1,4 +1,4 @@
-import { mouseDown, sleep } from "@/crucial";
+import { mouseDown, stylusActive, sleep } from "@/crucial";
 
 import { rotatePoint, isPointOnLine } from "../../math";
 

@@ -24,7 +24,8 @@ import { dropdown } from "@modules/utility/Dropdown";
 import { modal } from "@modules/utility/Modal";
 
 import { LessonFrame } from "@modules/dashboard/LessonFrame";
-import { Frame as LessonOptions } from "../../dashboard/LessonOptions";
+import { Frame as LessonOptions } from "@modules/dashboard/LessonOptions";
+import { Frame as GiftDropdown } from "@modules/dropdowns/Gift";
 
 import { close, trash } from "@modules/utility/core-icons";
 import boardIcon from "@assets/icon.svg?raw";
@@ -299,7 +300,7 @@ export class Page extends PageFrame {
       let shareButton = updateAlert.querySelector("button[share]");
       //setSVG(shareButton.querySelector("div[image]"), "../images/editor/actions/send.svg");
       shareButton.addEventListener("click", () => {
-        dropdown.open(shareButton, "dropdowns/gift");
+        dropdown.open(shareButton, GiftDropdown);
       });
 
       updateAlert.style.display = "flex";

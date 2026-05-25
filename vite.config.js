@@ -5,6 +5,8 @@ import { visualizer } from "rollup-plugin-visualizer";
 import legacy from "@vitejs/plugin-legacy";
 import { VitePWA } from "vite-plugin-pwa";
 
+import resilientImportsPlugin from "./plugins/resilient-imports";
+
 // sudo npm run dev
 
 // sudo npm run build
@@ -36,7 +38,8 @@ export default defineConfig({
         globPatterns: ["**/*.{js,css,html,ico,png,svg,woff2}"], // Files to precache
         globIgnores: ["**/images/**", "**/*.png", "**/*.jpg", "**/*.jpeg", "**/*.webp", "**/*.gif", "**/*.mp3", "**/*.mp4"]
       }
-    })
+    }),
+    resilientImportsPlugin()
   ],
   resolve: {
     alias: {

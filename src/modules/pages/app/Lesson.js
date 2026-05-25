@@ -281,14 +281,20 @@ export class Page extends PageFrame {
     QUILL();
     MATHQUILL();
 
-    (async () => { // Load QuillJS CSS:
-      await import("quill/dist/quill.core.css");
-      this.quillStylesLoaded = true;
-    })();
-    (async () => { // Load MathQuill CSS:
-      await import("@/libraries/mathquill/mathquill.css");
-      this.mathquillStylesLoaded = true;
-    })();
+    this.quillStylesPromise = new Promise(async (resolve) => {
+      try {
+        await import("quill/dist/quill.core.css");
+        this.quillStylesLoaded = true;
+      } catch {}
+      resolve();
+    });
+    this.mathquillStylesPromise = new Promise(async (resolve) => {
+      try {
+        await import("@/libraries/mathquill/mathquill.css");
+        this.mathquillStylesLoaded = true;
+      } catch {}
+      resolve();
+    });
 
     this.exporting = getParam("export_browser") == "true";
     if (this.exporting == true) { // Preload Exporting:

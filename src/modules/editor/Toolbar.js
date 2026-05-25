@@ -152,6 +152,13 @@ export class Module {
     ".eActionContainerContent": `display: flex; flex-wrap: wrap; gap: 6px; border-radius: inherit`
   };
 
+  getToolbar() {
+    if (this.toolbarHolder == null) {
+      return;
+    }
+    return this.toolbarHolder.querySelector(".eToolbar:not([hidden])");
+  }
+
   eventListenerStorage = [];
   clearEventListeners() {
     for (let i = 0; i < this.eventListenerStorage.length; i++) {
@@ -508,8 +515,8 @@ export class Module {
         }
         if (file.kind != "string") {
           if (file.type.substring(0, 6) == "image/") {
-            await this.toolbar.startTool(toolbar.querySelector('.eTool[tool="media"]'));
-            await this.toolbar.startTool(toolbar.querySelector('.eTool[tool="upload"]'), null, { file: file, event: event });
+            await this.toolbar.startTool(this.getToolbar().querySelector('.eTool[tool="media"]'));
+            await this.toolbar.startTool(this.getToolbar().querySelector('.eTool[tool="upload"]'), null, { file: file, event: event });
             return true;
           }
         }
@@ -862,13 +869,6 @@ export class Module {
 
     this.selection.action = "save";
     await this.selection.endAction();
-  }
-
-  getToolbar() {
-    if (this.toolbarHolder == null) {
-      return;
-    }
-    return this.toolbarHolder.querySelector(".eToolbar:not([hidden])");
   }
 
   async js() {

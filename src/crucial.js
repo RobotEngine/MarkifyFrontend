@@ -4,10 +4,10 @@ import {
   domain
 } from "./configuration";
 
-import { coreStyles } from "./modules/utility/core-styles";
-import { dropdown as dropdownModule } from "./modules/utility/Dropdown";
-//import { modal as modalModule } from "./modules/utility/Modal";
-import { alert as alertModule } from "./modules/utility/Alert";
+import { coreStyles } from "@modules/utility/core-styles";
+import { dropdown as dropdownModule } from "@modules/utility/Dropdown";
+//import { modal as modalModule } from "@modules/utility/Modal";
+import { alert as alertModule } from "@modules/utility/Alert";
 
 const configurations = {
   public: {
@@ -71,6 +71,21 @@ export let subscribes = [];
 
 export let pageTheme;
 export let pageAllowsBackgroundChange = false;
+
+window.resilientImport = (path) => { // Use __import__ so it's not loopback converted to itself!
+  return new Promise(async (resolve) => {
+    try {
+      resolve(await __import__(path));
+    } catch (err) {
+      if (navigator.onLine == true) {
+        try {
+          resolve(await __import__(path + "?retry=" + getEpoch()));
+        } catch {}
+      }
+      resolve();
+    }
+  });
+}
 
 export const changeGlobalImports = (global, func) => {
   func = func ?? ((key) => { return key.toLowerCase(); });

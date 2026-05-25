@@ -95,18 +95,12 @@ export class Page {
     this.handleRenderPromise = new Promise(async (resolve) => {
       await this.editor.runUpdateCycle();
       await this.editor.render.processPageRenders(this.editor);
-      
-      if (window.quillCSSLoad != true && window.quillCSSLoad != null) {
-        this.editor.exportPromises.push(new Promise(async (resolve) => {
-          window.quillCSSLoad.addEventListener("load", resolve);
-          window.quillCSSLoad.addEventListener("error", resolve);
-        }));
+
+      if (this.parent.quillStylesLoaded != true && this.parent.quillStylesPromise != null) {
+        this.editor.exportPromises.push(this.parent.quillStylesPromise);
       }
-      if (window.mathquillCSSLoad != true && window.mathquillCSSLoad != null) {
-        this.editor.exportPromises.push(new Promise(async (resolve) => {
-          window.mathquillCSSLoad.addEventListener("load", resolve);
-          window.mathquillCSSLoad.addEventListener("error", resolve);
-        }));
+      if (this.parent.mathquillStylesLoaded != true && this.parent.mathquillStylesPromise != null) {
+        this.editor.exportPromises.push(this.parent.mathquillStylesPromise);
       }
       if (this.editor.exportPromises.length > 0) {
         await Promise.all(this.editor.exportPromises);

@@ -400,7 +400,9 @@ export class Page {
       construct.annotations = this.editor.annotations;
     }
     this.timeline = await this.setFrame(import("@modules/lesson/subpages/Timeline"), this.timelinePage, { construct });
-    this.pipeline = this.timeline.pipeline;
+    if (this.timeline != null) {
+      this.pipeline = this.timeline.pipeline;
+    }
   }
   closeTimeline() {
     this.pipeline = this.editor.pipeline;

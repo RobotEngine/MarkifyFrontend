@@ -82,7 +82,10 @@ self.addEventListener("activate", (event) => { event.waitUntil(clients.claim());
 
 // 4. Global fetch listener for scripts
 self.addEventListener("fetch", (event) => {
-    if (event.request.destination === "script") {
+    let url = new URL(event.request.url);
+
+    // Only handle scripts belonging to the core website
+    if (event.request.destination === "script" && url.origin === self.location.origin) {
         // STRATEGY: Check if Workbox pre-cache already has it.
         // If it does, let it serve instantly from cache.
         event.respondWith(

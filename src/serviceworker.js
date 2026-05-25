@@ -1,4 +1,4 @@
-import { StaleWhileRevalidate, CacheFirst } from "workbox-strategies";
+import { NetworkFirst, StaleWhileRevalidate, CacheFirst } from "workbox-strategies";
 import { registerRoute, setCatchHandler } from "workbox-routing";
 import { precacheAndRoute, cleanupOutdatedCaches, matchPrecache } from "workbox-precaching";
 import { ExpirationPlugin } from "workbox-expiration";

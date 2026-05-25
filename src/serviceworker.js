@@ -82,10 +82,7 @@ self.addEventListener("activate", (event) => { event.waitUntil(clients.claim());
 
 // 4. Global fetch listener for scripts
 self.addEventListener("fetch", (event) => {
-    let url = new URL(event.request.url);
-
-    // Only handle scripts belonging to the core website
-    if (event.request.destination === "script" && url.origin === self.location.origin) {
+    if (event.request.destination === "script") {
         // STRATEGY: Check if Workbox pre-cache already has it.
         // If it does, let it serve instantly from cache.
         event.respondWith(
@@ -132,7 +129,35 @@ registerRoute(
     })
 );
 
-// This fires whenever ANY registered route fails to provide a response
+// 6. Document/Navigation Route (Shielded against cross-origin redirects)
+registerRoute(
+    ({ request }) => request.mode === "navigate",
+    new NetworkFirst({
+        cacheName: "documents",
+        plugins: [
+            new ExpirationPlugin({
+                maxEntries: 5
+            }),
+            {
+                // This lifecycle hook runs right before Workbox saves the file to cache
+                cacheWillUpdate: async ({ request, response }) => {
+                    let responseUrl = new URL(response.url);
+                    
+                    // If the network request was redirected to an external domain,
+                    // return null to tell Workbox: "Do not attempt to cache this response"
+                    if (responseUrl.origin !== self.location.origin) {
+                        return null; 
+                    }
+                    
+                    // Otherwise, it's a normal internal Markify page, safe to cache
+                    return response;
+                }
+            }
+        ]
+    })
+);
+
+// 7. This fires whenever ANY registered route fails to provide a response
 setCatchHandler(async ({ request }) => {
     switch (request.destination) {
         case "image":

@@ -20,6 +20,7 @@ export default defineConfig({
       gzipSize: true,
       filename: "bundle-analysis.html"
     }),*/
+    //resilientImportsPlugin(),
     legacy({
       targets: [
         "defaults", "not IE 11"
@@ -35,11 +36,10 @@ export default defineConfig({
       buildBase: "/",
       injectManifest: {
         maximumFileSizeToCacheInBytes: 15 * 1024 * 1024,
-        globPatterns: ["**/*.{js,css,html,ico,png,svg,woff2}"], // Files to precache
+        globPatterns: ["index.html", "assets/**/*.{js,css,woff2,svg}"], // Files to precache
         globIgnores: ["**/images/**", "**/*.png", "**/*.jpg", "**/*.jpeg", "**/*.webp", "**/*.gif", "**/*.mp3", "**/*.mp4"]
       }
-    }),
-    resilientImportsPlugin()
+    })
   ],
   resolve: {
     alias: {

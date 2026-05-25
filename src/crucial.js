@@ -72,20 +72,23 @@ export let subscribes = [];
 export let pageTheme;
 export let pageAllowsBackgroundChange = false;
 
+/*window.__assetsBase = import.meta.url;
 window.resilientImport = (path) => { // Use __import__ so it's not loopback converted to itself!
   return new Promise(async (resolve) => {
     try {
       resolve(await __import__(path));
-    } catch (err) {
+    } catch {
       if (navigator.onLine == true) {
         try {
-          resolve(await __import__(path + "?retry=" + getEpoch()));
-        } catch {}
+          let absolutePath = new URL(path, window.__assetsBase).href;
+          resolve(await __import__(absolutePath + "?retry=" + getEpoch()));
+        } catch {
+          resolve();
+        }
       }
-      resolve();
     }
   });
-}
+}*/
 
 export const changeGlobalImports = (global, func) => {
   func = func ?? ((key) => { return key.toLowerCase(); });

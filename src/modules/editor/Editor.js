@@ -792,6 +792,8 @@ export class Editor {
       return this.updateChunks();
     }
 
+    this.lockResizeCenterPosition = true;
+
     clearTimeout(this.recenterTimeoutFromSimulatedResize);
 
     let jumpAnnotation = null;
@@ -884,22 +886,27 @@ export class Editor {
         this.resizeCenterPosition = this.getCenterPosition();
       }
       clearTimeout(this.clearResizeCenterPosition);
-      this.clearResizeCenterPosition = setTimeout(() => { this.resizeCenterPosition = null; }, 200);
+      this.clearResizeCenterPosition = setTimeout(() => {
+        delete this.resizeCenterPosition;
+        delete this.lockResizeCenterPosition;
+      }, 200);
       
       this.updatePageSize();
       await this.render.setMarginSize();
 
-      if (event.simulated != true) {
-        this.goToCenterPosition(this.resizeCenterPosition.x, this.resizeCenterPosition.y);
-      } else {
-        clearTimeout(this.recenterTimeoutFromSimulatedResize);
-        this.recenterTimeoutFromSimulatedResize = setTimeout(() => {
-          if (this.annotationPages.length > 0) {
-            this.utils.updateAnnotationScroll(this.annotationPages[this.currentPage - 1]);
-          } else {
-            this.utils.centerWindowWithPage();
-          }
-        }, 100);
+      if (this.lockResizeCenterPosition != true) {
+        if (event.simulated != true) {
+          this.goToCenterPosition(this.resizeCenterPosition.x, this.resizeCenterPosition.y);
+        } else {
+          clearTimeout(this.recenterTimeoutFromSimulatedResize);
+          this.recenterTimeoutFromSimulatedResize = setTimeout(() => {
+            if (this.annotationPages.length > 0) {
+              this.utils.updateAnnotationScroll(this.annotationPages[this.currentPage - 1]);
+            } else {
+              this.utils.centerWindowWithPage();
+            }
+          }, 100);
+        }
       }
     }, { sort: 1 });
     this.updatePageSize();

@@ -1297,15 +1297,15 @@ if (currentLoading != null) {
   currentLoading.setAttribute("appload", "");
 }
 
-if ("serviceWorker" in navigator) {
+/*if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => {
     try {
-      navigator.serviceWorker.register("../serviceworker.js").catch((err) => {
+      navigator.serviceWorker.register("/serviceworker.js").catch((err) => {
         console.log("Service Worker failed to register:", err);
       });
     } catch(err) { console.log(err); }
   });
-}
+}*/
 window.addEventListener("beforeinstallprompt", (event) => {
   event.preventDefault();
   window.deferredPrompt = event;

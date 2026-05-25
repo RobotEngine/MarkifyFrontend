@@ -1,8 +1,9 @@
 import { defineConfig } from "vite";
 import path from "path";
 
-import legacy from "@vitejs/plugin-legacy";
 import { visualizer } from "rollup-plugin-visualizer";
+import legacy from "@vitejs/plugin-legacy";
+import { VitePWA } from "vite-plugin-pwa";
 
 // sudo npm run dev
 
@@ -11,17 +12,31 @@ import { visualizer } from "rollup-plugin-visualizer";
 
 export default defineConfig({
   plugins: [
-    legacy({
-      targets: [
-        "defaults", "not IE 11"
-      ] 
-    }),
     /*visualizer({
       template: "treemap",
       open: true,
       gzipSize: true,
       filename: "bundle-analysis.html"
-    })*/
+    }),*/
+    legacy({
+      targets: [
+        "defaults", "not IE 11"
+      ] 
+    }),
+    VitePWA({
+      //devOptions: { enabled: true, type: "module" },
+      manifest: false,
+      strategies: "injectManifest",
+      srcDir: "src", // Directory where your sw.js lives
+      filename: "serviceworker.js", // Name of your service worker file
+      registerType: "autoUpdate", // Automatically activates new versions
+      buildBase: "/",
+      injectManifest: {
+        maximumFileSizeToCacheInBytes: 15 * 1024 * 1024,
+        globPatterns: ["**/*.{js,css,html,ico,png,svg,woff2}"], // Files to precache
+        globIgnores: ["**/images/**", "**/*.png", "**/*.jpg", "**/*.jpeg", "**/*.webp", "**/*.gif", "**/*.mp3", "**/*.mp4"]
+      }
+    })
   ],
   resolve: {
     alias: {

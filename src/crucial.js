@@ -72,7 +72,45 @@ export let subscribes = [];
 export let pageTheme;
 export let pageAllowsBackgroundChange = false;
 
-/*window.__assetsBase = import.meta.url;
+/*
+const moduleCache = new Map();
+window.__assetsBase = import.meta.url;
+window.resilientImport = (path) => { // Use __import__ so it's not loopback converted to itself!
+  return new Promise(async (resolve) => {
+    if (moduleCache.has(path) == true) {
+      return moduleCache.get(path);
+    }
+    
+    try {
+      // 1. Get code using fetch() from path:
+      let absolutePath = new URL(path, window.__assetsBase).href;
+      let response = await fetch(absolutePath);
+      if (response.ok != true) {
+        return resolve();
+      }
+
+      // 2. Convert to blob URL:
+      let blobURL = URL.createObjectURL(
+        new Blob([ await response.text() ], { type: "application/javascript" })
+      );
+
+      // 3. Import from blob:
+      let module = await __import__(blobURL);
+
+      // 4. Cleanup and set module cache:
+      URL.revokeObjectURL(blobURL);
+      moduleCache.set(path, module);
+      
+      resolve(module);
+    } catch {
+      resolve();
+    }
+  });
+}
+*/
+
+/*
+window.__assetsBase = import.meta.url;
 window.resilientImport = (path) => { // Use __import__ so it's not loopback converted to itself!
   return new Promise(async (resolve) => {
     try {
@@ -88,7 +126,8 @@ window.resilientImport = (path) => { // Use __import__ so it's not loopback conv
       }
     }
   });
-}*/
+}
+*/
 
 export const changeGlobalImports = (global, func) => {
   func = func ?? ((key) => { return key.toLowerCase(); });

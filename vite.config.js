@@ -1,8 +1,8 @@
 import { defineConfig } from "vite";
 import path from "path";
 
-import { visualizer } from "rollup-plugin-visualizer";
 import legacy from "@vitejs/plugin-legacy";
+import { visualizer } from "rollup-plugin-visualizer";
 import { VitePWA } from "vite-plugin-pwa";
 
 import resilientImportsPlugin from "./plugins/resilient-imports";

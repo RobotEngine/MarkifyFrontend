@@ -6,6 +6,8 @@ import { textColorBackground } from "../../utils/text-color-background";
 
 import { EMOJIS } from "../../imports";
 
+import reactionIcon from "../../icons/actions/reaction.svg?raw";
+
 export class Annotation extends BaseAnnotation {
   ALLOW_SELECT_OVERFLOW = true;
   ALLOW_RICHTEXT_COLOR = false;
@@ -43,7 +45,7 @@ export class Annotation extends BaseAnnotation {
         <div edit></div>
         <div footer>
           <div signature></div>
-          <div reactions><button class="eReaction" add dropdowntitle="Reactions" noscrollclose><div imgholder><img src="../images/editor/actions/reaction.svg"></div></button></div>
+          <div reactions><button class="eReaction" add dropdowntitle="Reactions" noscrollclose><div imgholder>${reactionIcon}</div></button></div>
         </div>
       </div>`;
       this.holder.appendChild(this.element);
@@ -121,7 +123,7 @@ export class Annotation extends BaseAnnotation {
         presentReactions.push(reaction.emoji);
         let reactionElem = reactionHolder.querySelector('.eReaction[emoji="' + reaction.emoji + '"');
         if (reactionElem == null) {
-          reactionHolder.insertAdjacentHTML("beforeend", `<button class="eReaction" unloaded new><div imgholder><img src="../images/editor/actions/reaction.svg"></div><div count></div></button>`);
+          reactionHolder.insertAdjacentHTML("beforeend", `<button class="eReaction" unloaded new><div imgholder></div><div count></div></button>`);
           reactionElem = reactionHolder.querySelector(".eReaction[new]");
           reactionHolder.insertBefore(reactionElem, addReactionButton);
           reactionElem.removeAttribute("new");
@@ -165,10 +167,11 @@ export class Annotation extends BaseAnnotation {
                 let emoji = this.editor.render.emojiDictionary[loadReaction.getAttribute("emoji")];
                 loadReaction.removeAttribute("unloaded");
                 loadReaction.title = emoji.short_name.replace(/_/g, " ");
-                let image = loadReaction.querySelector("img");
+                let image = document.createElement("img");
                 image.src = "../images/editor/emojis/twitter32.png";
                 image.style.objectPosition = (-((emoji.sheet_x * this.editor.render.emojiModule.sheetSize) + 1)) + "px " + (-((emoji.sheet_y * this.editor.render.emojiModule.sheetSize) + 1)) + "px";
                 image.style.objectFit = "none";
+                loadReaction.querySelector("div[imgholder]").appendChild(image);
               }
             }
           })();

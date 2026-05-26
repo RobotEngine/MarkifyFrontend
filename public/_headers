@@ -2,7 +2,7 @@
   X-Frame-Options: ALLOWALL
   X-Content-Type-Options: nosniff
   Referrer-Policy: strict-origin-when-cross-origin
-  Content-Security-Policy: script-src 'self' data: 'sha256-w36slEqa9euNKxfvkw+LLGsDIr++3rsZXpZxtmRh8Aw=' 'sha256-+5XkZFazzJo8n0iOP4ti/cLCMUudTf//Mzkb7xNPXIc=' 'sha256-nRcgRt3XNN0aZXdzMDUhXYSzvNDbxXeNTBXS8ajcR38=' https://*.simplesocket.net https://*.exotek.co https://*.googleapis.com https://*.cloudflare.com; frame-src * blob:
+  Content-Security-Policy: script-src 'self' data: 'sha256-saW1wFw9k+ji/e/imx/zV6bxl71vISF0yrEoD60cUGo=' 'sha256-w36slEqa9euNKxfvkw+LLGsDIr++3rsZXpZxtmRh8Aw=' 'sha256-+5XkZFazzJo8n0iOP4ti/cLCMUudTf//Mzkb7xNPXIc=' 'sha256-nRcgRt3XNN0aZXdzMDUhXYSzvNDbxXeNTBXS8ajcR38=' https://*.simplesocket.net https://*.exotek.co https://*.googleapis.com https://*.cloudflare.com; frame-src * blob:
 
 /join
   ! Content-Security-Policy

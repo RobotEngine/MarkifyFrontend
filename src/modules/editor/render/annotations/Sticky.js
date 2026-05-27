@@ -31,6 +31,7 @@ export class Annotation extends BaseAnnotation {
     ".eContent[anonymous] .eAnnotation[sticky] div[signature]": `filter: blur(4px); pointer-events: none`,
     ".eAnnotation[sticky] div[signature]": `margin-left: auto; opacity: .5; font-size: 14px; font-weight: 600; text-overflow: ellipsis; white-space: nowrap; overflow: hidden; taxt-align: right`,
     ".eAnnotation[sticky] div[reactions]": `display: flex; flex-wrap: wrap; flex: 1; gap: 6px; background: var(--themeColor); pointer-events: all; z-index: 999; background: none`,
+    ".eAnnotation[sticky] .eReaction[add] svg": `width: 100%; height: 100%`,
     ".eAnnotation[sticky]:hover .eReaction[add]": `opacity: 1`,
     ".eAnnotation[sticky][selected] .eReaction[add]": `opacity: 1`,
     ".eAnnotation[sticky][selected] button": `pointer-events: all`

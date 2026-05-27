@@ -802,18 +802,20 @@ export class Selection {
       }
 
       if (this.actionFrame != null) {
-        let actionContent = this.actionFrame.querySelector(".eActionContainerContent");
         let actionContainer = this.actionFrame.querySelector(".eActionContainer");
+        let actionContent = actionContainer.querySelector(".eActionContainerContent");
         let alignTop;
         if (isBottom == false) {
-          alignTop = true;
           if (yPos - actionContent.offsetHeight - 4 < this.editor.scrollOffset) {
             alignTop = false;
+          } else {
+            alignTop = true;
           }
         } else {
-          alignTop = false;
-          if (this.editor.page.offsetHeight - yPos - this.actionFrame.offsetHeight - actionContent.offsetHeight - 4 < this.editor.scrollOffset) {
+          if (this.editor.contentHolder.clientHeight - yPos - this.actionBar.offsetHeight - actionContent.offsetHeight - 4 < this.editor.scrollOffset) {
             alignTop = true;
+          } else {
+            alignTop = false;
           }
         }
 

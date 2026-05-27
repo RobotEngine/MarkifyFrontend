@@ -1,4 +1,4 @@
-import { sendRequest, subscribe, copyObject } from "@/crucial";
+import { sendRequest, subscribe, copyObject, sleep } from "@/crucial";
 
 import { Editor } from "@modules/editor/Editor";
 import { REALTIME } from "@modules/editor/imports";
@@ -142,7 +142,7 @@ export class MasonryLayout {
         continue;
       }
       await tile.editor.updatePageSize();
-      
+
       if (body != null) {
         root = root ?? {};
         await tile.editor.loadAnnotations(copyObject({
@@ -585,12 +585,8 @@ export class MasonryLayout {
           top: parentRectY + tile.y,
           bottom: parentRectY + tile.y + tile.height
         };
-        
-        if (this.parent.resized == true) {
+        if (this.resized == true) {
           await tile.editor.render.setMarginSize();
-        }
-        if (tile.editor != null) {
-          tile.editor.updateChunks();
         }
       }
       tile.editor.pipeline.subscribe("overviewZoomChange" , "zoom_change", () => {

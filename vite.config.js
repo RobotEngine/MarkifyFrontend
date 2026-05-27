@@ -22,9 +22,9 @@ export default defineConfig({
     }),*/
     //resilientImportsPlugin(),
     legacy({
-      targets: [
-        "defaults", "not IE 11"
-      ] 
+      //renderModernChunks: false,
+      //renderLegacyChunks: true,
+      targets: [ "defaults", "not IE 11" ]
     }),
     VitePWA({
       //devOptions: { enabled: true, type: "module" },

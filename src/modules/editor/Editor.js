@@ -360,12 +360,7 @@ export class Editor {
   }
 
   holdLoadedChunks = {};
-  alreadyRunningUpdateCycle = false;
   async runUpdateCycle(force) {
-    if (this.alreadyRunningUpdateCycle == true) {
-      return;
-    }
-
     if (this.pinching == true && force != true) {
       if (this.pinchingUpdateTimeout == null) {
         this.pinchingUpdateTimeout = setTimeout(() => { this.runUpdateCycle(true); }, 200);
@@ -374,7 +369,11 @@ export class Editor {
     }
     this.pinchingUpdateTimeout = null;
 
-    this.alreadyRunningUpdateCycle = true;
+    if (this.runningUpdateCycle == true) {
+      this.reRunUpdateCycle = true;
+      return;
+    }
+    this.runningUpdateCycle = true;
 
     let unloadChunkedAnnotations = {};
     let newlyUnloaded = {};
@@ -463,7 +462,12 @@ export class Editor {
         await this.render.create(annotation);
       }
     }
-    this.alreadyRunningUpdateCycle = false;
+
+    this.runningUpdateCycle = false;
+    if (this.reRunUpdateCycle == true) {
+      this.reRunUpdateCycle = false;
+      this.runUpdateCycle();
+    }
   }
   async updateChunks() {
     if (this.running == false || this.exporting == true) {
@@ -512,7 +516,7 @@ export class Editor {
     }
     if (hasChanged == true) {
       this.visibleChunks = newVisibleChunks;
-      await this.runUpdateCycle();
+      this.runUpdateCycle();
     }
     
     clearTimeout(this.updatePageTimeout);

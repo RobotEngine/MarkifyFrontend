@@ -99,7 +99,7 @@ registerRoute(
     // Check Workbox precache:
     let cachedResponse = await matchPrecache(url.pathname);
     if (cachedResponse != null) {
-      //return cachedResponse;
+      return cachedResponse;
     }
 
     // Check runtime cache:

@@ -30,4 +30,5 @@
 
 # Vite hashed assets - Cached for 3 months
 /assets/*
+  ! Cache-Control
   Cache-Control: public, max-age=7776000, immutable

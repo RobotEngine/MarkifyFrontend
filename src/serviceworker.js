@@ -121,14 +121,19 @@ registerRoute(
         try {
           let response = await fetch(request); // Handle the fetch
 
+          let contentType = response.headers.get("content-type");
+          if (contentType == null || contentType.includes("javascript") == true) {
+            resolve(response);
+          } else {
+            reject(new Error("Invalid content-type header"));
+          }
+
           /*if (response.ok && response.headers.get("content-type")?.includes("javascript")) {
             let cache = await caches.open(SCRIPT_CACHE);
             await cache.put(request, response.clone());
             await scriptCacheExpiration.updateTimestamp(request.url);
             await scriptCacheExpiration.expireEntries();
           }*/
-
-          resolve(response);
 
           delete pendingRequests[id];
           return true;

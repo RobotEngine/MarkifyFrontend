@@ -1370,6 +1370,11 @@ window.addEventListener("beforeinstallprompt", (event) => {
 
 appendCSS(coreStyles);
 
+window.addEventListener('vite:preloadError', (event) => {
+  console.warn("New deployment detected, reloading page to fetch latest version...");
+  window.location.reload(); 
+});
+
 if (import.meta.hot != null) { // Forces a full page refresh only when edit happens here:
   // Decline direct edits to this file:
   import.meta.hot.decline();

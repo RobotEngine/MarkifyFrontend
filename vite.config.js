@@ -35,8 +35,9 @@ export default defineConfig({
       registerType: "autoUpdate", // Automatically activates new versions
       buildBase: "/",
       injectManifest: {
+        //rollupFormat: "iife",
         maximumFileSizeToCacheInBytes: 15 * 1024 * 1024,
-        globPatterns: ["index.html", "assets/**/*.{js,css,woff2,svg}"], // Files to precache
+        globPatterns: ["index.html", "assets/**/*.{js,mjs,css,woff2,svg}"], // Files to precache
         globIgnores: ["**/images/**", "**/*.png", "**/*.jpg", "**/*.jpeg", "**/*.webp", "**/*.gif", "**/*.mp3", "**/*.mp4"]
       }
     })

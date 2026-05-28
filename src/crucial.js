@@ -1370,7 +1370,7 @@ window.addEventListener("beforeinstallprompt", (event) => {
 
 appendCSS(coreStyles);
 
-window.addEventListener('vite:preloadError', (event) => {
+window.addEventListener("vite:preloadError", (event) => {
   console.warn("New deployment detected, reloading page to fetch latest version...");
   window.location.reload(); 
 });

@@ -5,7 +5,7 @@ import { ExpirationPlugin, CacheExpiration } from "workbox-expiration";
 
 cleanupOutdatedCaches();
 
-self.addEventListener("install", () => self.skipWaiting());
+//self.addEventListener("install", () => self.skipWaiting());
 self.addEventListener("activate", e => e.waitUntil(clients.claim()));
 
 // Images — serve from cache, update in background

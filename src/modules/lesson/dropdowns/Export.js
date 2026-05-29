@@ -26,7 +26,7 @@ export class Frame {
 
     if (type == "download") {
       frame.innerHTML = `
-      <button class="eFileExportOption" option="pages" title="Export each page separately into a PDF."><div image>${pagesIcon}</div><div class="eFileExportInfo"><div class="eFileExportTitle">Just the <b>Pages</b></div><div class="eFileExportDesc">Export each page separately into a PDF.</div></div></button>
+      <button class="eFileExportOption" option="pages" title="Export each page into a single PDF."><div image>${pagesIcon}</div><div class="eFileExportInfo"><div class="eFileExportTitle">Just the <b>Pages</b></div><div class="eFileExportDesc">Export each page into a single PDF.</div></div></button>
       <button class="eFileExportOption" option="board" title="Export the entire board as a single page PDF."><div image>${boardIcon}</div><div class="eFileExportInfo"><div class="eFileExportTitle">Entire <b>Document</b></div><div class="eFileExportDesc">Export the entire board as a single page PDF.</div></div></button>
       <button class="eFileExportOption" option="selected" title="Export only the selected elements into a PDF."><div image>${selectedIcon}</div><div class="eFileExportInfo"><div class="eFileExportTitle">Selected <b>Elements</b></div><div class="eFileExportDesc">Export only the selected elements into a PDF.</div></div></button>
       `;

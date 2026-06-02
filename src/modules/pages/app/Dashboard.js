@@ -1,24 +1,4 @@
-import {
-  PageFrame,
-  fixed,
-
-  userID,
-  account,
-
-  mouseDown,
-  hasFeatureEnabled,
-  checkForAuth,
-  setPage,
-  sleep,
-  cleanString,
-  getObject,
-  getLocalStore,
-  setLocalStore,
-  modifyParams,
-  getEpoch,
-  sendRequest,
-  subscribe
-} from "@/crucial";
+import { PageFrame, fixed, userID, account, mouseDown, hasFeatureEnabled, checkForAuth, setPage, sleep, cleanString, getObject, getLocalStore, setLocalStore, modifyParams, getEpoch, sendRequest, subscribe } from "@/crucial";
 
 import { dropdown } from "@modules/utility/Dropdown";
 import { modal } from "@modules/utility/Modal";

@@ -6,6 +6,8 @@ import more from "@assets/more.svg?raw";
 import search from "@assets/search.svg?raw";
 import copy from "@assets/copy.svg?raw";
 import open from "@assets/open.svg?raw";
+import link from "@assets/link.svg?raw";
+import add from "@assets/add.svg?raw";
 
 export {
   close,
@@ -15,5 +17,7 @@ export {
   more,
   search,
   copy,
-  open
+  open,
+  link,
+  add
 };

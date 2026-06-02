@@ -52,8 +52,11 @@ export const head = document.head;
 export const body = document.body;
 export const app = body.querySelector(".app");
 export const fixed = body.querySelector(".fixed");
-export const stylesheet = document.querySelector("style").sheet;
 export const favicon = document.querySelector('link[rel="icon"]');
+
+const styleTag = document.createElement("style");
+head.appendChild(styleTag);
+export const stylesheet = styleTag.sheet;
 
 export const loadingAnim = app.innerHTML;
 
@@ -1337,7 +1340,12 @@ body.addEventListener("click", (event) => {
   }
 });
 window.addEventListener("scroll", () => {
-  if (window.dropdown != null && window.dropdown.button != null && window.dropdown.button.closest("[noscrollclose]") == null && window.dropdown.dropdown.querySelector(".content[noscrollclose]") == null) {
+  if (
+    window.dropdown != null
+    && window.dropdown.button != null
+    && window.dropdown.button.closest("[noscrollclose]") == null
+    && window.dropdown.element.querySelector(".content[noscrollclose]") == null
+  ) {
     dropdownModule.close();
   }
 });
@@ -1412,6 +1420,7 @@ import {
   getParam,
   modifyParams,
   getEpoch,
+  checkForAuth,
   sendRequest,
   socket,
   connected,

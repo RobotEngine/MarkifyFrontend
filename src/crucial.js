@@ -1378,10 +1378,15 @@ window.addEventListener("beforeinstallprompt", (event) => {
 
 appendCSS(coreStyles);
 
-/*window.addEventListener("vite:preloadError", (event) => {
+window.addEventListener("vite:preloadError", (event) => {
   console.warn("New deployment detected, reloading page to fetch latest version...");
-  window.location.reload(); 
-});*/
+  
+  // Prevent an infinite reload cycle if a file is genuinely broken on the server
+  if (sessionStorage.getItem("pwa_sync_lock") == null) {
+    sessionStorage.setItem("pwa_sync_lock", "true");
+    window.location.reload(true);
+  }
+});
 
 if (import.meta.hot != null) { // Forces a full page refresh only when edit happens here:
   // Decline direct edits to this file:

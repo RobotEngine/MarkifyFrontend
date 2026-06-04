@@ -47,6 +47,9 @@ import { LessonFrame } from "@modules/dashboard/LessonFrame";
 import { Frame as LessonOptions } from "@modules/dashboard/LessonOptions";
 import { Frame as GiftDropdown } from "@modules/dropdowns/Gift";
 
+const toolFrameModules = changeGlobalImports(import.meta.glob("@modules/dashboard/tools/**/*.js", { eager: true }));
+const toolFrameModulePath = "/src/modules/dashboard/tools/";
+
 import { close as closeIcon, trash as trashIcon, search as searchIcon, link as linkIcon, add as addIcon } from "@modules/utility/core-icons";
 import logoIcon from "@assets/logo.svg?raw";
 import boardIcon from "@assets/icon.svg?raw";
@@ -82,7 +85,8 @@ export class Page extends PageFrame {
   html = `<div class="dPageHolder">
     <div class="dPage" dropdownholder>
       <div class="dSidebarHolder">
-        <img class="dBackdropImage" src="../images/dashboard/backdrop.svg" />
+        <div class="dSidebarBackdrop"></div>
+        <img class="dSidebarBackdropImage" src="../images/dashboard/backdrop.svg" />
         <div class="dSidebar customScroll">
           <div class="dSidebarSection dSidebarHeader">
             <a class="dSidebarLogo" href="/launch">${logoIcon}</a>
@@ -92,8 +96,8 @@ export class Page extends PageFrame {
           <div class="dSidebarTitle">
             <div title>New Lesson</div><div divider></div></div>
             <div class="dCreateLessonButtonHolder">
-              <a class="dCreateBoardLessonButton largeButton"><div image>${boardIcon}</div>Board<div backdrop></div></a>
-              <a class="dCreateBreakoutLessonButton largeButton"><div image>${breakoutIcon}</div>Breakout<div backdrop></div></a>
+              <a class="dCreateBoardLessonButton largeButton" actiontool="board"><div image>${boardIcon}</div>Board<div backdrop></div></a>
+              <a class="dCreateBreakoutLessonButton largeButton" actiontool="breakout"><div image>${breakoutIcon}</div>Breakout<div backdrop></div></a>
             </div>
           </div>
           <div class="dSidebarSection dSidebarSorts">
@@ -123,6 +127,7 @@ export class Page extends PageFrame {
             <button class="dAccount largeButton border"><img src="../images/profiles/default.svg" accountimage /><div accountuser></div><div backdrop></div></button>
           </div>
         </div>
+        <div class="dSidebarActionContent"></div>
         <div class="dSidebarOpen"><div shadow><div></div></div><button>${openSidebarIcon}</button></div>
       </div>
       <div class="dLessonsHolder customScroll">
@@ -149,15 +154,16 @@ export class Page extends PageFrame {
     ".dPage": `position: relative; display: flex; width: 100%; height: 100%; max-width: 1585px; box-shadow: var(--darkShadow); border-radius: 12px; overflow: hidden`, //transition: .2s
     
     ".dSidebarHolder": `position: relative; max-width: min(270px, 100%); height: 100%; flex-shrink: 0; background: var(--pageColor); z-index: 2; transition: .4s`,
-    ".dBackdropImage": `position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; z-index: 1; opacity: .75; object-fit: cover; z-index: 1; pointer-events: none`,
-    ".dSidebar": `position: relative; display: flex; flex-direction: column; width: 100%; height: 100%; overflow: auto; overscroll-behavior: none; z-index: 2; transition: .4s`,
-    ".dSidebarHolder[open] .dSidebar": `box-shadow: var(--darkShadow)`,
+    ".dSidebarHolder[open]": `box-shadow: var(--darkShadow)`,
+    ".dSidebarBackdrop": `position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; z-index: 2; background: var(--pageColor)`,
+    ".dSidebarBackdropImage": `position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; z-index: 3; opacity: .75; object-fit: cover; z-index: 1; pointer-events: none`,
+    ".dSidebar": `position: relative; display: flex; flex-direction: column; width: 100%; height: 100%; overflow: auto; overscroll-behavior: none; z-index: 4; transition: .4s`,
     ".dSidebarSection": `position: sticky; box-sizing: border-box; width: 100%; left: 0px; z-index: 2`,
     ".dSidebarTitle": `display: flex; width: 100%; gap: 8px; align-items: center`,
     ".dSidebarTitle div[title]": `color: var(--secondary); font-weight: 600; font-size: 16px`,
     ".dSidebarTitle div[divider]": `flex: 1; height: 4px; background: var(--hover); border-radius: 2px`,
 
-    ".dSidebarOpen": `position: absolute; display: none; padding: 6px; left: 100%; bottom: 68px; background: var(--pageColor); border-radius: 0 36px 36px 0; z-index: 3`,
+    ".dSidebarOpen": `position: absolute; display: none; padding: 6px; left: 100%; bottom: 68px; background: var(--pageColor); border-radius: 0 36px 36px 0; z-index: 5`,
     ".dSidebarOpen div[shadow]": `position: absolute; width: calc(100% + 12px); height: calc(100% + 24px); left: 0px; top: -12px; border-radius: inherit; overflow: hidden; pointer-events: none`,
     ".dSidebarOpen div[shadow] div": `position: absolute; width: calc(100% - 12px); height: calc(100% - 24px); left: 0px; top: 12px; border-radius: inherit; box-shadow: var(--darkShadow)`,
     ".dSidebarOpen button": `display: flex; width: 80px; height: 60px; border-radius: 10px 30px 30px 10px; justify-content: center; align-items: center`,
@@ -233,6 +239,15 @@ export class Page extends PageFrame {
     ".dAccount div[accountuser]": `max-width: calc(100% - 38px); height: 100%; flex: 1; line-height: 32px; font-size: 18px; font-weight: 600; white-space: nowrap; text-overflow: ellipsis; overflow: hidden`,
     ".dropdownTitle div[accountuser]": `flex: unset`,
 
+    ".dSidebarActionContent": `position: absolute; width: calc(100% + 24px); height: 100%; padding: 12px; left: calc(100% - 12px); top: -12px; z-index: 1; overflow: hidden; pointer-events: none`,
+    ".dSidebarActionContainer": `position: absolute; width: calc(100% - (24px * 2)); height: calc(100% - 24px - 16px); max-height: fit-content; left: 12px; padding-left: 4px; background: var(--pageColor); border-radius: 0 26px 26px 0; opacity: 0; transform: translateX(-100%); pointer-events: all; transition: opacity .3s, transform .3s, top .3s`,
+    ".dSidebarActionContainer:after": `content: ""; position: absolute; width: 4px; height: 100%; left: 0px; top: 0px; background: var(--theme); z-index: 4; transition: .4s`,
+    ".dSidebarActionShadow": `position: absolute; width: 100%; height: 100%; padding: 16px 16px 16px 0; left: 0px; top: -16px; pointer-events: none; border-radius: inherit; overflow: hidden; z-index: -1`,
+    ".dSidebarActionShadow:after": `position: absolute; width: calc(100% - 16px); height: calc(100% - 32px); left: 0px; top: 16px; content: ""; box-shadow: 0px 0px 8px 0px var(--theme); opacity: .3; border-radius: inherit`,
+    ".dSidebarActionContentHolder": `position: relative; width: 100%; max-height: 100%; background: var(--pageColor); z-index: 3; overflow: auto; border-radius: inherit`,
+    ".dSidebarActionContentContainer": `position: relative; width: 100%; height: var(--frameHeight); overflow: hidden; transition: .3s`,
+    ".dSidebarActionContentFrame": `position: absolute; width: 100%; height: fit-content; left: 0px; top: 0px; z-index: 2; transition: .3s`,
+
     ".dLessonsHolder": `position: relative; display: flex; flex-direction: column; width: 100%; min-height: 100%; background: var(--pageColor); overflow-x: hidden; overflow-y: auto; z-index: 1`,
     ".dSelectedTitleHolder": `--percent: 0; position: sticky; display: flex; box-sizing: border-box; width: 100%; padding: 20px; top: 0px; background: rgba(var(--background), calc(.7 * var(--percent))); backdrop-filter: blur(calc(4px * var(--percent))); z-index: 2; transition: background .2s, backdrop-filter .2s, box-shadow .2s`,
     ".dSelectedTitle": `font-size: 28px; font-weight: 600; text-align: left`,
@@ -248,8 +263,6 @@ export class Page extends PageFrame {
     ".dBannerClose": `width: 22px; height: 22px; margin: 3px`,
     ".dBannerAction": `--themeColor: var(--theme); padding: 0 10px; font-size: 16px; font-weight: 600; color: var(--theme); height: 28px; margin: 3px`,
 
-    ".dTilesHolder": `position: relative; width: calc(100% - 40px); min-height: fit-content; height: 100%; margin: 0px 20px 20px 20px; z-index: 1`,
-
     ".dFolderInfo": `display: flex; width: 100%; justify-content: center; align-items: center`,
     ".dFolderColorButton": `position: relative; width: 40px; height: 40px; flex-shrink: 0`,
     ".dFolderColorsHolder": `position: absolute; width: 48px; left: -6px; top: -4px; background: rgba(var(--background), 0); overflow: hidden; border-radius: 16px 26px 26px 16px; transition: width .4s, box-shadow .4s; z-index: 2`,
@@ -262,7 +275,9 @@ export class Page extends PageFrame {
     ".dFolderInfo div[contenteditable]": `padding: 4px 6px; border: solid 3px var(--themeColor); cursor: unset; text-overflow: unset !important; overflow: auto !important`,
     ".dFolderInfoActions": `display: flex; margin-left: 8px`,
     ".dFolderRemove": `display: flex; padding: 6px; --themeColor: var(--error); --themeColor2: var(--error); --borderWidth: 3px; --borderRadius: 20px; color: #fff; justify-content: center; align-items: center`,
-    ".dFolderRemove svg": `width: 22px; height: 22px`
+    ".dFolderRemove svg": `width: 22px; height: 22px`,
+
+    ".dTilesHolder": `position: relative; width: calc(100% - 40px); min-height: fit-content; height: 100%; margin: 0px 20px 20px 20px; z-index: 1`
   };
 
   loadAmount = 25;
@@ -278,6 +293,100 @@ export class Page extends PageFrame {
   folders = {};
 
   sort = "recent";
+
+  //actionContent = null;
+  //actionContentButton = null;
+  //actionContentTool = null;
+  //actionContentContainer = null;
+  //actionContentFrameHeight = null;
+  updateActionContent() {
+    if (this.actionContent == null) {
+      return;
+    }
+    if (this.actionContentButton == null) {
+      return this.closeActionContent();
+    }
+    let actionTool = this.actionContentButton.getAttribute("actiontool");
+    if (this.actionContentTool != actionTool) {
+      this.actionContentTool = actionTool;
+      
+      if (this.actionContentContainer != null) {
+        let removeContentContainer = this.actionContentContainer;
+        setTimeout(() => {
+          removeContentContainer.remove();
+        }, 300);
+        removeContentContainer.style.opacity = 0;
+        removeContentContainer.style.zIndex = 1;
+      }
+
+      let moduleLoad = toolFrameModules[toolFrameModulePath + actionTool + ".js"];
+      if (moduleLoad != null) {
+        let actionContentContainer = document.createElement("div");
+        actionContentContainer.className = "dSidebarActionContentFrame";
+        this.actionContentContainer = actionContentContainer;
+
+        (async () => {
+          let { theme } = await this.setFrame(moduleLoad, actionContentContainer);
+
+          if (actionContentContainer != null && actionContentContainer == this.actionContentContainer) { // Debounce check
+            if (theme != null) {
+              this.actionContent.style.setProperty("--theme", theme);
+            } else {
+              this.actionContent.style.removeProperty("--theme");
+            }
+
+            this.actionContentFrameHeight = actionContentContainer.offsetHeight;
+            actionContentContainer.style.opacity = 1;
+
+            this.updateActionContent();
+          }
+        })();
+
+        this.actionContent.querySelector(".dSidebarActionContentContainer").appendChild(actionContentContainer);
+      }
+    }
+    if (this.actionContentFrameHeight != null) {
+      let pageRect = this.dashboard.getBoundingClientRect();
+      let buttonRect = this.actionContentButton.getBoundingClientRect();
+      let frameTop = buttonRect.top - pageRect.top - 6;
+      let difference = frameTop + this.actionContentFrameHeight - pageRect.height + 8;
+      if (difference > 0) {
+        frameTop -= difference;
+      }
+      this.actionContent.style.top = (Math.max(frameTop, 8) + 12) + "px";
+      this.actionContent.style.setProperty("--frameHeight", this.actionContentFrameHeight + "px");
+    }
+  }
+  openActionContent() {
+    if (this.actionContent != null) {
+      this.closeActionContent();
+    }
+    this.actionContent = document.createElement("div");
+    this.actionContent.className = "dSidebarActionContainer";
+    this.actionContent.innerHTML = `<div class="dSidebarActionShadow"></div><div class="dSidebarActionContentHolder"><div class="dSidebarActionContentContainer"></div></div>`;
+    this.sidebarActionContent.appendChild(this.actionContent);
+    this.updateActionContent();
+    this.actionContent.offsetHeight;
+    this.actionContent.style.transform = "translateX(0%)";
+    this.actionContent.style.opacity = 1;
+  }
+  closeActionContent() {
+    if (this.actionContent == null) {
+      return;
+    }
+    let removeActionContent = this.actionContent;
+    this.actionContent = null;
+    this.actionContentButton = null;
+    this.actionContentTool = null;
+    setTimeout(() => {
+      if (removeActionContent != null) {
+        removeActionContent.remove();
+      }
+    }, 300);
+    removeActionContent.style.removeProperty("transform");
+    removeActionContent.style.removeProperty("opacity");
+    removeActionContent.style.zIndex = 0;
+  }
 
   updateScrollShadows() {
     if (this.lessonsHolder.scrollTop > 0 && this.titleHolder.offsetTop - this.lessonsHolder.scrollTop <= 1) { // Lesson Topbar Shadow:
@@ -311,6 +420,8 @@ export class Page extends PageFrame {
     this.sidebarOpen = false;
     this.sidebarHolder.removeAttribute("open");
     this.sidebarHolder.style.left = -this.sidebar.offsetWidth + "px";
+
+    this.closeActionContent();
   }
 
   updateResize() {
@@ -339,6 +450,7 @@ export class Page extends PageFrame {
     }
 
     this.updateScrollShadows();
+    this.updateActionContent();
   }
 
   unselectSort() {
@@ -453,6 +565,7 @@ export class Page extends PageFrame {
     this.accountHolder = this.sidebar.querySelector(".dSidebarAccountHolder");
     this.updateAlert = this.accountHolder.querySelector(".dSidebarUpdateAlert");
     this.accountButton = this.accountHolder.querySelector(".dAccount");
+    this.sidebarActionContent = this.sidebarHolder.querySelector(".dSidebarActionContent");
     this.sidebarOpenHolder = this.sidebarHolder.querySelector(".dSidebarOpen");
     this.sidebarOpenButton = this.sidebarOpenHolder.querySelector("button");
     this.sidebarOpenButtonIcon = this.sidebarOpenButton.querySelector("svg");
@@ -608,7 +721,10 @@ export class Page extends PageFrame {
     });
 
     // Scroll listeners:
-    this.sidebar.addEventListener("scroll", () => { this.updateScrollShadows(); });
+    this.sidebar.addEventListener("scroll", () => {
+      this.updateScrollShadows();
+      this.updateActionContent();
+    });
     this.lessonsHolder.addEventListener("scroll", (event) => {
       if (this.currentLessonFrame != null && this.currentLessonFrame.scroll != null) {
         this.currentLessonFrame.scroll(event);
@@ -624,5 +740,30 @@ export class Page extends PageFrame {
       this.updateResize();
     });
     this.updateResize();
+
+    // Action content hover listener:
+    this.addEventListener(window, "mousemove", (event) => {
+      let target = event.target;
+      if (this.actionContent != null) {
+        if (target == null || target.closest(".dSidebarActions, .dSidebarActionContainer") == null) {
+          this.closeActionContent();
+        } else {
+          let actionButton = target.closest(".largeButton");
+          if (actionButton != null && actionButton.closest(".dSidebarActions") != null) {
+            this.actionContentButton = actionButton;
+          }
+          this.updateActionContent();
+        }
+      } else if (target != null && this.sidebarOpenButtonVisible != true) {
+        let actionButton = target.closest(".largeButton");
+        if (actionButton != null && actionButton.closest(".dSidebarActions") != null) {
+          this.actionContentButton = actionButton;
+          this.openActionContent();
+        }
+      }
+    });
+    this.addEventListener(document, "mouseleave", (event) => {
+      this.closeActionContent();
+    });
   }
 }

@@ -235,7 +235,7 @@ export class Editor {
   }
   async startTool(button, noExtend, passData) {
     if (this.toolbar != null) {
-      await this.editor.toolbar.toolbar.startTool(button, noExtend, passData);
+      await this.toolbar.toolbar.startTool(button, noExtend, passData);
     }
   }
 

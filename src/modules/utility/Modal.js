@@ -13,7 +13,7 @@ export const Modal = class {
     ".modalContent": `position: absolute; box-sizing: border-box; width: max-content; height: max-content; padding: 6px; overflow: auto`, //background: var(--pageColor)
     ".modalFrame": `position: relative`,
     ".modalHeader": `position: relative; display: flex; gap: 6px; padding: 6px 6px 0 6px; justify-content: space-between; transition: .4s; z-index: 2`,
-    ".modalHeader button": `position: relative; width: 24px; height: 24px; margin: 3px; --borderWidth: 3px; --borderRadius: 14px`,
+    ".modalHeader button": `position: relative; width: 24px; height: 24px; margin: 3px; background: var(--pageColor); --borderWidth: 3px; --borderRadius: 14px`,
     ".modalHeader button svg": `position: absolute; width: calc(100% - 10px); height: calc(100% - 10px); left: 5px; top: 5px`,
     ".modalHeader button:focus-visible": `--borderWidth: 4px`,
     ".modalTitle": `box-sizing: border-box; display: flex; padding: 3px; flex: 1; max-width: fit-content; justify-content: center; align-items: center; white-space: nowrap; overflow: hidden; font-size: 18px; font-weight: 500`,

@@ -13,7 +13,7 @@ export const Dropdown = class {
     ".dropdownContent": `position: absolute; box-sizing: border-box; width: max-content; max-width: var(--dropdownWidth); height: max-content; padding: 6px; overflow: auto`, //background: var(--pageColor)
     ".dropdownFrame": `position: relative`,
     ".dropdownHeader": `position: relative; display: flex; gap: 6px; padding: 6px 6px 0 6px; justify-content: space-between; transition: .4s; z-index: 2`,
-    ".dropdownHeader button": `position: relative; width: 24px; height: 24px; margin: 3px; --borderWidth: 3px; --borderRadius: 14px`,
+    ".dropdownHeader button": `position: relative; width: 24px; height: 24px; margin: 3px; background: var(--pageColor); --borderWidth: 3px; --borderRadius: 14px`,
     ".dropdownHeader button svg": `position: absolute; width: calc(100% - 10px); height: calc(100% - 10px); left: 5px; top: 5px`,
     ".dropdownHeader button:focus-visible": `--borderWidth: 4px`,
     ".dropdownTitle": `box-sizing: border-box; display: flex; padding: 3px; flex: 1; max-width: fit-content; justify-content: center; align-items: center; white-space: nowrap; overflow: hidden; font-size: 18px; font-weight: 500`,

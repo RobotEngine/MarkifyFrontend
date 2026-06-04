@@ -383,7 +383,7 @@ export class Page {
     }
     let configuration = this.parent.parent.lesson.breakout ?? {};
     let options = configuration.options ?? {};
-    if (options.pickTeam == true || extra.members != null) {
+    if (options.pickTeam == true) { // || extra.members != null
       return;
     }
     //if (Object.keys(this.members).length < 1) {

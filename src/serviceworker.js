@@ -119,7 +119,7 @@ registerRoute(
     let requestPromise = new Promise(async (resolve, reject) => {
       let run = async () => {
         try {
-          let response = await fetch(request); // Handle the fetch
+          let response = await fetch(request, { cache: "no-cache" }); // Handle the fetch
 
           let contentType = response.headers.get("content-type");
           if (contentType == null || contentType.includes("javascript") == true) {

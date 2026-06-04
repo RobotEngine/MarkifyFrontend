@@ -9,10 +9,10 @@
 # /privacy   /privacy.html  200
 # /embed     /embed.html    200
 
-# Force a true 404 for missing static chunks (prevents HTML-as-JS error)
-/assets/*  -  404
+# Force a true 404 for missing static chunks (prevents HTML-as-JS error) (DISABLED)
+# /assets/*  -  404
 
-# SPA Catch-all (Must be last):
+# SPA Catch-all (Must be last): (DISABLED)
 # This handles /join, /export, /embed, AND React/Vue routing.
 # Cloudflare will check if /join.html exists first; if not, it hits this.
-/*         /index.html    200
+# /*         /index.html    200

@@ -5,7 +5,7 @@ import { ExpirationPlugin, CacheExpiration } from "workbox-expiration";
 
 cleanupOutdatedCaches();
 
-//self.addEventListener("install", () => self.skipWaiting());
+self.addEventListener("install", () => self.skipWaiting());
 self.addEventListener("activate", e => e.waitUntil(clients.claim()));
 
 // Images — serve from cache, update in background
@@ -125,7 +125,12 @@ registerRoute(
           if (contentType == null || contentType.includes("javascript") == true) {
             resolve(response);
           } else {
-            reject(new Error("Invalid content-type header"));
+            //reject(new Error("Invalid content-type header"));
+            resolve(new Response("Script asset not found (SPA Fallback Intercepted)", {
+              status: 404,
+              statusText: "Not Found",
+              headers: { "Content-Type": "text/plain" }
+            }));
           }
 
           /*if (response.ok && response.headers.get("content-type")?.includes("javascript")) {

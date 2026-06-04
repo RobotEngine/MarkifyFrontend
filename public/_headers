@@ -32,3 +32,17 @@
 /assets/*
   ! Cache-Control
   Cache-Control: public, max-age=7776000, immutable
+
+# Prevent the Service Worker from being cached so it can instantly spot updates
+/sw.js
+  ! Cache-Control
+  Cache-Control: no-store, no-cache, must-revalidate, max-age=0
+  Pragma: no-cache
+  Expires: 0
+
+# Prevent index.html from being cached so it always points to the newest hashed JS files
+/index.html
+  ! Cache-Control
+  Cache-Control: no-store, no-cache, must-revalidate, max-age=0
+  Pragma: no-cache
+  Expires: 0

@@ -550,14 +550,8 @@ export const setPage = async (path, extra) => {
   extra = extra ?? {};
   extra.path = path;
 
-  if (currentPageModule != null) {
-    if (currentPageModule.close != null) {
-      currentPageModule.close();
-    }
-    if (path != currentPage && currentPageModule.exit != null) {
-      currentPageModule.exit();
-    }
-    currentPageModule = null;
+  if (currentPageModule != null && currentPageModule.close != null) {
+    currentPageModule.close();
   }
 
   let page = await setFrame(new Promise(async (resolve) => {
@@ -571,6 +565,11 @@ export const setPage = async (path, extra) => {
     return;
   }
 
+  if (path != currentPage && currentPageModule != null && currentPageModule.exit != null) {
+    currentPageModule.exit();
+  }
+  currentPageModule = page;
+
   currentPage = path;
 
   if (page.title != null) {
@@ -581,8 +580,6 @@ export const setPage = async (path, extra) => {
   if (favicon.href != "https://markifyapp.com/images/favicon.png") {
     favicon.href = "https://markifyapp.com/images/favicon.png";
   }
-
-  currentPageModule = page;
   
   return page;
 }

@@ -815,8 +815,9 @@ export class Page extends PageFrame {
               return;
             }
             let lesson = this.lessons[lessonID];
-            let currentRecord = lesson.record ?? {};
+            let currentRecord = {};
             if (lesson != null) {
+              currentRecord = lesson.record ?? {};
               if (body.lesson == null) {
                 objectUpdate(body, lesson);
                 if (this.currentLessonFrame != null) {

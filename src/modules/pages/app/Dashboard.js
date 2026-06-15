@@ -1441,35 +1441,37 @@ export class Page extends PageFrame {
     });
 
     // Action content hover listener:
-    this.addEventListener(window, "mousemove", (event) => {
-      let target = event.target;
-      if (this.actionContent != null) {
-        if (
-          target == null
-          || (
-            target.closest(".dSidebarActions, .dSidebarActionContainer") == null
-            && target.classList.contains("dSidebar") == false
-          )
-          ) {
-          this.closeActionContent();
-        } else {
+    if (window.matchMedia("(hover: hover) and (pointer: fine)").matches == true) {
+      this.addEventListener(window, "mousemove", (event) => {
+        let target = event.target;
+        if (this.actionContent != null) {
+          if (
+            target == null
+            || (
+              target.closest(".dSidebarActions, .dSidebarActionContainer") == null
+              && target.classList.contains("dSidebar") == false
+            )
+            ) {
+            this.closeActionContent();
+          } else {
+            let actionButton = target.closest(".largeButton");
+            if (actionButton != null && actionButton.closest(".dSidebarActions") != null) {
+              this.actionContentButton = actionButton;
+            }
+            this.updateActionContent();
+          }
+        } else if (target != null && this.sidebarOpenButtonVisible != true) {
           let actionButton = target.closest(".largeButton");
           if (actionButton != null && actionButton.closest(".dSidebarActions") != null) {
             this.actionContentButton = actionButton;
+            this.openActionContent();
           }
-          this.updateActionContent();
         }
-      } else if (target != null && this.sidebarOpenButtonVisible != true) {
-        let actionButton = target.closest(".largeButton");
-        if (actionButton != null && actionButton.closest(".dSidebarActions") != null) {
-          this.actionContentButton = actionButton;
-          this.openActionContent();
-        }
-      }
-    });
-    this.addEventListener(document, "mouseleave", (event) => {
-      this.closeActionContent();
-    });
+      });
+      this.addEventListener(document, "mouseleave", (event) => {
+        this.closeActionContent();
+      });
+    }
 
     // Sidebar click listener:
     this.sidebar.addEventListener("click", async ({ target }) => {

@@ -206,15 +206,15 @@ export class Page extends PageFrame {
     ".dropdownTitle div[accountuser]": `flex: unset`,
 
     ".dSidebarActionContent": `position: absolute; width: calc(100% + 24px); height: 100%; padding: 12px; left: calc(100% - 12px); top: -12px; z-index: 1; overflow: hidden; pointer-events: none`,
-    ".dSidebarActionContainer": `position: absolute; width: calc(100% - (24px * 2)); height: calc(100% - 24px - 16px); max-height: fit-content; left: 12px; padding-left: 4px; background: var(--pageColor); border-radius: 0 26px 26px 0; opacity: 0; transform: translateX(-100%); pointer-events: all; transition: opacity .3s, transform .3s, top .3s`, // var(--bounce)
-    ".dSidebarActionContainer:after": `content: ""; position: absolute; width: 4px; height: 100%; left: 0px; top: 0px; background: var(--theme); z-index: 4; transition: .4s`,
+    ".dSidebarActionContainer": `position: absolute; width: calc(100% - (24px * 2)); height: min(calc(100% - 24px - 16px), var(--frameHeight)); left: 12px; padding-left: 4px; background: var(--pageColor); border-radius: 0 26px 26px 0; opacity: 0; transform: translateX(-100%); pointer-events: all; transition: opacity .3s, transform .3s, top .3s, height .3s`, // var(--bounce)
+    ".dSidebarActionContainer:after": `content: ""; position: absolute; width: 4px; height: 100%; left: 0px; top: 0px; background: var(--theme); z-index: 4; transition: .3s`,
     ".dSidebarActionShadow": `position: absolute; width: 100%; height: 100%; padding: 16px 16px 16px 0; left: 0px; top: -16px; pointer-events: none; border-radius: inherit; overflow: hidden; z-index: -1`,
     ".dSidebarActionShadow:after": `position: absolute; width: calc(100% - 16px); height: calc(100% - 32px); left: 0px; top: 16px; content: ""; box-shadow: 0px 0px 8px 0px var(--theme); opacity: .3; border-radius: inherit`,
     ".dSidebarActionContentHolder": `position: relative; width: 100%; max-height: 100%; background: var(--pageColor); z-index: 3; overflow: auto; border-radius: inherit`,
     ".dSidebarActionContentContainer": `position: relative; width: 100%; height: var(--frameHeight); overflow: hidden; transition: .3s`,
     ".dSidebarActionContentFrame": `position: absolute; width: 100%; height: fit-content; left: 0px; top: 0px; opacity: 0; z-index: 2; transition: .3s`,
 
-    ".dLessonsHolder": `position: relative; display: flex; flex-direction: column; width: 100%; min-height: 100%; background: var(--pageColor); overflow-x: hidden; overflow-y: auto; z-index: 1; transition: .4s; outline: none !important`,
+    ".dLessonsHolder": `position: relative; display: flex; flex-direction: column; width: 100%; min-height: 100%; background: var(--pageColor); overflow-x: hidden; overflow-y: auto; z-index: 1; transition: .3s; outline: none !important`,
     ".dSelectedTitleHolder": `--percent: 0; position: sticky; display: flex; box-sizing: border-box; width: 100%; padding: 20px; top: 0px; background: rgba(var(--background), calc(.7 * var(--percent))); backdrop-filter: blur(calc(4px * var(--percent))); z-index: 2; transition: background .2s, backdrop-filter .2s, box-shadow .2s`,
     ".dSelectedTitle": `font-size: 28px; font-weight: 600; text-align: left`,
     ".dBannerHolder": `display: none; box-sizing: border-box; width: 100%; height: fit-content; transition: .4s`,

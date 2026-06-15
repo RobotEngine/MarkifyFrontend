@@ -434,11 +434,11 @@ export class Page extends PageFrame {
   checkTime(sort, record) {
     switch (sort) {
       case "shared":
-        return record.added;
+        return record.added ?? record.opened;
       case "owned":
-        return record.added;
+        return record.added ?? record.opened;
       case "newest":
-        return record.added;
+        return record.added ?? record.opened;
     }
     return record.opened ?? record.added;
   }

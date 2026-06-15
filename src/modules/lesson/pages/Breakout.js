@@ -187,8 +187,6 @@ export class Page {
 
     // Initialize Breakout:
     if (this.parent.self.access < 4) { // Open to a Member View:
-      //await sleep(500); // TEMP: REMOVE LATER!!!
-
       if (this.parent.self.group != null) { // Open to the Group:
         this.currentGroupID = this.parent.self.group;
         await this.openPage("primary", "group");

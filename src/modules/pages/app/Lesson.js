@@ -577,6 +577,7 @@ export class Page extends PageFrame {
         }
         switch (data.task) {
           case "kick":
+            this.session = null;
             if (userID == null || data.filled == true) {
               setPage("pages/app/join", { passParams: data.filled == true });
             } else {
@@ -585,6 +586,7 @@ export class Page extends PageFrame {
             alertModule.open("error", "<b>You've Been Kicked</b>The lesson owner has removed you from the lesson.");
             break;
           case "delete":
+            this.session = null;
             if (userID == null || data.filled == true) {
               setPage("pages/app/join", { passParams: data.filled == true });
             } else {
@@ -742,10 +744,13 @@ export class Page extends PageFrame {
                     setFrame("pages/app/join", null, { passParams: true });
                   }
                 }
-                if (body.hasOwnProperty("tool") == true && body.breakout != null) {
+                if (body.hasOwnProperty("tool") == true) {
                   for (let i = 0 ; i < body.tool.length; i++) {
                     let tool = body.tool[i];
                     if (this.pages[tool] == null) {
+                      if (tool == "breakout" && body.hasOwnProperty("breakout") == false) {
+                        continue;
+                      }
                       let nextPageID = body.tool[i + 1];
                       let insertBefore;
                       if (nextPageID != null) {

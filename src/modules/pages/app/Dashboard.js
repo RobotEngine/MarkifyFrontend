@@ -1088,8 +1088,8 @@ export class Page extends PageFrame {
           this.dragContext.element.style.setProperty("--themeColor", "var(--theme)");
         }
         this.dragContext.element.style.background = "var(--pageColor)";
-        this.dragContext.element.style.boxShadow = "var(--shadow)";
-        this.dragContext.element.style.borderRadius = 8 + "px";
+        this.dragContext.element.style.boxShadow = "var(--lightShadow)";
+        this.dragContext.element.style.borderRadius = "12px";
         this.dragContext.element.style.zIndex = 10;
         this.dragContext.element.style.pointerEvents = "none";
         let originalRect = this.dragContext.originalElement.getBoundingClientRect();

@@ -62,6 +62,7 @@ export const loadingAnim = app.innerHTML;
 
 export let currentPage = "";
 let currentPageLoadId;
+let currentPageModule;
 let defaultPage = "pages/launch";
 
 export let account = {};
@@ -476,10 +477,13 @@ export const setFrame = async (modulePromise, frame, extra, parent) => {
     svgHolder.style.height = svgHolder.clientHeight + "px";
   }
   if (continueLoading == true) {
-    frameSet.insertAdjacentHTML("beforeend", `<div class="content" style="opacity: 0; transition: all .3s, max-height 0s" new>${(module.html ?? "")}</div>`);
-    let frameContent = frameSet.querySelector(".content[new]");
+    let frameContent = document.createElement("div");
+    frameContent.className = "content";
+    frameContent.style.opacity = 0;
+    frameContent.style.transition = "all .3s, max-height 0s";
+    frameContent.innerHTML = module.html ?? "";
+    frameSet.appendChild(frameContent);
     module.frame = frameContent;
-    frameContent.removeAttribute("new");
 
     if (frameSet == app) {
       frameContent.setAttribute("hideoverflow", "");
@@ -546,6 +550,16 @@ export const setPage = async (path, extra) => {
   extra = extra ?? {};
   extra.path = path;
 
+  if (currentPageModule != null) {
+    if (currentPageModule.close != null) {
+      currentPageModule.close();
+    }
+    if (path != currentPage && currentPageModule.exit != null) {
+      currentPageModule.exit();
+    }
+    currentPageModule = null;
+  }
+
   let page = await setFrame(new Promise(async (resolve) => {
     let loadModuleFunction = pages["/src/modules/" + path + ".js"];
     if (loadModuleFunction == null) {
@@ -567,6 +581,8 @@ export const setPage = async (path, extra) => {
   if (favicon.href != "https://markifyapp.com/images/favicon.png") {
     favicon.href = "https://markifyapp.com/images/favicon.png";
   }
+
+  currentPageModule = page;
   
   return page;
 }

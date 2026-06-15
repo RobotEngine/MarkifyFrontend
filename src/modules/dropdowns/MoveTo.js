@@ -1,7 +1,4 @@
-import {
-  sleep,
-  sendRequest
-} from "@/crucial";
+import { sleep, sendRequest, getEpoch } from "@/crucial";
 
 import { alert as alertModule } from "@modules/utility/Alert";
 

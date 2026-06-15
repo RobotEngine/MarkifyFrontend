@@ -152,10 +152,10 @@ export class Page {
     ".broOpenBoard button svg": `width: 32px; height: 32px; transition: .2s`,
     ".broOpenBoard button:hover svg": `transform: scale(.9)`,
 
-    ".broTile": `position: absolute; width: var(--columnWidth); height: fit-content; left: 0px; top: 0px; z-index: 1; transition: .3s`, // will-change: transform;
+    ".broTile": `--shadow: var(--lightShadow); position: absolute; width: var(--columnWidth); height: fit-content; left: 0px; top: 0px; border-radius: 16px; z-index: 1; transition: .3s`, // will-change: transform;
     ".broTile[disabled] *": `pointer-events: none !important`,
-    ".broTileContent": `--shadow: var(--lightShadow); position: relative; display: flex; flex-direction: column; width: 100%; height: 100%; background: var(--pageColor); box-shadow: var(--shadow); border-radius: 16px; contain: strict; overflow: hidden; transition: .2s, transform .1s`,
-    ".broTile:hover .broTileContent": `--shadow: var(--darkShadow) !important`,
+    ".broTile:hover, .broTile:focus-within": `--shadow: var(--darkShadow) !important`,
+    ".broTileContent": `position: relative; display: flex; flex-direction: column; width: 100%; height: 100%; background: var(--pageColor); box-shadow: var(--shadow); border-radius: 16px; contain: strict; overflow: hidden; transition: .2s, transform .1s`,
     ".broTile:active .broTileContent": `transform: scale(.95)`,
     ".broTilePreviewContainer": `position: relative; flex-shrink: 0; width: 100%; height: var(--previewHeight); z-index: 1`,
     ".broTile:not([disabled]) .broTilePreviewContainer:after": `content: ""; position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; pointer-events: all !important`,
@@ -171,7 +171,7 @@ export class Page {
     ".broTileHeaderNameHolderText:focus": `padding: 4px 6px !important; overflow-x: auto !important; text-overflow: unset !important; cursor: text`,
     ".broTileHeaderNameHolderText::-webkit-scrollbar": `display: none`,
     ".broTileHeaderOptions": `display: flex; box-sizing: border-box; padding: 2px; justify-content: center; align-items: center; background: var(--pageColor); opacity: 0; box-shadow: var(--shadow); border-radius: 0 0 0 16px; pointer-events: all; transition: .2s`,
-    ".broTile:hover .broTileHeaderOptions": `opacity: 1 !important`,
+    ".broTile:hover .broTileHeaderOptions, .broTile:focus-within .broTileHeaderOptions": `opacity: 1 !important`,
     ".broTileHeaderOptionsButton": `display: flex; width: 30px; height: 30px; margin: 4px; flex-shrink: 0; justify-content: center; align-items: center; border-radius: 16px`,
     ".broTileHeaderOptionsButton > svg": `flex-shrink: 0; width: 24px; height: 24px`,
     ".broTileHeaderOptionsButton:hover": `background: var(--hover)`,

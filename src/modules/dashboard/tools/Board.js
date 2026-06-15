@@ -10,7 +10,7 @@ export class Frame {
   </div>
   <img class="dSidebarActionFrameBoBanner" src="${boardSloganImg}" />
   <div class="dSidebarActionFrameBoText">The classic Markify whiteboard tool used for note taking and safe whole-class collaboration.</div>
-  <div class="dSidebarActionFrameBoLabel"><b>100% FREE</b> for educators!</div>
+  <div class="dSidebarActionFrameBoLabel"><b>FREE</b> for educators, <b>forever!</b></div>
   `;
   css = {
     ".dSidebarActionFrameBoHeader": `display: flex; flex-wrap: wrap; width: 100%; box-sizing: border-box; gap: 8px; padding: 8px; justify-content: space-between; align-items: center`,

@@ -14,6 +14,13 @@ const lessonPagesPath = "/src/modules/lesson/pages/";
 export class Page extends PageFrame {
   title = "Lesson";
   allowBackgroundChange = true;
+
+  exit() {
+    if (this.session != null) {
+      sendRequest("DELETE", "lessons/leave", null, { session: this.session, allowError: [403, 406] });
+    }
+    delete window.previousLessonSession;
+  }
   
   html = `<div class="lPageHolder"></div>`;
   css = {
@@ -735,7 +742,7 @@ export class Page extends PageFrame {
                     setFrame("pages/app/join", null, { passParams: true });
                   }
                 }
-                if (body.hasOwnProperty("tool") == true) {
+                if (body.hasOwnProperty("tool") == true && body.breakout != null) {
                   for (let i = 0 ; i < body.tool.length; i++) {
                     let tool = body.tool[i];
                     if (this.pages[tool] == null) {

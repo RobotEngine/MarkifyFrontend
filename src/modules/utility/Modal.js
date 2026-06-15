@@ -7,7 +7,7 @@ export const Modal = class {
   cache = {};
 
   css = {
-    ".modal": `position: absolute; box-sizing: border-box; max-width: calc(100% - 16px); max-height: calc(100% - 16px); left: 50%; top: 50%; transform: translate(-50%, -50%); opacity: 0; box-shadow: var(--darkShadow); border-radius: 12px; transform-origin: 50% 25%; pointer-events: all`,
+    ".modal": `position: absolute; box-sizing: border-box; max-width: calc(100% - 16px); max-height: calc(100% - 16px); left: 50%; top: 50%; transform: translate(-50%, -50%); opacity: 0; box-shadow: var(--darkShadow); border-radius: 12px; transform-origin: 50% 25%; pointer-events: all; outline: none !important`,
     ".modal .loading": `pointer-events: none`,
     ".modalOverflow": `position: relative; width: 100%; height: 100%; overflow: hidden; background: var(--pageColor); border-radius: inherit; z-index: 0`,
     ".modalContent": `position: absolute; box-sizing: border-box; width: max-content; height: max-content; padding: 6px; overflow: auto`, //background: var(--pageColor)
@@ -106,7 +106,7 @@ export const Modal = class {
       this.close();
 
       this.parentElement.insertAdjacentHTML("beforeend", `<div class="fixedItemHolder">
-        <div class="modal" new>
+        <div class="modal" tabindex="-1" new>
           <div class="modalOverflow">
             <div class="modalHeader">
               <button class="modalBack buttonAnim border" style="display: none">${backIcon}</button>
@@ -228,6 +228,8 @@ export const Modal = class {
         }
       }, 400);
     }
+
+    this.element.focus();
 
     let loading = this.element.querySelector(".loading");
     if (loading != null) {

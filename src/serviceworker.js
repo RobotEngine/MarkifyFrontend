@@ -162,7 +162,7 @@ registerRoute(
       addToQueue(id, request, resolve, reject, run);
     });
 
-    pendingRequests[id] = {promise: requestPromise, count: 1 };
+    pendingRequests[id] = { promise: requestPromise, count: 1 };
 
     return requestPromise;
   }

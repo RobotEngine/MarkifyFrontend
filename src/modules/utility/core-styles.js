@@ -1,13 +1,13 @@
 export const coreStyles = {
   ".content[hideoverflow]": `max-width: 100vw !important; max-height: 100vh !important; overflow: hidden !important`,
-  "button, a": `border: none; background: none; user-select: none; color: var(--textColor); font-family: var(--font); cursor: pointer; transition: .1s`,
+  "button, a": `border: none; outline: 0 solid var(--theme); background: none; user-select: none; color: var(--textColor); font-family: var(--font); cursor: pointer; transition: .1s`,
   "button:active, a:active": `transform: scale(.975)`,
   "button[activated]": `opacity: 0 !important; transition: opacity .4s !important; pointer-events: none !important`,
   "[disabled]": `pointer-events: none !important; opacity: .5 !important`,
   "[disabled] > *": `pointer-events: none !important`,
   "[hidden]": `pointer-events: none !important; opacity: 0 !important`,
   "[error]": `--borderColor: var(--error) !important; color: var(--error) !important`,
-  ".largeButton, .border": `--themeColor: var(--secondary); --themeColor2: var(--hover); --borderRadius: 0px; --animBorderRadius: var(--borderRadius); --borderColor: var(--themeColor); --borderWidth: 0px; --animBorderWidth: var(--borderWidth); --outline: solid var(--animBorderWidth) var(--borderColor); --transition: .1s; position: relative; border-radius: var(--animBorderRadius)`,
+  ".largeButton, .border": `--themeColor: var(--secondary); --themeColor2: var(--hover); --borderRadius: 0px; --animBorderRadius: var(--borderRadius); --borderColor: var(--themeColor); --borderWidth: 0px; --animBorderWidth: var(--borderWidth); --outline: solid var(--animBorderWidth) var(--borderColor); --transition: .1s; position: relative; border-radius: calc(var(--animBorderRadius) + var(--borderWidth)); outline-offset: var(--borderWidth) !important`,
   ".largeButton": `display: flex; padding: 6px 14px; --borderWidth: 4px; margin: var(--borderWidth); align-items: center; color: var(--themeColor); font-size: 20px; font-weight: 700; text-decoration: none; transition: .1s`,
   ".largeButton div[backdrop]": `position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; background: var(--themeColor); box-shadow: 0px 0px calc(var(--animBorderWidth) + 4px) 0px var(--themeColor); opacity: .15; border-radius: var(--animBorderRadius); pointer-events: none`,
   ".largeButton:after, .border:after": `position: absolute; display: inline-block; width: calc(100% - 2px); height: calc(100% - 2px); left: 50%; top: 50%; transform: translate(-50%, -50%); border-radius: calc(var(--animBorderRadius) + var(--borderWidth)*2); content: ""; pointer-events: none; border: var(--outline); transition: var(--transition)`,
@@ -26,6 +26,8 @@ export const coreStyles = {
   ".customScroll::-webkit-scrollbar-thumb:active": `background: var(--activeGray)`,
   ".hideScroll": `scrollbar-width: none`,
   ".hideScroll::-webkit-scrollbar": `display: none`,
+
+  ":focus-visible": `outline-width: 4px; outline-offset: 2px`,
 
   'html[theme="light"]': `--breakoutThemeRGB: 255, 76, 108; --breakoutTheme: rgb(var(--breakoutThemeRGB)); --breakoutSecondaryRGB: 255, 122, 147; --breakoutSecondary: rgb(var(--breakoutSecondaryRGB)); --breakoutHoverRGB: 255, 205, 214; --breakoutHover: rgb(var(--breakoutHoverRGB)); --breakoutLightShadow: 0px 0px 8px 0px rgba(var(--breakoutThemeRGB), .3); --breakoutDarkShadow: 0px 0px 8px 0px rgba(var(--breakoutThemeRGB), .5)`,
   'html[theme="dark"]': `--breakoutThemeRGB: 255, 76, 108; --breakoutTheme: rgb(var(--breakoutThemeRGB)); --breakoutSecondaryRGB: 255, 122, 147; --breakoutSecondary: rgb(var(--breakoutSecondaryRGB)); --breakoutHoverRGB: 112, 33, 46; --breakoutHover: rgb(var(--breakoutHoverRGB)); --breakoutLightShadow: 0px 0px 8px 0px rgba(var(--breakoutThemeRGB), .3); --breakoutDarkShadow: 0px 0px 8px 0px rgba(var(--breakoutThemeRGB), .5)`,

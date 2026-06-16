@@ -773,7 +773,7 @@ export class Page extends PageFrame {
     delete this.records[folder._id];
   }
   updateSubscribe() {
-    let filter = { type: ["dash", "lesson"], id: Object.keys(this.lessons).splice(-350), _id: userID };
+    let filter = { type: ["dash", "lesson"], id: Object.keys(this.lessons).slice(-350), _id: userID };
     if (this.dashSubscribe) {
       this.dashSubscribe.edit(filter);
     } else {

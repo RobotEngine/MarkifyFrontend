@@ -1328,6 +1328,8 @@ export class Page {
           title: "Start a Breakout"
         }
       );
+    } else if (this.parent.parent.lesson.tool.includes("breakout") == false) {
+      await sendRequest("PATCH", "lessons/toggle/attach", { tool: "breakout" }, { session: this.parent.parent.session });
     }
 
     this.updateInterface();

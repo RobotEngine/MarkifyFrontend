@@ -41,7 +41,7 @@ export class Frame {
       if (insertFirst == true) {
         insertAdj = "afterbegin";
       }
-      if (insertFirst == true && this.tileHolder.firstChild != null && template.created < parseInt(tileHolder.firstChild.getAttribute("time"))) {
+      if (insertFirst == true && this.tileHolder.firstChild != null && template.created < parseInt(this.tileHolder.firstChild.getAttribute("time"))) {
         return;
       }
       this.tileHolder.insertAdjacentHTML(insertAdj, `<a class="brttTemplateTile" draggable="false" new>

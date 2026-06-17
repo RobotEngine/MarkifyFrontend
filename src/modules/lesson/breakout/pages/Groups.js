@@ -121,7 +121,7 @@ export class Page {
     ".brgsGroupsHolder": `position: relative; display: flex; width: 100%; height: 100%; margin-top: 16px; justify-content: center`,
     ".brgsGroups": `position: absolute; box-sizing: border-box; flex-shrink: 0; width: var(--totalWidth); height: calc(var(--totalHeight) + var(--interfacePadding) + 8px); z-index: 2; transition: width .3s`,
     
-    ".brgsTile": `position: absolute; width: var(--columnWidth); height: fit-content; left: 0px; top: 0px; padding: 0; z-index: 1; transition: .3s`, // will-change: transform;
+    ".brgsTile": `position: absolute; width: var(--columnWidth); height: fit-content; left: 0px; top: 0px; padding: 0; border-radius: 16px; z-index: 1; transition: .3s`, // will-change: transform;
     ".brgsTileContent": `--shadow: var(--lightShadow); position: relative; display: flex; flex-direction: column; width: 100%; height: 100%; background: var(--pageColor); box-shadow: var(--shadow); border-radius: 16px; contain: strict; overflow: hidden; transition: .2s, transform .1s`,
     ".brgsTile[selected] .brgsTileContent": `background: var(--theme) !important`,
     ".brgsTile:hover .brgsTileContent": `--shadow: var(--darkShadow) !important`,

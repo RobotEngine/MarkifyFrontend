@@ -19,12 +19,12 @@ export class Frame {
   </div>
   `;
   css = {
-    ".dDeleteHolder": `display: flex; flex-wrap: wrap; gap: 6px; justify-content: center`,
+    ".dDeleteHolder": `display: flex; flex-wrap: wrap; gap: 6px; margin: 8px; justify-content: center`,
     ".dDeleteImage": `--themeColor: var(--error); width: 64px; height: 64px`,
     ".dDeleteImage svg": `width: 100%; height: 100%`,
     ".dDeleteTitle": `color: var(--error); font-size: 20px; font-weight: 700; text-align: left`,
-    ".dDeleteDesc": `max-width: 240px; font-size: 14px; text-align: left`,
-    ".dDeleteOptions": `display: flex; flex-wrap: wrap; width: 100%; margin-top: 12px; justify-content: space-around`,
+    ".dDeleteDesc": `margin-top: 4px; max-width: 240px; font-size: 14px; text-align: left`,
+    ".dDeleteOptions": `display: flex; flex-wrap: wrap; width: 100%; margin-top: 6px; justify-content: space-around`,
     ".dDeleteOptions button": `display: flex; height: fit-content; min-height: 36px; padding: 0 12px; margin: 6px; --borderColor: var(--hover); --borderWidth: 3px; --borderRadius: 18px; color: var(--theme); justify-content: center; align-items: center; font-size: 18px; font-weight: 700`,
     ".dDeleteConfirm:hover": `background: var(--error); --borderWidth: 0px; transform: scale(1.1); color: #fff !important`,
     ".dDeleteCancel:hover": `background: var(--theme); --borderWidth: 0px; transform: scale(1.1); color: #fff !important`,

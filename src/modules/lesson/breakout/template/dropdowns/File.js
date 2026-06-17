@@ -86,22 +86,22 @@ export class Frame {
     let jumptop = frame.querySelector('.brtFileAction[option="jumptop"]');
     jumptop.addEventListener("click", () => {
       if (editor.annotationPages.length > 0) {
-        editor.setCurrentPage(1, false);
         this.close();
+        editor.setCurrentPage(1, false);
       }
     });
     let jump = frame.querySelector('.brtFileAction[option="jump"]');
     jump.addEventListener("click", () => {
       if (editor.annotationPages.length > 0) {
-        editor.page.querySelector(".brtCurrentPage").focus();
         this.close();
+        editor.page.querySelector(".brtCurrentPage").focus();
       }
     });
     let jumpend = frame.querySelector('.brtFileAction[option="jumpend"]');
     jumpend.addEventListener("click", () => {
       if (editor.annotationPages.length > 0) {
-        editor.setCurrentPage(editor.annotationPages.length, false);
         this.close();
+        editor.setCurrentPage(editor.annotationPages.length, false);
       }
     });
 

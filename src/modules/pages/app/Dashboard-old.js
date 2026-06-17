@@ -3,7 +3,7 @@ import { PageFrame, fixed, userID, account, mouseDown, hasFeatureEnabled, checkF
 import { dropdown } from "@modules/utility/Dropdown";
 import { modal } from "@modules/utility/Modal";
 
-import { LessonFrame } from "@modules/dashboard/LessonFrame";
+import { LessonFrame } from "@modules/dashboard/LessonFrame-old";
 import { Frame as LessonOptions } from "@modules/dashboard/LessonOptions";
 import { Frame as GiftDropdown } from "@modules/dropdowns/Gift";
 

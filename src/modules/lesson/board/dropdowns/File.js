@@ -2,6 +2,7 @@ import { userID, setPage, promptLogin, sendRequest } from "@/crucial";
 
 import { Frame as ExportDropdown } from "@modules/lesson/dropdowns/Export";
 import { Frame as BoardStyleDropdown } from "@modules/lesson/dropdowns/BoardStyle";
+import { Frame as DetachDropdown } from "@modules/lesson/dropdowns/Detach";
 
 import exportIcon from "@assets/lesson/file/export.svg?raw";
 import printIcon from "@assets/lesson/file/print.svg?raw";
@@ -16,6 +17,7 @@ import infoIcon from "@assets/lesson/file/info.svg?raw";
 import textIcon from "@assets/lesson/file/text.svg?raw";
 import fillbucketIcon from "@assets/lesson/file/fillbucket.svg?raw";
 import hideshowIcon from "@assets/lesson/file/hideshow.svg?raw";
+import detachIcon from "@assets/lesson/file/detach.svg?raw";
 import { back as backIcon, trash as trashIcon } from "@modules/utility/core-icons";
   
 export class Frame {
@@ -36,15 +38,17 @@ export class Frame {
   <div class="eFileLine" option="document"></div>
   <button class="eFileAction" disabled option="properties" title="View lesson properties." style="--themeColor: var(--secondary)"><div>${infoIcon}</div>Properties</button>
   <button class="eFileAction" disabled option="ocr" title="Run optical character recognition (OCR)."><div>${textIcon}</div>Recognize Text</button>
-  <div class="eFileLine" option="delete"></div>
   <button class="eFileAction" option="boardstyle" title="Change the board's background color."><div>${fillbucketIcon}</div>Background Color</button>
   <button class="eFileAction" option="hideshowpage" title="Hide all pages from members."><div>${hideshowIcon}</div>Hide All Pages</button>
+  <div class="eFileLine" option="delete"></div>
+  <button class="eFileAction" option="detach" title="Detach Board from your lesson." style="--themeColor: var(--yellow)"><div>${detachIcon}</div>Detach Board</button>
   <button class="eFileAction" option="deletelesson" title="Remove this lesson from your dashboard." style="--themeColor: var(--error)"><div>${trashIcon}</div>Delete Lesson</button>
   <button class="eFileAction" option="deleteannotations" title="Remove all annotations from the lesson." style="--themeColor: var(--error)"><div>${trashIcon}</div>Delete Annotations</button>
   `;
 
   css = {
     ".eFileAction": `--themeColor: var(--theme); display: flex; width: 100%; padding: 4px 8px 4px 4px; border-radius: 8px; align-items: center; font-size: 16px; font-weight: 600; text-align: left; transition: .15s`,
+    ".eFileAction[hidden]": `display: none`,
     ".eFileAction:not(:last-child)": `margin-bottom: 4px`,
     ".eFileAction div": `width: 24px; height: 24px; padding: 2px; margin-right: 8px; background: var(--pageColor); border-radius: 4px`,
     ".eFileAction div svg": `width: 100%; height: 100%`,
@@ -64,11 +68,11 @@ export class Frame {
     });
     let exportButton = frame.querySelector('.eFileAction[option="export"]');
     exportButton.addEventListener("click", () => {
-      this.open(exportButton, ExportDropdown, { type: "download", editor: editor });
+      this.open(exportButton, ExportDropdown, { type: "download", editor });
     });
     let printButton = frame.querySelector('.eFileAction[option="print"]');
     printButton.addEventListener("click", () => {
-      this.open(printButton, ExportDropdown, { type: "print", editor: editor });
+      this.open(printButton, ExportDropdown, { type: "print", editor });
     });
     let copyButton = frame.querySelector('.eFileAction[option="copy"]');
     copyButton.addEventListener("click", async () => {
@@ -101,22 +105,22 @@ export class Frame {
     let jumptop = frame.querySelector('.eFileAction[option="jumptop"]');
     jumptop.addEventListener("click", () => {
       if (editor.annotationPages.length > 0) {
-        editor.setCurrentPage(1, false);
         this.close();
+        editor.setCurrentPage(1, false);
       }
     });
     let jump = frame.querySelector('.eFileAction[option="jump"]');
     jump.addEventListener("click", () => {
       if (editor.annotationPages.length > 0) {
-        editor.page.querySelector(".eCurrentPage").focus();
         this.close();
+        editor.page.querySelector(".eCurrentPage").focus();
       }
     });
     let jumpend = frame.querySelector('.eFileAction[option="jumpend"]');
     jumpend.addEventListener("click", () => {
       if (editor.annotationPages.length > 0) {
-        editor.setCurrentPage(editor.annotationPages.length, false);
         this.close();
+        editor.setCurrentPage(editor.annotationPages.length, false);
       }
     });
 
@@ -141,6 +145,14 @@ export class Frame {
       await parent.editor.save.syncSave(true);
       hideshowpage.removeAttribute("disabled");
       this.close();
+    });
+
+    let detachButton = frame.querySelector('.eFileAction[option="detach"]');
+    detachButton.addEventListener("click", () => {
+      this.open(detachButton, DetachDropdown, {
+        tool: "board",
+        session: editor.session
+      });
     });
 
     let deleteLessonButton = frame.querySelector('.eFileAction[option="deletelesson"]');
@@ -176,13 +188,19 @@ export class Frame {
       } else {
         historyButton.removeAttribute("disabled");
       }
+      if ((parent.parent.lesson.tool ?? []).length > 1) {
+        detachButton.removeAttribute("hidden");
+      } else {
+        detachButton.setAttribute("hidden", "");
+      }
     }
-    updateButtons();
     parent.pipeline.subscribe("fileDropdownSet", "set", updateButtons);
+    updateButtons();
 
     if (access < 5) {
       boardStyleButton.remove();
       hideshowpage.remove();
+      detachButton.remove();
       deleteAnnotationsButton.remove();
       if (userID == null) {
         deleteLessonButton.remove();

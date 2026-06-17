@@ -291,7 +291,7 @@ export const Modal = class {
 
     return this;
   }
-  close = async () => {
+  close = () => {
     let remove = this;
     if (this.element == null) {
       remove = window.modal;
@@ -301,7 +301,7 @@ export const Modal = class {
     }
     remove.closing = true;
     if (remove.origin != null) {
-      remove.origin.removeAttribute("activated");
+      remove.origin.focus();
     }
     if (remove.element != null) {
       remove.element.style.opacity = 0;
@@ -311,11 +311,11 @@ export const Modal = class {
         remove.element.parentElement.removeAttribute("blur");
       }
     }
-    await sleep(350);
-    //clearInterval(remove.interval);
-    if (remove.element != null && remove.element.parentElement != null) {
-      remove.element.parentElement.remove();
-    }
+    setTimeout(() => {
+      if (remove.element != null && remove.element.parentElement != null) {
+        remove.element.parentElement.remove();
+      }
+    }, 350);
   }
 }
 
@@ -324,6 +324,6 @@ export const modal = {
     return await (await newModule(Modal)).open(template, button, data ?? {});
   },
   close: async () => {
-    return await (await newModule(Modal)).close();
+    return (await newModule(Modal)).close();
   }
 };

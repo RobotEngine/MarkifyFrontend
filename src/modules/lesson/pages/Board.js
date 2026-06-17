@@ -934,7 +934,7 @@ export class Page {
     });
     
     // Handle new lesson setup:
-    if (this.lesson.tool.includes("board") == false) {
+    if (this.lesson.board == null) {
       this.contentHolder.removeAttribute("disabled");
       this.mainPage.insertAdjacentHTML("beforeend", `<div class="eCreateBoardHolder"></div>`);
       this.editor.openModal(
@@ -960,6 +960,8 @@ export class Page {
           title: "Create Board"
         }
       );
+    } else if (this.lesson.tool.includes("board") == false) {
+      await sendRequest("PATCH", "lessons/toggle/attach", { tool: "board" }, { session: this.editor.session });
     }
 
     this.updateInterface();

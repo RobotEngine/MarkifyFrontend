@@ -735,7 +735,17 @@ export class Page extends PageFrame {
                 }
                 break;
               case "set":
+                if (body.hasOwnProperty("tool") == true) { // Must run before updating the lesson object:
+                  for (let i = 0 ; i < (this.lesson.tool ?? []).length; i++) {
+                    let tool = this.lesson.tool[i];
+                    if (body.tool.includes(tool) == false) {
+                      await this.removePage(tool, tool);
+                    }
+                  }
+                }
+
                 objectUpdate(body, this.lesson);
+
                 if (body.hasOwnProperty("name") == true) {
                   document.title = (this.lesson.name ?? "Untitled Lesson") + " | Markify";
                 }
@@ -744,11 +754,12 @@ export class Page extends PageFrame {
                     setFrame("pages/app/join", null, { passParams: true });
                   }
                 }
+
                 if (body.hasOwnProperty("tool") == true) {
                   for (let i = 0 ; i < body.tool.length; i++) {
                     let tool = body.tool[i];
                     if (this.pages[tool] == null) {
-                      if (tool == "breakout" && body.hasOwnProperty("breakout") == false) {
+                      if (body.hasOwnProperty(tool) == false) {
                         continue;
                       }
                       let nextPageID = body.tool[i + 1];

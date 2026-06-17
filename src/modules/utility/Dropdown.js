@@ -126,6 +126,7 @@ export const Dropdown = class {
     if (button == null) {
       return;
     }
+    button.blur();
 
     this.button = button;
     if (this.origin == null) {
@@ -340,27 +341,29 @@ export const Dropdown = class {
 
     return this;
   }
-  close = async () => {
+  close = () => {
     let remove = this;
     if (this.element == null) {
       remove = window.dropdown;
     }
+    window.dropdown = null;
     if (remove == null) {
       return;
     }
     remove.closing = true;
     if (remove.origin != null) {
       remove.origin.removeAttribute("activated");
+      remove.origin.focus();
     }
     if (remove.element != null) {
       remove.element.style.opacity = 0;
       remove.element.style.transform = "scale(0)";
     }
-    await sleep(350);
-    //clearInterval(remove.interval);
-    if (remove.element != null && remove.element.parentElement != null) {
-      remove.element.parentElement.remove();
-    }
+    setTimeout(() => {
+      if (remove.element != null && remove.element.parentElement != null) {
+        remove.element.parentElement.remove();
+      }
+    }, 350);
   }
 };
 
@@ -369,6 +372,6 @@ export const dropdown = {
     return await (await newModule(Dropdown)).open(button, module, data ?? {});
   },
   close: async () => {
-    return await (await newModule(Dropdown)).close();
+    return (await newModule(Dropdown)).close();
   }
 };

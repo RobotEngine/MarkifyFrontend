@@ -149,6 +149,12 @@ export class LessonFrame {
       thumbnail.appendChild(image);
     }
   }
+  removeThumbnail(thumbnailHolder, tool) {
+    let thumbnail = thumbnailHolder.querySelector('.dTileThumbnail[tool="' + tool + '"]');
+    if (thumbnail != null) {
+      thumbnail.remove();
+    }
+  }
   updateTile(record, lesson, tile) {
     if (lesson == null) {
       return;
@@ -172,9 +178,13 @@ export class LessonFrame {
     let thumbnailHolder = tile.querySelector(".dTileThumbnailHolder");
     if (tool.includes("board") == true) {
       this.addThumbnail(thumbnailHolder, "board", lesson);
+    } else {
+      this.removeThumbnail(thumbnailHolder, "board");
     }
     if (tool.includes("breakout") == true) {
       this.addThumbnail(thumbnailHolder, "breakout", lesson);
+    } else {
+      this.removeThumbnail(thumbnailHolder, "breakout");
     }
 
     let memberCount = tile.querySelector(".dTileMemberCount");

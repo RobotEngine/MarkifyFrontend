@@ -563,6 +563,10 @@ export class Page {
         this.shareDivider.style.removeProperty("display");
       }
 
+      if (body.hasOwnProperty("tool") == true) {
+        this.updateSplitScreenButton();
+      }
+
       this.updateTopBar();
     }, { sort: 1 });
     this.updateConfiguration();

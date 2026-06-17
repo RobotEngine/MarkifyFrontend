@@ -618,6 +618,9 @@ export class Page {
     this.pipeline.subscribe("interfaceUpdate", "refresh_interface", () => { this.updateInterface(); });
     this.pipeline.subscribe("templateSet", "set", (body) => {
       if (body.id != this.group._id) {
+        if (body.hasOwnProperty("tool") == true) {
+          this.updateSplitScreenButton();
+        }
         if (body.hasOwnProperty("breakout") == true) {
           if (body.breakout.options == null || body.breakout.options.galleryWalk != true) {
             if (this.parent.parent.self.group != this.group._id) {

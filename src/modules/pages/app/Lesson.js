@@ -174,6 +174,7 @@ export class Page extends PageFrame {
       if (newActivePage == null && extra.skipExitCheck != true) {
         return setPage("pages/app/dashboard");
       }
+      this.activePageID = newActivePage.getAttribute("pageid");
       if (page.pageHolder.hasAttribute("active") == true) {
         if (newActivePage != null) {
           newActivePage.setAttribute("active", "");
@@ -735,15 +736,6 @@ export class Page extends PageFrame {
                 }
                 break;
               case "set":
-                if (body.hasOwnProperty("tool") == true) { // Must run before updating the lesson object:
-                  for (let i = 0 ; i < (this.lesson.tool ?? []).length; i++) {
-                    let tool = this.lesson.tool[i];
-                    if (body.tool.includes(tool) == false) {
-                      await this.removePage(tool, tool);
-                    }
-                  }
-                }
-
                 objectUpdate(body, this.lesson);
 
                 if (body.hasOwnProperty("name") == true) {
@@ -756,7 +748,7 @@ export class Page extends PageFrame {
                 }
 
                 if (body.hasOwnProperty("tool") == true) {
-                  for (let i = 0 ; i < body.tool.length; i++) {
+                  for (let i = 0; i < body.tool.length; i++) {
                     let tool = body.tool[i];
                     if (this.pages[tool] == null) {
                       if (body.hasOwnProperty(tool) == false) {
@@ -768,6 +760,13 @@ export class Page extends PageFrame {
                         insertBefore = pageHolder.querySelector('.lPage[pageid="' + nextPageID + '"]');
                       }
                       await this.addPage(tool, tool, { insertBefore, percent: .5 });
+                    }
+                  }
+                  let currentPagesKeys = Object.keys(this.pages);
+                  for (let i = 0; i < currentPagesKeys.length; i++) {
+                    let tool = currentPagesKeys[i];
+                    if (body.tool.includes(tool) == false) {
+                      await this.removePage(tool, tool);
                     }
                   }
                 }

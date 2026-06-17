@@ -366,6 +366,9 @@ export class Page {
     this.pipeline.subscribe("interfaceUpdate", "refresh_interface", () => { this.updateInterface(); });
     this.pipeline.subscribe("templateSet", "set", (body) => {
       if (body.id != this.template._id) {
+        if (body.hasOwnProperty("tool") == true) {
+          this.updateSplitScreenButton();
+        }
         return;
       }
       objectUpdate(body, this.template);

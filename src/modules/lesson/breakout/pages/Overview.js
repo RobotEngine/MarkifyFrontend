@@ -807,6 +807,9 @@ export class Page {
       } else {
         this.sharePinButton.style.removeProperty("display");
       }
+      if (body.hasOwnProperty("tool") == true) {
+        this.updateSplitScreenButton();
+      }
       this.updateInterface();
     }, { sort: 1 });
     this.pipeline.subscribe("overviewLessonSubSet", "subset", (body) => {

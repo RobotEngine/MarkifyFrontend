@@ -185,7 +185,7 @@ export class Toolbar {
     }
     let toolbar = this.toolbar.currentSubToolButton.closest(".eSubToolContainer");
     toolbar.insertAdjacentHTML("beforeend", `<div class="eSubToolHolder" option new>
-      <div class="eSubToolContainer" option>
+      <div class="eSubToolContainer" tabindex="-1" option>
         <div class="eSubToolShadow"></div>
         <div class="eSubToolContentHolder">
           <div class="eSubToolContentScroll hideScroll">
@@ -207,6 +207,8 @@ export class Toolbar {
       this.toolbar.subSubToolbar.querySelector(".eSubToolContent"),
       { construct: { editor: this.editor, toolbar: this.toolbar, isToolbar: true } }
     ));
+
+    contentContainer.focus();
   }
   closeSubSub(update) {
     if (this.toolbar.subSubToolbar == null) {
@@ -250,7 +252,7 @@ export class Toolbar {
 
     let toolbar = this.toolbar.currentToolButton.closest(".eToolbar");
     toolbar.insertAdjacentHTML("beforeend", `<div class="eSubToolHolder" new>
-      <div class="eSubToolContainer" keeptooltip>
+      <div class="eSubToolContainer" tabindex="-1" keeptooltip>
         <div class="eSubToolShadow"></div>
         <div class="eSubToolContentHolder">
           <div class="eSubToolContentScroll hideScroll">
@@ -279,6 +281,9 @@ export class Toolbar {
       contentHolder.innerHTML = toolData.html;
     }
     this.updateButtons(contentHolder);
+
+    contentContainer.focus();
+
     return toolData;
   }
   closeSub(update) {
@@ -395,6 +400,9 @@ export class Toolbar {
   async setTool(targetButton, shortPress, noExtend, passData) {
     let button = targetButton ?? this.lastSetButton;
     if (button == null || button.className != "eTool" || button.closest("[noselect]") != null) {
+      return;
+    }
+    if (this.editor.isThisPage(button) == false) {
       return;
     }
     let toolID = button.getAttribute("tool");

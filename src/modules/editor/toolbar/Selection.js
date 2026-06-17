@@ -531,7 +531,7 @@ export class Selection {
     
     let newActionBar = false;
     if (this.actionBar == null) { // Create UI
-      this.editor.content.insertAdjacentHTML("beforeend", `<div class="eActionBar" top new>
+      this.editor.content.insertAdjacentHTML("beforeend", `<div class="eActionBar" tabindex="-1" top new>
         <div class="eActionToolbar eHorizontalToolsHolder" keeptooltip></div>
       </div>`);
       this.actionBar = this.editor.content.querySelector(".eActionBar[new]");
@@ -885,6 +885,7 @@ export class Selection {
     if (newActionBar == true) {
       this.actionBar.style.transform = "translate(-50%, 0%)";
       this.actionBar.style.opacity = 1;
+      this.actionBar.focus();
     }
   }
   async clickAction(event, options = {}) {
@@ -944,7 +945,7 @@ export class Selection {
       if (this.actionBar == null) {
         return;
       }
-      this.actionBar.insertAdjacentHTML("beforeend", `<div class="eActionHolder" top new>
+      this.actionBar.insertAdjacentHTML("beforeend", `<div class="eActionHolder" tabindex="-1" top new>
         <div class="eActionContainer">
           <div class="eActionShadow"></div>
             <div class="eActionContainerHolder">
@@ -989,6 +990,8 @@ export class Selection {
     containerFrame.style.transition = "width .25s, height .25s, opacity .25s, transform .25s";
     containerFrame.style.transform = "translateY(0%)";
     containerFrame.style.opacity = 1;
+
+    this.actionFrame.focus();
   }
   closeActionFrame() {
     if (this.actionFrameButton != null) {

@@ -165,6 +165,8 @@ export class MasonryLayout {
         }
       }
 
+      tile.editor.updatePageScroll();
+
       if (tile.editorState != null) {
         await tile.editor.setState(tile.editorState);
       } else {
@@ -602,10 +604,10 @@ export class MasonryLayout {
           top: parentRectY + tile.y,
           bottom: parentRectY + tile.y + tile.height
         };
-        tile.editor.updatePageScroll();
         if (this.resized == true) {
           await tile.editor.render.setMarginSize();
         }
+        tile.editor.updatePageScroll();
       }
       tile.editor.pipeline.subscribe("overviewZoomChange" , "zoom_change", () => {
         for (let i = 0; i < tile.editor.visibleChunks.length; i++) {

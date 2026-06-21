@@ -87,7 +87,7 @@ export const tools = {
       <button class="eTool" option="opacity" tooltip="Opacity" module="opacity"><div></div></button>
     </div>`
   },
-  "erase": { id: "erase", type: "tool", module: "eraser" },
+  "erase": { id: "erase", type: "tool", module: "markup/eraser" },
   "text": {
     html: `<div class="eVerticalToolsHolder">
       <button class="eTool" tool="text" tooltip="Text" module="text/textbox"><div>${textIcon}</div></button>

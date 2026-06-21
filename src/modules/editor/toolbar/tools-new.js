@@ -95,7 +95,7 @@ export const tools = {
       <button class="eTool" tool="pen" tooltip="Pen" module="markup/pen"><div>${penIcon}</div></button>
       <button class="eTool" tool="highlighter" tooltip="Highlighter" module="markup/highlighter"><div>${highlighterIcon}</div></button>
       <button class="eTool" tool="understrike" tooltip="Underline" module="markup/understrike"><div>${understrikeIcon}</div></button>
-      <button class="eTool" tool="erase" tooltip="Eraser" module="eraser" ignore><div>${eraseIcon}</div></button>
+      <button class="eTool" tool="erase" tooltip="Eraser" module="markup/eraser" ignore><div>${eraseIcon}</div></button>
       <div class="eDivider"></div>
       <button class="eTool" option="color" tooltip="Color" module="color"><div></div></button>
       <button class="eTool" option="thickness" tooltip="Thickness" module="thickness"><div></div></button>

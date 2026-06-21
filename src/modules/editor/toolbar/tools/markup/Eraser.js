@@ -1,8 +1,8 @@
 import { mouseDown, stylusActive, sleep } from "@/crucial";
 
-import { rotatePoint, isPointOnLine } from "../../math";
+import { rotatePoint, isPointOnLine } from "../../../math";
 
-import eraserCursor from "../../icons/cursors/eraser.svg?raw";
+import eraserCursor from "../../../icons/cursors/eraser.svg?raw";
 
 export class Tool {
   USER_SELECT = "none";

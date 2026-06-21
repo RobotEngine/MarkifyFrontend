@@ -169,7 +169,7 @@ export class MasonryLayout {
         await tile.editor.setState(tile.editorState);
       } else {
         await tile.editor.updateChunks();
-        //await tile.editor.loadAnnotations();
+        await tile.editor.loadAnnotations();
       }
 
       for (let i = 0; i < tile.editor.visibleChunks.length; i++) {

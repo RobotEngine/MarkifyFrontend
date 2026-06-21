@@ -28,7 +28,7 @@ export class Page {
       <button class="brtTopScroll" right style="right: 7px">${rightArrowIcon}</button>
       <div class="brtTop">
         <div class="brtTopSection" left>
-          <a class="brtClose">${closeIcon}</a>
+          <button class="brtClose">${closeIcon}</button>
           <div class="brtFileNameHolder border"><div class="brtFileName" spellcheck="false" contenteditable></div></div>
           <button class="brtFileDropdown" title="File Options">File</button>
           <div class="brtTopDivider"></div>

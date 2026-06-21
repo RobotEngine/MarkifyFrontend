@@ -156,6 +156,7 @@ export class MasonryLayout {
         }), {
           skipPositioning: tile.editorState != null
         });
+        tile.loadedAnnotations = true;
         if (tile.element != null) {
           let previewHolder = tile.element.querySelector(".broTilePreview");
           if (previewHolder != null) {
@@ -168,7 +169,7 @@ export class MasonryLayout {
         await tile.editor.setState(tile.editorState);
       } else {
         await tile.editor.updateChunks();
-        await tile.editor.loadAnnotations();
+        //await tile.editor.loadAnnotations();
       }
 
       for (let i = 0; i < tile.editor.visibleChunks.length; i++) {
@@ -506,7 +507,7 @@ export class MasonryLayout {
         tile.element.style.setProperty("transform", "matrix(1, 0, 0, 1, " + tile.x + ", " + tile.y + ")");
       }
 
-      if (tile.editor != null) {
+      if (tile.editor != null && tile.editor.previewLoaded == true) {
         let centerPosition = tile.editor.getCenterPosition();
         await tile.editor.updatePageSize();
         if (this.lastResizeWasSimulated != true) {
@@ -601,6 +602,7 @@ export class MasonryLayout {
           top: parentRectY + tile.y,
           bottom: parentRectY + tile.y + tile.height
         };
+        tile.editor.updatePageScroll();
         if (this.resized == true) {
           await tile.editor.render.setMarginSize();
         }
@@ -667,7 +669,6 @@ export class MasonryLayout {
                     switch (type) {
                       case "group":
                         let tile = this.tiles[id];
-                        tile.loadedAnnotations = true;
                         if (tile.render.template != null) {
                           let rootID = tile.render.version + "_" + tile.render.template;
                           let root = this.templateRoots[rootID];
@@ -679,6 +680,8 @@ export class MasonryLayout {
                               rootLoad.push([tile, body]);
                             }
                           }
+                        } else {
+                          this.setupEditors([tile, body]);
                         }
                         break;
                       case "root":

@@ -33,7 +33,7 @@ export class Page {
       <div class="brgTop">
         <div class="brgTopSection" left>
           <a class="brgLogo" href="/app/dashboard" draggable="false">${breakoutLogoIcon}</a>
-          <a class="brgClose">${closeIcon}</a>
+          <button class="brgClose">${closeIcon}</button>
           <div class="brgGroupNameHolder border"><div class="brgGroupName" spellcheck="false"></div></div>
           <button class="brgFileDropdown" title="File Options">File</button>
           <div class="brgTopDivider"></div>

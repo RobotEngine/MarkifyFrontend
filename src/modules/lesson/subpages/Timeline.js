@@ -216,7 +216,7 @@ export class Frame {
     <div class="timelineTopHolder">
       <div class="timelineTop">
         <div class="timelineTopSection" left>
-          <a class="timelineClose" title="Close Timeline">${closeIcon}</a>
+          <button class="timelineClose" title="Close Timeline">${closeIcon}</button>
           <div class="timelineTopDivider" revert></div>
           <button class="timelineRevert" title="Restore the document back to this state. Reverting does not overwrite later changes, but instead inserts a new change." disabled>Revert</button>
         </div>
@@ -467,15 +467,20 @@ export class Frame {
     this.updateTimelineInterface();
     
     let callUpdateState = async () => {
-      this.currentChange = this.sortedChanges[this.currentSortedChange - (Math.max(this.totalSortedChanges, this.sortedChanges.length) - this.sortedChanges.length) - 1];
+      let sortedChangeIndexPrev = this.currentSortedChange - (Math.max(this.totalSortedChanges, this.sortedChanges.length) - this.sortedChanges.length) - 1;
+      if (sortedChangeIndexPrev > -1) {
+        this.currentChange = this.sortedChanges[sortedChangeIndexPrev];
+      } else {
+        this.currentChange = null;
+      }
       await this.updateCurrentState(options);
     };
     this.updateStateCaller = callUpdateState;
 
     if (this.sortedChanges.length > 0) {
       this.revertButton.setAttribute("disabled", "");
-      let sortedChangeIndex = this.currentSortedChange - (Math.max(this.totalSortedChanges, this.sortedChanges.length) - this.sortedChanges.length) - 1;
-      if (sortedChangeIndex >= 0) {
+      let sortedChangeIndex = this.currentSortedChange - (Math.max(this.totalSortedChanges, this.sortedChanges.length) - this.sortedChanges.length);
+      if (sortedChangeIndex > -1) {
         await this.updateStateCaller();
       }
       if (sortedChangeIndex < 50) {

@@ -172,7 +172,7 @@ export class Page {
     ".broTileHeaderOptionsButton": `display: flex; width: 34px; height: 34px; margin: 2px; flex-shrink: 0; justify-content: center; align-items: center; border-radius: 18px`,
     ".broTileHeaderOptionsButton > svg": `flex-shrink: 0; width: 24px; height: 24px`,
     ".broTileHeaderOptionsButton:hover": `background: var(--hover)`,
-    ".broTilePreviewContainer": `position: relative; flex-shrink: 0; width: var(--previewWidth); height: var(--previewHeight); margin: 0 6px; border-radius: 12px; overflow: hidden`,
+    ".broTilePreviewContainer": `position: relative; flex-shrink: 0; width: calc(100% - 12px); height: var(--previewHeight); margin: 0 6px; border-radius: 12px; overflow: hidden`,
     ".broTilePreviewContainer:after": `content: ""; position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; border-radius: inherit; box-shadow: inset 0px 0px 4px 0px rgba(var(--themeRGB), .5); z-index: 2`,
     ".broTile:not([disabled]) .broTilePreviewContainer:after": `pointer-events: all !important`,
     ".broTilePreview": `position: absolute; width: calc(var(--previewWidth) * (1 / var(--previewScale))); height: calc(var(--previewWidth) * var(--previewHeightRatio) * (1 / var(--previewScale))); left: 50%; top: 50%; transform: translate(-50%, -50%) scale(var(--previewScale)); transform-origin: center; background: var(--pageColor); contain: strict; z-index: 1; overflow: scroll; scrollbar-width: none; transition: opacity .4s`,

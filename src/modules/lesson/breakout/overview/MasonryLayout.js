@@ -574,8 +574,22 @@ export class MasonryLayout {
         let standardHeight = this.previewWidth * this.tileHeightRatio;
         tile.editor.pageOffsetWidth = standardWidth * invertedScale;
         tile.editor.pageOffsetHeight = standardHeight * invertedScale;
-        let parentRectX = this.groupHolderRect.x + ((this.containerWidth - this.groupsWidth) / 2) - ((standardWidth - this.columnWidth) / 2);
-        let parentRectY = this.groupHolderRect.y + this.parent.scrollOffset + (this.tilePadding - 8) - this.scrollTop - ((standardHeight - this.previewHeight) / 2);
+        let parentRectX = (
+          this.groupHolderRect.x
+          + ((this.containerWidth - this.groupsWidth) / 2)
+          + this.tileInnerPadding
+          - ((
+              standardWidth - (this.columnWidth - (this.tileInnerPadding * 2))
+            ) / 2)
+        );
+        let parentRectY = (
+          this.groupHolderRect.y
+          + this.parent.scrollOffset
+          + (this.tilePadding  / 2)
+          + this.tileBaseHeight
+          - this.scrollTop
+          - ((standardHeight - this.previewHeight) / 2)
+        );
         tile.editor.pageRect = {
           scale: invertedScale,
           x: parentRectX + tile.x,

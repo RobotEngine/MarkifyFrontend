@@ -13,18 +13,19 @@ export class LessonFrame {
   </div>`;
   css = {
     ".dTiles": `position: relative; display: grid; width: 100%; grid-gap: 20px; grid-template-columns: repeat(auto-fill, minmax(min(300px, 100%), 1fr)); transition: .4s`, // min-height: 100%;
-    ".dTile": `--themeColorRGB: var(--themeRGB); --hoverColor: var(--hover); position: relative; display: flex; flex-direction: column; --themeColor: rgb(var(--themeColorRGB)); --hoverSize: 0px; --shadowOpacity: 0; aspect-ratio: 4/3; border-radius: calc(13px + var(--hoverSize)); text-decoration: none; outline-offset: 4px`,
+    ".dTile": `--themeColorRGB: var(--themeRGB); --hoverColor: var(--hover); position: relative; display: flex; flex-direction: column; --themeColor: rgb(var(--themeColorRGB)); --hoverSize: 0px; --shadowOpacity: 0; aspect-ratio: 4/3; border-radius: calc(14px + var(--hoverSize)); text-decoration: none; outline-offset: 4px`,
     ".dTile:hover, .dTile:focus-within": `--hoverSize: 4px; --shadowOpacity: .5`,
     ".dTile:before": `content: ""; position: absolute; width: calc(100% + (var(--hoverSize) * 2)); height: calc(100% + (var(--hoverSize) * 2)); left: 50%; top: 50%; transform: translate(-50%, -50%); background: var(--pageColor); box-shadow: 0px 0px 8px 0px rgba(var(--themeColorRGB), var(--shadowOpacity)); border-radius: calc(18px + var(--hoverSize)); z-index: 1; transition: .2s`,
     ".dTileThumbnailHolder": `box-sizing: border-box; display: flex; gap: 6px; flex: 1; width: 100%; padding: 6px 6px 0; z-index: 2`,
-    ".dTileThumbnail": `position: relative; flex: 1; height: 100%; object-fit: cover; box-shadow: 0px 0px 4px 0px rgba(var(--themeColorRGB), .5); border-radius: 6px; overflow: hidden; pointer-events: none`,
+    ".dTileThumbnail": `position: relative; flex: 1; height: 100%; object-fit: cover; border-radius: 6px; overflow: hidden; pointer-events: none`,
     ".dTileThumbnail:first-child": `border-top-left-radius: 12px; border-bottom-left-radius: 12px`,
     ".dTileThumbnail:last-child": `border-top-right-radius: 12px; border-bottom-right-radius: 12px`,
     
     '.dTileThumbnail[tool="board"]': `--themeColorRGB: var(--themeRGB); order: 1`,
     '.dTileThumbnail[tool="breakout"]': `--themeColorRGB: var(--breakoutThemeRGB); order: 2`,
     
-    ".dTileThumbnail img": `position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; object-fit: cover; object-position: top center; opacity: 0; transition: .4s`,
+    ".dTileThumbnail:after": `content: ""; position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; border-radius: inherit; box-shadow: inset 0px 0px 4px 0px rgba(var(--themeColorRGB), .5); z-index: 2`,
+    ".dTileThumbnail img": `position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; object-fit: cover; object-position: top center; opacity: 0; z-index: 1; transition: .4s`,
     'html[theme="dark"] .dTileThumbnail img': `filter: brightness(50%)`,
     ".dTile:hover .dTileThumbnail img": `filter: brightness(100%)`,
     

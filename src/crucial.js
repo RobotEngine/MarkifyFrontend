@@ -1323,6 +1323,20 @@ const movedPages = { dashboard: "app/dashboard", lesson: "app/lesson", join: "ap
   };
 })();
 
+export const elementInViewport = (element) => {
+  if (element == null) {
+    return false;
+  }
+
+  let rect = element.getBoundingClientRect();
+  return (
+    rect.top >= 0 &&
+    rect.left >= 0 &&
+    rect.bottom <= (window.innerHeight ?? document.documentElement.clientHeight) &&
+    rect.right <= (window.innerWidth ?? document.documentElement.clientWidth)
+  );
+}
+
 body.addEventListener("click", (event) => {
   let element = event.target;
   if (element == null) {

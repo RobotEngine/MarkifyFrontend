@@ -12,7 +12,8 @@ export class MasonryLayout {
   tilePadding = 16;
   maxContainerWidth = 2000; //(this.minTileWidth * 6) + (this.tilePadding * 5) - 1;
   previewScale = 1;
-  tileBaseHeight = 12; // Base padding around tile
+  tileInnerPadding = 6;
+  tileBaseHeight = 46;
   tileMemberHeight = 40; // Height of each member list item
   tileMemberGap = 6; // Gap between each member list item
 
@@ -39,10 +40,11 @@ export class MasonryLayout {
 
   getTileHeight(tile) {
     let memberCount = (tile.members ?? []).length;
-    return (this.tileBaseHeight * Math.min(memberCount, 1))
+    return this.tileBaseHeight
+    + this.tileInnerPadding
     + this.previewHeight
-    + (this.tileMemberHeight * memberCount)
-    + Math.max(this.tileMemberGap * (memberCount - 1), 0);
+    + ((this.tileMemberHeight + this.tileMemberGap) * memberCount)
+    //+ (this.tileMemberGap * Math.min(memberCount, 1));
   }
 
   getSectionTop(sectionID) {
@@ -447,9 +449,6 @@ export class MasonryLayout {
           tile.element.className = "broTile";
           tile.element.setAttribute("group", tileID);
           tile.element.innerHTML = `<div class="broTileContent">
-            <div class="broTilePreviewContainer">
-              <div class="broTilePreview"></div>
-            </div>
             <div class="broTileHeader">
               <div class="broTileHeaderName">
                 <img class="broTileHeaderNameImage" />
@@ -458,6 +457,9 @@ export class MasonryLayout {
               <div class="broTileHeaderOptions">
                 <button class="broTileHeaderOptionsButton">${moreIcon}</button>
               </div>
+            </div>
+            <div class="broTilePreviewContainer">
+              <div class="broTilePreview"></div>
             </div>
             <div class="broTileMembers"></div>
           </div>`;
@@ -891,8 +893,8 @@ export class MasonryLayout {
 
     this.tileHeightRatio = this.pageOffsetHeight / this.pageOffsetWidth;
 
-    let previewWidth = this.columnWidth;
-    let previewHeight = this.columnWidth * this.tileHeightRatio;
+    let previewWidth = this.columnWidth - (this.tileInnerPadding * 2);
+    let previewHeight = previewWidth * this.tileHeightRatio;
     if (previewHeight > 400) {
       previewHeight = 400;
     } else if (previewHeight < 200) {

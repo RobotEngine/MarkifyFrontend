@@ -1,4 +1,4 @@
-import { fixed, newModule, sleep, setFrame } from "@/crucial";
+import { fixed, newModule, sleep, setFrame, elementInViewport } from "@/crucial";
 
 import { close as closeIcon, back as backIcon } from "./core-icons";
 
@@ -353,7 +353,9 @@ export const Dropdown = class {
     remove.closing = true;
     if (remove.origin != null) {
       remove.origin.removeAttribute("activated");
-      remove.origin.focus();
+      if (elementInViewport(remove.origin) == true) {
+        remove.origin.focus();
+      }
     }
     if (remove.element != null) {
       remove.element.style.opacity = 0;

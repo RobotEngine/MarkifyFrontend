@@ -25,14 +25,18 @@ export class Toolbar {
 
         contentScroll.style.maxHeight = toolbar.clientHeight + "px";
 
+        let toolbarHeight = toolbar.offsetHeight;
         let subtoolHeight = contentScroll.offsetHeight;
         let setSubToolTop = buttonRect.top - toolsRect.top - 2; // 2 Pixels from top
-        if (setSubToolTop + subtoolHeight > toolbar.offsetHeight) {
-          setSubToolTop = toolbar.offsetHeight - subtoolHeight;
+        if (setSubToolTop + subtoolHeight > toolbarHeight) {
+          setSubToolTop = toolbarHeight - subtoolHeight;
         } else if (setSubToolTop < 0) {
           setSubToolTop = 0;
         }
-        contentContainer.style.top = (setSubToolTop + 12) + "px";
+        if (subtoolHeight >= toolbarHeight) {
+          setSubToolTop += 4;
+        }
+        contentContainer.style.top = (setSubToolTop + 12) + "px"; // 12 pixels to account for padding
 
         if (this.toolbar.toolbarHolder.hasAttribute("right") == false) {
           if (setSubToolTop < 13) {
@@ -41,7 +45,7 @@ export class Toolbar {
             toolbar.style.removeProperty("border-top-right-radius");
           }
           toolbar.style.removeProperty("border-top-left-radius");
-          if (setSubToolTop + subtoolHeight > toolbar.offsetHeight - 12) {
+          if (setSubToolTop + subtoolHeight > toolbarHeight - 12) {
             toolbar.style.borderBottomRightRadius = "0px";
           } else {
             toolbar.style.removeProperty("border-bottom-right-radius");
@@ -54,7 +58,7 @@ export class Toolbar {
             toolbar.style.removeProperty("border-top-left-radius");
           }
           toolbar.style.removeProperty("border-top-right-radius");
-          if (setSubToolTop + subtoolHeight > toolbar.offsetHeight - 12) {
+          if (setSubToolTop + subtoolHeight > toolbarHeight - 12) {
             toolbar.style.borderBottomLeftRadius = "0px";
           } else {
             toolbar.style.removeProperty("border-bottom-left-radius");
@@ -91,14 +95,18 @@ export class Toolbar {
 
         contentScroll.style.maxHeight = toolbar.clientHeight + "px";
 
+        let toolbarHeight = toolbar.offsetHeight;
         let subtoolHeight = contentScroll.offsetHeight;
         let setSubToolTop = buttonRect.top - toolsRect.top - 2; // 2 Pixels from top
-        if (setSubToolTop + subtoolHeight > toolbar.offsetHeight) {
-          setSubToolTop = toolbar.offsetHeight - subtoolHeight;
+        if (setSubToolTop + subtoolHeight > toolbarHeight) {
+          setSubToolTop = toolbarHeight - subtoolHeight;
         } else if (setSubToolTop < 0) {
           setSubToolTop = 0;
         }
-        contentContainer.style.top = (setSubToolTop + 12) + "px";
+        if (subtoolHeight >= toolbarHeight) {
+          setSubToolTop += 4;
+        }
+        contentContainer.style.top = (setSubToolTop + 12) + "px"; // 12 pixels to account for padding
 
         if (this.toolbar.toolbarHolder.hasAttribute("right") == false) {
           if (setSubToolTop < 13) {
@@ -107,7 +115,7 @@ export class Toolbar {
             toolbar.style.removeProperty("border-top-right-radius");
           }
           toolbar.style.removeProperty("border-top-left-radius");
-          if (setSubToolTop + subtoolHeight > toolbar.offsetHeight - 12) {
+          if (setSubToolTop + subtoolHeight > toolbarHeight - 12) {
             toolbar.style.borderBottomRightRadius = "0px";
           } else {
             toolbar.style.removeProperty("border-bottom-right-radius");
@@ -120,7 +128,7 @@ export class Toolbar {
             toolbar.style.removeProperty("border-top-left-radius");
           }
           toolbar.style.removeProperty("border-top-right-radius");
-          if (setSubToolTop + subtoolHeight > toolbar.offsetHeight - 12) {
+          if (setSubToolTop + subtoolHeight > toolbarHeight - 12) {
             toolbar.style.borderBottomLeftRadius = "0px";
           } else {
             toolbar.style.removeProperty("border-bottom-left-radius");
@@ -150,7 +158,9 @@ export class Toolbar {
     }
   }
 
-  async updateButtons(contentHolder) {
+  async updateButtons(contentHolder, options) {
+    options = options ?? {};
+
     let gottenTools = (contentHolder ?? this.toolbar.getToolbar()).querySelectorAll(".eTool");
     for (let i = 0; i < gottenTools.length; i++) {
       let tool = gottenTools[i];
@@ -158,19 +168,39 @@ export class Toolbar {
       if (tool.hasAttribute("tool") == true) {
         let toolType = tool.getAttribute("tool");
         let toolPreference = this.editor.preferences.state.tools[toolType] ?? this.editor.preferences.state.tools[this.toolbar.currentTool] ?? {};
+        let subtool = toolPreference.subtool;
+        if (subtool != null) {
+          let toolData = tools[toolType] ?? {};
+          if (toolData.icon != null && div.getAttribute("icon") != subtool) {
+            div.setAttribute("icon", subtool)
+            let icon = toolData.icon({ toolbar: this, tool: subtool });
+            if (icon != null) {
+              div.innerHTML = icon;
+            }
+          }
+          let subtoolPreference = this.editor.preferences.state.tools[subtool];
+          if (subtoolPreference != null) {
+            toolPreference = subtoolPreference;
+          }
+        }
         if (toolPreference.color != null) {
           div.style.setProperty("--toolColor", "#" + toolPreference.color.selected);
           div.style.setProperty("--toolColorOpacity", hexToRGBString(toolPreference.color.selected, (toolPreference.opacity ?? 100) / 100));
         }
         div.style.setProperty("--toolOpacity", (toolPreference.opacity ?? 100) / 100);
       } else if (tool.hasAttribute("module") == true) {
-        let newModule = await this.toolbar.loadModule(tool.getAttribute("module"));
-        if (newModule != null) {
-          newModule.toolbar = this.toolbar;
-          newModule.editor = this.editor;
-          if (newModule.setToolbarButton != null) {
-            newModule.setToolbarButton(div);
+        if (options.ignore != true) {
+          let newModule = await this.toolbar.loadModule(tool.getAttribute("module"));
+          if (newModule != null) {
+            newModule.toolbar = this.toolbar;
+            newModule.editor = this.editor;
+            if (newModule.setToolbarButton != null) {
+              newModule.setToolbarButton(div);
+            }
           }
+          tool.removeAttribute("disabled");
+        } else {
+          tool.setAttribute("disabled", "");
         }
       }
     }
@@ -280,7 +310,6 @@ export class Toolbar {
     } else if (toolData.html != null) {
       contentHolder.innerHTML = toolData.html;
     }
-    this.updateButtons(contentHolder);
 
     contentContainer.focus();
 
@@ -317,6 +346,7 @@ export class Toolbar {
     let toolID = button.getAttribute("tool");
     let isSelected = button.hasAttribute("selected");
     let isExtended = button.hasAttribute("extend");
+    let ignoreButtonUpdate = button.hasAttribute("ignore");
     
     let lastSelectedQuery = "button[selected]";
     if (button.hasAttribute("option") == true) {
@@ -344,6 +374,18 @@ export class Toolbar {
             if (selectTool != null) {
               let selectSubtool = this.toolbar.subToolbar.querySelector('.eTool[tool="' + selectTool + '"]');
               if (selectSubtool != null) {
+                if (selectSubtool.hasAttribute("ignore") == true) {
+                  let subtoolHolder = this.toolbar.subToolbar.querySelector(".eVerticalToolsHolder");
+                  if (subtoolHolder != null) {
+                    let firstTool = subtoolHolder.firstElementChild;
+                    if (firstTool != null) {
+                      this.toolbar.currentSubTool = firstTool.getAttribute("tool");
+                      this.toolbar.currentToolModulePath = firstTool.getAttribute("module");
+                      await this.updateButtons(subtoolHolder);
+                    }
+                  }
+                  ignoreButtonUpdate = true;
+                }
                 this.toolbar.currentSubTool = selectTool;
                 this.toolbar.currentToolModulePath = selectSubtool.getAttribute("module");
                 selectSubtool.setAttribute("selected", "");
@@ -359,6 +401,7 @@ export class Toolbar {
             this.toolbar.tooltip.update();
           }
           this.toolbar.activateTool(passData);
+          this.updateButtons(this.toolbar.subToolbar, { ignore: ignoreButtonUpdate });
         } else {
           this.toolbar.tooltip.update();
         }
@@ -376,6 +419,7 @@ export class Toolbar {
           this.toolbar.currentSubTool = button.getAttribute("tool");
           this.toolbar.currentToolModulePath = button.getAttribute("module");
           this.toolbar.activateTool(passData);
+          this.updateButtons(null, { ignore: ignoreButtonUpdate });
         }
       } else { // Option
         if (shortPress == true) {

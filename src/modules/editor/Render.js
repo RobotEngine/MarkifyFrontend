@@ -1,6 +1,6 @@
 // RENDER : Handles rendering objects/annotations onto the board:
 
-import { changeGlobalImports, randomString, sendRequest, sleep } from "@/crucial";
+import { changeGlobalImports, randomString, getEpoch, sendRequest, sleep } from "@/crucial";
 
 import { renderPage } from "./render/pdf/render-page";
 
@@ -42,6 +42,36 @@ export class Render {
 
   tempID() {
     return "pending_" + randomString(10) + Date.now();
+  }
+  generateID() {
+    if (this.idSessionID == null || this.idCounter >= 256) {
+      let bytes = new Uint8Array(5);
+
+      if (
+        typeof window !== "undefined"
+        && window.crypto != null
+        && window.crypto.getRandomValues != null
+      ) {
+        window.crypto.getRandomValues(bytes);
+      } else {
+        for (let i = 0; i < 5; i++) {
+          bytes[i] = Math.floor(Math.random() * 256);
+        }
+      }
+
+      this.idSessionID = Array.from(bytes, b =>
+        b.toString(16).padStart(2, "0")
+      ).join("");
+      this.idCounter = 0;
+    }
+
+    let timestamp = getEpoch().toString(16).padStart(12, "0").slice(-12);
+
+    let counterHex = this.idCounter.toString(16).padStart(2, "0");
+
+    this.idCounter++;
+
+    return timestamp + this.idSessionID + counterHex;
   }
 
   async setMarginSize(force) {

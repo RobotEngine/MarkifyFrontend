@@ -1,4 +1,4 @@
-import { fixed, newModule, sleep, setFrame } from "@/crucial";
+import { fixed, newModule, sleep, setFrame, elementInViewport } from "@/crucial";
 
 import { close as closeIcon, back as backIcon } from "./core-icons";
 
@@ -300,7 +300,7 @@ export const Modal = class {
       return;
     }
     remove.closing = true;
-    if (remove.origin != null) {
+    if (elementInViewport(remove.origin) == true) {
       remove.origin.focus();
     }
     if (remove.element != null) {

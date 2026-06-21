@@ -19,6 +19,6 @@
 @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 */ /* */ /* */ /* */ /* */ /* */ /* */ /* */ /* */ /* */ /* */ /* */ /* */ /* */ /* */ /* */ /* */ /* */ /* */ /* */ /* */ /* */ /* */ /* */ /* */ /* */
 
-export const configuration = "public"; // "public" ; "testing" ; "prodTesting"
-export const version = "1.7.5"; // Big Update . Small Feature Release . Bug Fix
+export const configuration = "prodTesting"; // "public" ; "testing" ; "prodTesting"
+export const version = "1.7.6"; // Big Update . Small Feature Release . Bug Fix
 export const domain = "markifyapp.com";

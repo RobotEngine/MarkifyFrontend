@@ -40,18 +40,19 @@ import mediaIcon from "../icons/toolbar/media.svg?raw";
 import uploadIcon from "../icons/toolbar/upload.svg?raw";
 import embedIcon from "../icons/toolbar/embed.svg?raw";
 
+import widgetIcon from "../icons/toolbar/widget.svg?raw";
+
 export const toolbars = {
   editor: `<div class="eToolbarContent eVerticalToolsHolder hideScroll">
     <button class="eTool" tool="selection" tooltip="Selection" selected><div>${selectIcon}</div></button>
-    <button class="eTool" tool="draw" tooltip="Draw"><div>${drawIcon}</div></button>
-    <button class="eTool" tool="markup" tooltip="Markup"><div>${markupIcon}</div></button>
-    <button class="eTool" tool="erase" tooltip="Erase"><div>${eraseIcon}</div></button>
+    <button class="eTool" tool="markup" tooltip="Markup"><div icon="pen">${drawIcon}</div></button>
     <button class="eTool" tool="text" tooltip="Text Box"><div>${textIcon}</div></button>
     <button class="eTool" tool="shape" tooltip="Shapes"><div>${shapeIcon}</div></button>
     <button class="eTool" tool="sticky" tooltip="Stickies"><div>${stickyIcon}</div></button>
     <button class="eTool" tool="comment" tooltip="Comments"><div>${commentIcon}</div></button>
     <button class="eTool" tool="page" tooltip="Page"><div>${pageIcon}</div></button>
     <button class="eTool" tool="media" tooltip="Media"><div>${mediaIcon}</div></button>
+    <button class="eTool" tool="widget" tooltip="Widgets"><div>${widgetIcon}</div></button>
   </div>`,
 
   viewer: `<div class="eToolbarContent eVerticalToolsHolder">
@@ -68,26 +69,40 @@ export const tools = {
       <button class="eTool" tool="drag" tooltip="Multi-Select" module="selection/drag"><div>${dragIcon}</div></button>
     </div>`
   },
-  "draw": {
+  /*"draw": {
+    html: `<div class="eVerticalToolsHolder">
+      <button class="eTool" tool="pen" tooltip="Pen" module="pen"><div>${penIcon}</div></button>
+      <div class="eDivider"></div>
+      <button class="eTool" option="color" tooltip="Color" module="color"><div></div></button>
+      <button class="eTool" option="thickness" tooltip="Thickness" module="thickness"><div></div></button>
+      <button class="eTool" option="opacity" tooltip="Opacity" module="opacity"><div></div></button>
+    </div>`
+  },*/
+  "markup": {
+    icon: ({ tool }) => {
+      switch (tool) {
+        case "pen":
+          return penIcon;
+        case "highlighter":
+          return highlighterIcon;
+        case "understrike":
+          return understrikeIcon;
+        case "erase":
+          return eraseIcon;
+      }
+    },
     html: `<div class="eVerticalToolsHolder">
       <button class="eTool" tool="pen" tooltip="Pen" module="markup/pen"><div>${penIcon}</div></button>
-      <div class="eDivider"></div>
-      <button class="eTool" option="color" tooltip="Color" module="color"><div></div></button>
-      <button class="eTool" option="thickness" tooltip="Thickness" module="thickness"><div></div></button>
-      <button class="eTool" option="opacity" tooltip="Opacity" module="opacity"><div></div></button>
-    </div>`
-  },
-  "markup": {
-    html: `<div class="eVerticalToolsHolder">
       <button class="eTool" tool="highlighter" tooltip="Highlighter" module="markup/highlighter"><div>${highlighterIcon}</div></button>
       <button class="eTool" tool="understrike" tooltip="Underline" module="markup/understrike"><div>${understrikeIcon}</div></button>
+      <button class="eTool" tool="erase" tooltip="Eraser" module="eraser" ignore><div>${eraseIcon}</div></button>
       <div class="eDivider"></div>
       <button class="eTool" option="color" tooltip="Color" module="color"><div></div></button>
       <button class="eTool" option="thickness" tooltip="Thickness" module="thickness"><div></div></button>
       <button class="eTool" option="opacity" tooltip="Opacity" module="opacity"><div></div></button>
     </div>`
   },
-  "erase": { id: "erase", type: "tool", module: "eraser" },
+  //"erase": { id: "erase", type: "tool", module: "eraser" },
   "text": {
     html: `<div class="eVerticalToolsHolder">
       <button class="eTool" tool="text" tooltip="Text" module="text/textbox"><div>${textIcon}</div></button>
@@ -121,6 +136,9 @@ export const tools = {
       <button class="eTool" tool="embed" tooltip="Embed" module="media/embed"><div>${embedIcon}</div></button>
     </div>`
   },
+  "widget": {
+    frame: "widget"
+  },
 
   // Viewer Toolbar:
   "select": { id: "select", type: "tool", module: "selection/select" },
@@ -134,5 +152,6 @@ export const mappedToolTypes = {
   text: ["text"],
   sticky: ["sticky"],
   page: ["page"],
-  media: ["media", "embed"]
+  media: ["media", "embed"],
+  widget: ["widget"]
 };

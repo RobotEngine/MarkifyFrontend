@@ -142,7 +142,7 @@ export class Page {
     ".broWaitingRoomContent": `position: relative; width: 100%; background: var(--pageColor); border-radius: 12px 12px 0 0; overflow: hidden; z-index: 1; pointer-events: all; transition: .4s`,
     ".broWaitingRoomMenu[open] .broWaitingRoomContent": `box-shadow: var(--lightShadow)`,
     ".broWaitingRoomHolder": `box-sizing: border-box; display: flex; flex-wrap: wrap; gap: 8px; width: 100%; max-height: 40vh; padding: 16px; overflow-y: auto; overflow-x: hidden; justify-content: center`,
-    ".broWaitingRoomHolder .broTileMember": `width: fit-content !important; margin: unset !important`,
+    ".broWaitingRoomHolder .broTileMember": `width: fit-content !important; margin: unset !important; border-radius: 12px !important`,
     ".broWaitingRoomHolder .broTileMemberContent": `padding: 6px 12px 6px 6px !important`,
 
     ".broBottomButtonSpacer": `display: none; flex-shrink: 0; width: 50px`,
@@ -152,17 +152,14 @@ export class Page {
     ".broOpenBoard button svg": `width: 32px; height: 32px; transition: .2s`,
     ".broOpenBoard button:hover svg": `transform: scale(.9)`,
 
-    ".broTile": `--shadow: var(--lightShadow); position: absolute; width: var(--columnWidth); height: fit-content; left: 0px; top: 0px; border-radius: 16px; z-index: 1; transition: .3s`, // will-change: transform;
+    ".broTile": `--hoverSize: 0px; --shadowOpacity: 0; --scale: 1; position: absolute; width: var(--columnWidth); height: fit-content; left: 0px; top: 0px; border-radius: calc(14px + var(--hoverSize)); text-decoration: none; outline-offset: 4px; z-index: 1; transition: .3s`, // will-change: transform;
     ".broTile[disabled] *": `pointer-events: none !important`,
-    ".broTile:hover, .broTile:focus-within": `--shadow: var(--darkShadow) !important`,
-    ".broTileContent": `position: relative; display: flex; flex-direction: column; width: 100%; height: 100%; background: var(--pageColor); box-shadow: var(--shadow); border-radius: 16px; contain: strict; overflow: hidden; transition: .2s, transform .1s`,
-    ".broTile:active .broTileContent": `transform: scale(.95)`,
-    ".broTilePreviewContainer": `position: relative; flex-shrink: 0; width: 100%; height: var(--previewHeight); z-index: 1`,
-    ".broTile:not([disabled]) .broTilePreviewContainer:after": `content: ""; position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; pointer-events: all !important`,
-    ".broTilePreview": `position: absolute; width: calc(var(--previewWidth) * (1 / var(--previewScale))); height: calc(var(--previewWidth) * var(--previewHeightRatio) * (1 / var(--previewScale))); left: 50%; top: 50%; transform: translate(-50%, -50%) scale(var(--previewScale)); transform-origin: center; background: var(--pageColor); contain: strict; overflow: scroll; scrollbar-width: none; transition: opacity .4s`,
-    ".broTilePreview::-webkit-scrollbar": `display: none`,
-    ".broTileHeader": `position: absolute; display: flex; gap: 8px; width: 100%; left: 0px; top: 0px; justify-content: space-between; z-index: 3; pointer-events: none`,
-    ".broTileHeaderName": `display: flex; box-sizing: border-box; gap: 0; min-width: 0; padding: 6px; align-items: center; background: var(--pageColor); box-shadow: var(--shadow); border-radius: 0 0 16px 0; overflow: hidden; pointer-events: all; transition: .2s`,
+    ".broTile:hover, .broTile:focus-within": `--hoverSize: 4px; --shadowOpacity: .5`,
+    ".broTile:active": `--scale: .95`,
+    ".broTile:before": `content: ""; position: absolute; width: calc(100% + (var(--hoverSize) * 2)); height: calc(100% + (var(--hoverSize) * 2)); left: 50%; top: 50%; transform: translate(-50%, -50%) scale(var(--scale)); background: var(--pageColor); box-shadow: 0px 0px 8px 0px rgba(var(--themeRGB), var(--shadowOpacity)); border-radius: calc(18px + var(--hoverSize)); z-index: 1; transition: .2s, transform .1s`,
+    ".broTileContent": `position: relative; display: flex; flex-direction: column; width: 100%; height: 100%; border-radius: 16px; contain: strict; transform: scale(var(--scale)); z-index: 2; transition: .2s, transform .1s`,
+    ".broTileHeader": `box-sizing: border-box; display: flex; width: 100%; padding: 4px; justify-content: space-between; pointer-events: none`,
+    ".broTileHeaderName": `display: flex; box-sizing: border-box; gap: 0px; min-width: 0; margin: 4px; align-items: center; pointer-events: all; transition: .2s`,
     ".broTileHeaderName:focus-within": `gap: 6px`,
     ".broTileHeaderNameImage": `display: none; flex-shrink: 0; width: 30px; height: 30px; border-radius: 10px; object-fit: cover`,
     ".broTileHeaderNameHolder": `--borderRadius: 6px; --borderColor: var(--secondary); --borderWidth: 0px; --transition: .05s; min-width: 0; height: 30px; align-content: center`,
@@ -170,14 +167,20 @@ export class Page {
     ".broTileHeaderNameHolderText": `max-width: 100%; padding: 0 6px; outline: unset; font-size: 18px; font-weight: 500; white-space: nowrap; overflow-x: hidden; text-overflow: ellipsis; scrollbar-width: none`,
     ".broTileHeaderNameHolderText:focus": `padding: 4px 6px !important; overflow-x: auto !important; text-overflow: unset !important; cursor: text`,
     ".broTileHeaderNameHolderText::-webkit-scrollbar": `display: none`,
-    ".broTileHeaderOptions": `display: flex; box-sizing: border-box; padding: 2px; justify-content: center; align-items: center; background: var(--pageColor); opacity: 0; box-shadow: var(--shadow); border-radius: 0 0 0 16px; pointer-events: all; transition: .2s`,
-    ".broTile:hover .broTileHeaderOptions, .broTile:focus-within .broTileHeaderOptions": `opacity: 1 !important`,
-    ".broTileHeaderOptionsButton": `display: flex; width: 30px; height: 30px; margin: 4px; flex-shrink: 0; justify-content: center; align-items: center; border-radius: 16px`,
+    ".broTileHeaderOptions": `display: flex; justify-content: center; align-items: center; opacity: 1; pointer-events: all; transition: .2s`,
+    //".broTile:hover .broTileHeaderOptions, .broTile:focus-within .broTileHeaderOptions": `opacity: 1 !important`,
+    ".broTileHeaderOptionsButton": `display: flex; width: 34px; height: 34px; margin: 2px; flex-shrink: 0; justify-content: center; align-items: center; border-radius: 18px`,
     ".broTileHeaderOptionsButton > svg": `flex-shrink: 0; width: 24px; height: 24px`,
     ".broTileHeaderOptionsButton:hover": `background: var(--hover)`,
-    ".broTileMembers": `position: relative; flex: 1; width: 100%; padding-bottom: 6px; background: var(--pageColor); z-index: 2`,
-    ".broTileMembers:has(> .broTileMember):before": `content: ""; position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; border-radius: inherit; contain: strict; box-shadow: var(--shadow); transition: .2s`,
-    ".broTileMember": `--shadow: var(--lightShadow); --workPercent: 0; --workInvert: 0; --workThemeColor: var(--theme); position: relative; width: calc(100% - 12px); padding: 0; margin: 6px 6px 0; background: var(--pageColor); border-radius: 10px; cursor: grab`,
+    ".broTilePreviewContainer": `position: relative; flex-shrink: 0; width: var(--previewWidth); height: var(--previewHeight); margin: 0 6px; border-radius: 12px; overflow: hidden`,
+    ".broTilePreviewContainer:after": `content: ""; position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; border-radius: inherit; box-shadow: inset 0px 0px 4px 0px rgba(var(--themeRGB), .5); z-index: 2`,
+    ".broTile:not([disabled]) .broTilePreviewContainer:after": `pointer-events: all !important`,
+    ".broTilePreview": `position: absolute; width: calc(var(--previewWidth) * (1 / var(--previewScale))); height: calc(var(--previewWidth) * var(--previewHeightRatio) * (1 / var(--previewScale))); left: 50%; top: 50%; transform: translate(-50%, -50%) scale(var(--previewScale)); transform-origin: center; background: var(--pageColor); contain: strict; z-index: 1; overflow: scroll; scrollbar-width: none; transition: opacity .4s`,
+    ".broTilePreview::-webkit-scrollbar": `display: none`,
+    ".broTileMembers": `position: relative; box-sizing: border-box; flex: 1; width: 100%; padding: 0 6px; margin-bottom: 6px`,
+    ".broTileMember": `--shadow: var(--lightShadow); --workPercent: 0; --workInvert: 0; --workThemeColor: var(--theme); position: relative; width: 100%; padding: 0; margin-top: 6px; background: var(--pageColor); border-radius: 6px; cursor: grab`,
+    ".broTileMember:first-child": `border-top-left-radius: 12px; border-top-right-radius: 12px`,
+    ".broTileMember:last-child": `border-bottom-left-radius: 12px; border-bottom-right-radius: 12px`,
     ".broTileMember:hover, .broTileMember:active, .broTileMember[dragging]": `--shadow: var(--darkShadow)`,
     ".broTileMember:before": `content: ""; position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; border-radius: inherit; contain: strict; pointer-events: none; box-shadow: var(--shadow); transition: .2s`,
     ".broTileMemberContent": `display: flex; box-sizing: border-box; width: 100%; gap: 6px; padding: 6px; overflow: hidden; justify-content: space-between`,
@@ -602,6 +605,7 @@ export class Page {
         this.dragContext.element.style.width = this.dragContext.width + "px";
         this.dragContext.element.style.height = this.dragContext.height + "px";
         this.dragContext.element.style.background = "var(--pageColor)";
+        this.dragContext.element.style.borderRadius = "12px";
         this.dragContext.element.style.boxShadow = "var(--shadow)";
         this.dragContext.element.style.zIndex = 10;
         this.dragContext.element.style.pointerEvents = "none";
@@ -1245,11 +1249,10 @@ export class Page {
       if (tile == null) {
         return;
       }
-      let tileContent = tile.querySelector(".broTileContent");
       if (target.closest("button") == null && target.closest("div[contenteditable]") == null && target.closest(".broTileMembers") == null) {
-        tileContent.style.removeProperty("transform");
+        tile.style.removeProperty("--scale");
       } else if (tile.classList.contains("broTileAddGroup") == false) {
-        tileContent.style.transform = "scale(1)";
+        tile.style.setProperty("--scale", "1");
       }
     });
 

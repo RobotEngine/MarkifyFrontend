@@ -1,8 +1,8 @@
 import { mouseDown, sleep } from "@/crucial";
 
-import { Draw } from "../Draw";
+import { Draw } from "../../Draw";
 
-import penCursor from "../../icons/cursors/pen.svg?raw";
+import penCursor from "../../../icons/cursors/pen.svg?raw";
 
 export class Tool extends Draw {
   FUNCTION = "draw";

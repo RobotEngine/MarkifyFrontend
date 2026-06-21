@@ -30,7 +30,7 @@ export class Module {
 
   css = {
     ".eToolbarHolder": `position: relative; display: block; flex: 1; visibility: visible`,
-    ".eToolbar": `position: absolute; display: block; width: 50px; height: fit-content; max-height: var(--maxToolbarHeight); top: 50%; transform: translateY(-50%); z-index: 2; background: var(--pageColor); box-shadow: var(--lightShadow); pointer-events: all; transition: transform .4s, opacity .4s, border-radius .2s`,
+    ".eToolbar": `--toolbarWidth: 50px; position: absolute; display: block; width: var(--toolbarWidth); height: fit-content; max-height: var(--maxToolbarHeight); top: 50%; transform: translateY(-50%); z-index: 2; background: var(--pageColor); box-shadow: var(--lightShadow); pointer-events: all; transition: transform .4s, opacity .4s, border-radius .2s`,
     ".eToolbar[hidden]": `transform: translate(var(--translate), -50%) !important; z-index: 1 !important`,
     ".eToolbarContent": `position: relative; box-sizing: border-box; max-height: var(--maxToolbarHeight); background: var(--pageColor); overflow-x: hidden; overflow-y: auto; z-index: 3; border-radius: inherit`,
     ".eToolbarHolder[left] .eToolbar": `--translate: -100%; left: 0px; border-radius: 0 12px 12px 0; transform-origin: left center`,
@@ -63,10 +63,11 @@ export class Module {
     ".eDivider": `width: calc(100% - 8px); height: 4px; margin: 2px 0; background: var(--hover); border-radius: 2px`,
     ".eVerticalDivider": `width: 4px; height: calc(100% - 8px); margin: 0 2px; flex-shrink: 0; background: var(--hover); border-radius: 2px`,
 
-    ".eSubToolHolder": `position: absolute; width: 100vw; height: 100%; padding: 12px; top: -12px; z-index: 2; overflow: hidden; pointer-events: none`,
+    ".eSubToolHolder": `--maxWidth: calc(var(--maxToolbarWidth) - var(--toolbarWidth) - 4px); position: absolute; width: calc(var(--maxWidth) - 4px); height: 100%; padding: 12px; top: -12px; z-index: 2; overflow: hidden; pointer-events: none`,
+    ".eSubToolContainer .eSubToolHolder": `--maxWidth: calc(var(--maxToolbarWidth) - (var(--toolbarWidth) * 2) - (4px * 2));`,
     ".eToolbarHolder[left] .eSubToolHolder": `left: calc(100% - 12px)`,
     ".eToolbarHolder[right] .eSubToolHolder": `right: calc(100% - 12px)`,
-    ".eSubToolContainer": `position: absolute; width: fit-content; max-height: 100%; background: var(--pageColor); opacity: 0; pointer-events: all; transition: opacity .25s, transform .25s; outline: none !important`,
+    ".eSubToolContainer": `position: absolute; width: fit-content; max-width: calc(100% - 28px); max-height: 100%; background: var(--pageColor); opacity: 0; pointer-events: all; transition: opacity .25s, transform .25s; outline: none !important`,
     ".eSubToolContainer:after": `content: ""; position: absolute; width: 4px; height: 100%; top: 0px; background: var(--theme); z-index: 4`,
     ".eToolbarHolder[left] .eSubToolContainer": `left: 12px; padding-left: 4px; border-radius: 0 12px 12px 0`,
     ".eToolbarHolder[right] .eSubToolContainer": `right: 12px; padding-right: 4px; border-radius: 12px 0 0 12px`,
@@ -79,7 +80,7 @@ export class Module {
     ".eToolbarHolder[right] .eSubToolShadow": `padding: 16px 0 16px 16px; right: 0px`,
     ".eToolbarHolder[left] .eSubToolShadow:after": `left: 0px`,
     ".eToolbarHolder[right] .eSubToolShadow:after": `right: 0px`,
-    ".eSubToolContentHolder": `position: relative; background: var(--pageColor); z-index: 3; overflow: hidden; border-radius: inherit`,
+    ".eSubToolContentHolder": `position: relative; max-width: 100%; background: var(--pageColor); z-index: 3; overflow: hidden; border-radius: inherit`,
     ".eSubToolContentScroll": `width: fit-content; overflow: auto`,
     ".eSubToolContainer[option] .eSubToolContentScroll": `overflow: visible`,
     ".eVerticalToolsHolder": `display: flex; flex-wrap: wrap; width: 50px; padding: 2px 0; justify-content: center; scrollbar-width: none`,
@@ -293,7 +294,11 @@ export class Module {
       moduleLoad = await moduleLoad();
     }
     if (moduleLoad != null) {
-      return moduleLoad.Tool;
+      if (moduleLoad.Tool != null) {
+        return moduleLoad.Tool;
+      } else {
+        return moduleLoad;
+      }
     }
   }
   async loadModule(path) {
@@ -396,7 +401,8 @@ export class Module {
     }
   }
 
-  updateMaxHeight() { // Have to add this solution because FIREFOX
+  updateMaxSize() {
+    this.editor.page.style.setProperty("--maxToolbarWidth", this.toolbarHolder.offsetWidth + "px");
     this.editor.page.style.setProperty("--maxToolbarHeight", this.toolbarHolder.offsetHeight + "px");
   }
 
@@ -409,7 +415,12 @@ export class Module {
     };
   }
   getAnnotationPreference(returnMissing) {
-    let result = this.editor.preferences.state.tools[this.getPreferenceTool().f];
+    let tool = this.getPreferenceTool().f;
+    let result;
+    if (tool != null) {
+      let mappedTool = (mappedToolTypes[tool] ?? [tool])[0];
+      result = this.editor.preferences.state.tools[mappedTool];
+    }
     if (returnMissing == true) {
       return result;
     }
@@ -895,7 +906,7 @@ export class Module {
     }
     this.toolbarHolder.removeAttribute("hidden");
 
-    this.updateMaxHeight();
+    this.updateMaxSize();
     this.activateTool();
     this.toolbar.updateButtons(this.toolbarHolder);
     this.toolbar.checkToolToggle();
@@ -1147,13 +1158,13 @@ export class Module {
       this.pushToolEvent("wheel", data.event);
     });
     this.editor.pipeline.subscribe("toolbarBoundChange", "bounds_change", (data) => {
-      this.updateMaxHeight();
-      setTimeout(() => { this.updateMaxHeight(); }, 100); // Update again because of SAFARI
+      this.updateMaxSize();
+      setTimeout(() => { this.updateMaxSize(); }, 100); // Update again because of SAFARI
       this.toolbar.update();
       this.pushToolEvent("scroll", data.event);
     }, { sort: 2 });
     this.editor.pipeline.subscribe("toolbarPagePageAdd", "page_add", () => {
-      this.updateMaxHeight();
+      this.updateMaxSize();
       this.toolbar.update();
     });
     this.editor.pipeline.subscribe("toolbarEditorUpdate", "set", (data) => {

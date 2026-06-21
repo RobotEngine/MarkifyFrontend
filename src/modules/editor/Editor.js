@@ -71,12 +71,12 @@ export class Editor {
     
     //".ql-formula textarea": `transform: unset !important; clip: unset !important; width: unset !important; height: unset !important; outline: none !important`,
 
-    ".eReaction": `display: flex; padding: 2px; background: rgba(255, 255, 255, .8); border: solid 2px rgba(0, 0, 0, 0); border-radius: 8px; align-items: center; overflow: hidden; color: #2F2F2F`,
+    ".eReaction": `display: flex; padding: 2px; background: rgba(var(--background), .8); border: solid 2px rgba(0, 0, 0, 0); border-radius: 8px; align-items: center; overflow: hidden; color: #2F2F2F`,
     ".eReaction[selected]": `padding: 2px; background: rgba(var(--hoverRGB), .8); border: solid 2px var(--theme); color: var(--theme)`,
     ".eReaction[add]": `opacity: 0; border-radius: 14px`,
     ".customScroll[viewer] .eReaction[add]": "display: none !important",
     ".eReaction div[imgholder]": `display: flex; width: 20px; height: 20px; justify-content: center; align-items: center`,
-    ".eReaction img": `width: 32px; height: 32px; transform: scale(0.65); border-radius: 7px; filter: drop-shadow(0px 0px 8px #fff)`,
+    ".eReaction img": `width: 32px; height: 32px; transform: scale(0.65); border-radius: 7px; filter: drop-shadow(0px 0px 8px var(--pageColor))`,
     ".eReaction div[count]": `margin: 0 5px 0 6px; font-size: 16px; font-weight: 700`
   };
 

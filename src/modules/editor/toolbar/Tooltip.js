@@ -62,6 +62,9 @@ export class Tooltip {
           let toolbarRect = subToolbarContainer.getBoundingClientRect();
           let toolbarContentScroll = subToolbarContainer.querySelector(".eSubToolContentScroll");
           let subToolWidth = toolbarContentScroll.offsetWidth + 4;
+          if (subToolWidth > 100) {
+            subToolWidth = 0;
+          }
           let subToolTop = toolbarRect.top - toolHolderRect.top;
           if (this.tooltipElement.closest(".eSubToolHolder") != null) {
             setLeft += subToolWidth;
@@ -79,6 +82,9 @@ export class Tooltip {
           let toolbarRect = subToolbarContainer.getBoundingClientRect();
           let toolbarContentScroll = subToolbarContainer.querySelector(".eSubToolContentScroll");
           let subToolWidth = toolbarContentScroll.offsetWidth + 4;
+          if (subToolWidth > 100) {
+            subToolWidth = 0;
+          }
           let subToolTop = toolbarRect.top - toolHolderRect.top;
           if (this.tooltipElement.hasAttribute("tool") == false) {
             setRight += subToolWidth;

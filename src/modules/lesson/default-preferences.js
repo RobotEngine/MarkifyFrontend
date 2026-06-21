@@ -1,16 +1,13 @@
 export const defaultPreferences = {
   tools: {
+
+    // Primary Tools //
     selection: {
       subtool: "select"
     },
     markup: {
-      subtool: "highlighter",
-      color: {
-        selected: "FFC24A",
-        options: ["0084FF", "FF4C6C", "FFC24A", "DF84FF", "34C172", "FF008A", "000"]
-      },
-      thickness: 16,
-      opacity: 50
+      subtool: "highlighter"
+      //subtool: "pen"
     },
     text: {
       subtool: "text",
@@ -24,13 +21,7 @@ export const defaultPreferences = {
       align: "center"
     },
     draw: {
-      subtool: "pen",
-      color: {
-        selected: "DF84FF",
-        options: ["0084FF", "FF4C6C", "FFC24A", "DF84FF", "34C172", "FF008A", "000"]
-      },
-      thickness: 4,
-      opacity: 100
+      subtool: "pen"
     },
     shape: {
       subtool: "square",
@@ -63,6 +54,32 @@ export const defaultPreferences = {
       colorpicker: {
         scale: 0
       }
+    },
+
+    // Subtools //
+    pen: {
+      color: {
+        selected: "DF84FF",
+        options: ["0084FF", "FF4C6C", "FFC24A", "DF84FF", "34C172", "FF008A", "000"]
+      },
+      thickness: 4,
+      opacity: 100
+    },
+    highlighter: {
+      color: {
+        selected: "FFC24A",
+        options: ["0084FF", "FF4C6C", "FFC24A", "DF84FF", "34C172", "FF008A", "000"]
+      },
+      thickness: 16,
+      opacity: 50
+    },
+    understrike: {
+      color: {
+        selected: "34C172",
+        options: ["0084FF", "FF4C6C", "FFC24A", "DF84FF", "34C172", "FF008A", "000"]
+      },
+      thickness: 4,
+      opacity: 100
     }
   }
 };

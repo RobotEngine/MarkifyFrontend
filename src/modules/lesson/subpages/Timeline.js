@@ -426,8 +426,11 @@ export class Frame {
 
   //currentCollaboratorID = null;
   updateCollaboratorDisplay(collaborator = {}) {
-    if ((this.lesson.lesson.settings ?? {}).anonymousMode == true && this.self.access < 4) {
-      collaborator = {};
+    if ((this.lesson.lesson.settings ?? {}).anonymousMode != true || this.self.access > 3) {
+      this.memberHolder.style.removeProperty("filter");
+    } else {
+      collaborator = { _id: "blur", name: "Anonymous", color: "var(--theme)" };
+      this.memberHolder.style.filter = "blur(8px)";
     }
     this.currentCollaboratorID = collaborator._id;
     if (this.currentCollaboratorID == null) {

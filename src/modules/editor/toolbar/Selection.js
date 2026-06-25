@@ -475,7 +475,11 @@ export class Selection {
     }
 
     if (options.redrawActionBar != false) {
-      await this.updateActionBar({ ...options, redrawActionBar: selectionChange || options.redraw == true || options.redrawActionBar == true });
+      await this.updateActionBar({
+        ...options,
+        redrawActionBar: selectionChange || options.redraw == true || options.redrawActionBar == true,
+        focus: selectionChange
+      });
     }
 
     await this.editor.refreshRealtimeSelections(
@@ -529,14 +533,13 @@ export class Selection {
       return;
     }
     
-    let newActionBar = false;
-    if (this.actionBar == null) { // Create UI
+    let newActionBar = this.actionBar == null;
+    if (newActionBar == true) { // Create UI
       this.editor.content.insertAdjacentHTML("beforeend", `<div class="eActionBar" tabindex="-1" top new>
         <div class="eActionToolbar eHorizontalToolsHolder" keeptooltip></div>
       </div>`);
       this.actionBar = this.editor.content.querySelector(".eActionBar[new]");
       this.actionBar.removeAttribute("new");
-      newActionBar = true;
       this.actionBar.querySelector(".eActionToolbar").addEventListener("scroll", () => { this.updateActionBar(); });
     }
 
@@ -885,7 +888,10 @@ export class Selection {
     if (newActionBar == true) {
       this.actionBar.style.transform = "translate(-50%, 0%)";
       this.actionBar.style.opacity = 1;
-      this.actionBar.focus();
+
+      if (options.focus == true) {
+        this.actionBar.focus(); // Disabled for now due to text selection loosing focus
+      }
     }
   }
   async clickAction(event, options = {}) {

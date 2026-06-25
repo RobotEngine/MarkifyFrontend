@@ -54,7 +54,7 @@ export class Editor {
     ".eAnnotation > svg > *": `pointer-events: visiblepainted`,
 
     ".eAnnotation .ql-editor": `padding: 0 !important; overflow-y: unset !important; font-family: var(--font); font-size: inherit; line-height: inherit`,
-    ".eAnnotation .ql-editor > *": `cursor: unset`,
+    ".eAnnotation .ql-editor > *": `cursor: initial !important`,
     ".eAnnotation .ql-editor.ql-blank::before": `color: var(--textColor) !important; opacity: .6 !important`,
     ".eAnnotation .ql-editor ol": `padding: unset`,
     ".eAnnotation .ql-editor a": `color: var(--theme) !important`,

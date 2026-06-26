@@ -44,15 +44,21 @@ export class Render {
     return "pending_" + randomString(10) + Date.now();
   }
   generateID() {
-    if (this.idSessionID == null || this.idCounter >= 256) {
+    if (this.idSessionID == null) {
       let bytes = new Uint8Array(5);
 
+      let cryptoLib;
       if (
-        typeof window !== "undefined"
-        && window.crypto != null
-        && window.crypto.getRandomValues != null
+        typeof globalThis != "undefined"
+        && globalThis.crypto != null
       ) {
-        window.crypto.getRandomValues(bytes);
+        cryptoLib = globalThis.crypto;
+      } else if (typeof window != "undefined") {
+        cryptoLib = window.crypto;
+      }
+
+      if (cryptoLib != null && cryptoLib.getRandomValues != null) {
+        cryptoLib.getRandomValues(bytes);
       } else {
         for (let i = 0; i < 5; i++) {
           bytes[i] = Math.floor(Math.random() * 256);
@@ -65,8 +71,23 @@ export class Render {
       this.idCounter = 0;
     }
 
-    let timestamp = getEpoch().toString(16).padStart(12, "0").slice(-12);
+    let now = Math.floor(getEpoch());
 
+    if (this.idCounter >= 256) {
+      while (now == this.idNow) {
+        now = Math.floor(getEpoch());
+      }
+      this.idCounter = 0;
+    }
+    /*
+    // If the clock has naturally ticked forward, we can safely reset the counter for free!
+    else if (now > this.idNow) {
+      this.idCounter = 0;
+    }*/
+
+    this.idNow = now;
+
+    let timestamp = this.idNow.toString(16).padStart(12, "0").slice(0, 12);
     let counterHex = this.idCounter.toString(16).padStart(2, "0");
 
     this.idCounter++;

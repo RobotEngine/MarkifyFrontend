@@ -71,7 +71,7 @@ export class Editor {
     
     //".ql-formula textarea": `transform: unset !important; clip: unset !important; width: unset !important; height: unset !important; outline: none !important`,
 
-    ".eReaction": `display: flex; padding: 2px; background: rgba(var(--background), .8); border: solid 2px rgba(0, 0, 0, 0); border-radius: 8px; align-items: center; overflow: hidden; color: #2F2F2F`,
+    ".eReaction": `display: flex; padding: 2px; background: rgba(var(--background), .8); border: solid 2px rgba(0, 0, 0, 0); border-radius: 8px; align-items: center; overflow: hidden`,
     ".eReaction[selected]": `padding: 2px; background: rgba(var(--hoverRGB), .8); border: solid 2px var(--theme); color: var(--theme)`,
     ".eReaction[add]": `opacity: 0; border-radius: 14px`,
     ".customScroll[viewer] .eReaction[add]": "display: none !important",

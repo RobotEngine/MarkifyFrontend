@@ -640,7 +640,7 @@ export class Page extends PageFrame {
     this.newBoardLessonButton.href = "/app/lesson?type=board" + addPath;
     this.newBreakoutLessonButton.href = "/app/lesson?type=breakout" + addPath;
 
-    if (extra.search == null) {
+    if (extra.focus != false) {
       this.lessonsHolder.focus();
     }
 
@@ -1610,12 +1610,12 @@ export class Page extends PageFrame {
         
         let button = this.sidebar.querySelector('.dSidebarSort[sort="recent"]');
         button.setAttribute("selected", "");
-        return this.changeSort("recent");
+        return this.changeSort("recent", { focus: false });
       }
 
       this.currentLessonFrame = null;
       this.tileHolder.innerHTML = "";
-      return this.changeSort("search", { search, refresh: true });
+      return this.changeSort("search", { search, refresh: true, focus: false });
     });
 
     // Tile click listener:

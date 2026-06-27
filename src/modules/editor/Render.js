@@ -44,6 +44,12 @@ export class Render {
     return "pending_" + randomString(10) + Date.now();
   }
   generateID() {
+    // 24 Hex Chars (MongoDB ObjectID compatible):
+    // 8 Chars = Epoch Seconds
+    // 4 Chars = Milliseconds from Epoch Seconds
+    // 10 Chars = Randomly generated ID from instantiation
+    // 2 Chars = Incrementing counter
+
     if (this.idSessionID == null) {
       let bytes = new Uint8Array(5);
 
@@ -71,11 +77,14 @@ export class Render {
       this.idCounter = 0;
     }
 
-    let now = Math.floor(getEpoch());
+    let now = Math.max(Math.floor(getEpoch()), this.idNow ?? 0);
 
     if (this.idCounter >= 256) {
-      while (now == this.idNow) {
+      /*while (now == this.idNow) {
         now = Math.floor(getEpoch());
+      }*/
+      if (now == this.idNow) {
+        now++;
       }
       this.idCounter = 0;
     }
@@ -87,12 +96,13 @@ export class Render {
 
     this.idNow = now;
 
-    let timestamp = this.idNow.toString(16).padStart(12, "0").slice(0, 12);
+    let secondsTimestamp = Math.floor(this.idNow / 1000).toString(16).padStart(8, "0").slice(0, 8);
+    let msTimestamp = (this.idNow % 1000).toString(16).padStart(4, "0");
     let counterHex = this.idCounter.toString(16).padStart(2, "0");
 
     this.idCounter++;
 
-    return timestamp + this.idSessionID + counterHex;
+    return secondsTimestamp + msTimestamp + this.idSessionID + counterHex;
   }
 
   async setMarginSize(force) {

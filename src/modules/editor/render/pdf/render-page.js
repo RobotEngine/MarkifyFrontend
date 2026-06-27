@@ -70,6 +70,11 @@ export const renderPage = async (renderer, annotation, sourceID, pageNumber) => 
     return;
   }
 
+  if (annotation.pageRenderTask != null) {
+    annotation.pageRenderTask.cancel();
+    delete annotation.pageRenderTask;
+  }
+
   let element = annotation.element.querySelector('div[content] div[document][sourcepage="' + sourcePageId + '"]');
   if (element == null) {
     return;

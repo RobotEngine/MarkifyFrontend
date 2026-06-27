@@ -269,6 +269,20 @@ export class Annotation extends BaseAnnotation {
       this.pageRenderTask.cancel();
       delete this.pageRenderTask;
     }
+
+    if (this.element) {
+      let canvas = this.element.querySelector("canvas");
+      if (canvas != null) {
+        let ctx = canvas.getContext("2d");
+        if (ctx != null) {
+          ctx.clearRect(0, 0, canvas.width, canvas.height);
+        }
+        // Zeroing width/height immediately reclaims hardware memory in WebKit:
+        canvas.width = 0;
+        canvas.height = 0;
+      }
+    }
+    
     super.remove();
   }
 }

@@ -589,7 +589,10 @@ export class Frame {
         } else {
           this.editor.annotations[annotation._id].render = this.storedAnnotationStates[annotation._id];
         }
-        updatedAnnotations[annotation._id] = { annotation: this.editor.annotations[annotation._id], checkChunks: checkChunks };
+        updatedAnnotations[annotation._id] = {
+          annotation: this.editor.annotations[annotation._id],
+          checkChunks: checkChunks
+        };
 
         currentChangeAnnotations[annotation._id] = true;
         allMissingAnnotations = false;
@@ -623,7 +626,6 @@ export class Frame {
     for (let i = 0; i < updateAnnotationKeys.length; i++) {
       let annoID = updateAnnotationKeys[i];
       let { annotation, checkChunks } = updatedAnnotations[annoID];
-      let annoRect = this.editor.utils.getRect(annotation.render);
       let isCurrentChange = currentChangeAnnotations[annotation.render._id] != null;
 
       await this.editor.utils.setAnnotationChunks(annotation);
@@ -648,10 +650,12 @@ export class Frame {
         }
       }
       if (allowRender == true) {
-        annotation.component = (await this.editor.render.create(annotation, true)).component;
+        annotation.component = (await this.editor.render.create(annotation)).component;
       } else {
         await this.editor.render.remove(annotation);
       }
+
+      let annoRect = this.editor.utils.getRect(annotation.render);
 
       let modifyID = annotation.render.m ?? annotation.render.a;
       if (this.filterMembers != null && this.filterMembers.includes(modifyID) == false) {

@@ -176,9 +176,9 @@ export class Tool {
     let chunkAnnotations = this.editor.utils.annotationsInChunks(this.editor.utils.regionInChunks(topLeftX, topLeftY, bottomRightX, bottomRightY));
     for (let i = 0; i < chunkAnnotations.length; i++) {
       let annotation = chunkAnnotations[i];
-      if (annotation.pointer != null) {
+      /*if (annotation.pointer != null) {
         annotation = editor.annotations[annotation.pointer];
-      }
+      }*/
       let render = annotation.render;
       if (render == null) {
         continue;

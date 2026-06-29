@@ -43,12 +43,12 @@ export class Selection {
       let annoID = checkSelections[i];
       let selection = this.currentSelections[annoID];
       let annoData = this.editor.annotations[annoID] ?? {};
-      if (annoData.pointer != null) {
+      /*if (annoData.pointer != null) {
         delete this.currentSelections[annoID];
         annoID = annoData.pointer;
         annoData = this.editor.annotations[annoID];
         this.currentSelections[annoID] = selection;
-      }
+      }*/
       let render = annoData.render;
       if (this.editor.selecting[annoID] != null && render != null && render.remove != true) {
         continue; // Is valid selection box
@@ -159,10 +159,10 @@ export class Selection {
     for (let i = 0; i < selections.length; i++) {
       let annoID = selections[i];
       let annoData = this.editor.annotations[annoID] ?? {};
-      if (annoData.pointer != null) {
+      /*if (annoData.pointer != null) {
         annoID = annoData.pointer;
         annoData = this.editor.annotations[annoID];
-      }
+      }*/
       if (annoData.render == null) {
         delete this.editor.selecting[annoID];
         continue;
@@ -2722,7 +2722,7 @@ export class Selection {
               continue; // Parent annotation is missing, invalid save
             }
           }
-          let oldID = saveAnno._id;
+          /*let oldID = saveAnno._id;
           let tempID = this.editor.render.tempID();
           for (let h = 0; h < this.editor.history.history.length; h++) {
             let event = this.editor.history.history[h];
@@ -2744,11 +2744,11 @@ export class Selection {
                 change.parent = tempID;
               }
             }
-          }
+          }*/
           if (addRedo == true) {
-            event.redo.push({ remove: true, _id: tempID });
+            event.redo.push({ remove: true, _id: saveAnno._id });
           }
-          this.editor.selecting[tempID] = copyObject({ ...saveAnno, _id: tempID });
+          this.editor.selecting[saveAnno._id] = copyObject({ ...saveAnno, remove: false });
         }
     }
     
@@ -2805,7 +2805,7 @@ export class Selection {
               continue; // Parent annotation is missing, invalid save
             }
           }
-          let oldID = saveAnno._id;
+          /*let oldID = saveAnno._id;
           let tempID = this.editor.render.tempID();
           for (let h = 0; h < this.editor.history.history.length; h++) {
             let event = this.editor.history.history[h];
@@ -2827,8 +2827,8 @@ export class Selection {
                 change.parent = tempID;
               }
             }
-          }
-          this.editor.selecting[tempID] = copyObject({ ...saveAnno, _id: tempID });
+          }*/
+          this.editor.selecting[saveAnno._id] = copyObject({ ...saveAnno, remove: false });
         }
         break;
       case "add": // Sort of Remove

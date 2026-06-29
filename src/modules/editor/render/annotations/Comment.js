@@ -54,9 +54,9 @@ export class Annotation extends BaseAnnotation {
   handleParentThread() {
     let parentAnnotation = this.editor.annotations[this.properties.parent];
     if (parentAnnotation != null) {
-      if (parentAnnotation.pointer != null) {
+      /*if (parentAnnotation.pointer != null) {
         parentAnnotation = this.editor.annotations[parentAnnotation.pointer];
-      }
+      }*/
       if (parentAnnotation.render.f == "comment") { // Use for comment thread
         if (parentAnnotation.component != null) {
           if (this.annotation.pending != null) {

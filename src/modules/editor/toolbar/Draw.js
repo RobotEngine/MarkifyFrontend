@@ -62,7 +62,7 @@ export class Draw {
     let halfUseThickness = round(useThickness / 2);
     this.annotation = {
       render: {
-        _id: this.editor.render.tempID(),
+        _id: this.editor.render.generateID(),
         f: this.FUNCTION,
         p: [round(position.x - halfUseThickness), round(position.y - halfUseThickness)],
         s: [0, 0],

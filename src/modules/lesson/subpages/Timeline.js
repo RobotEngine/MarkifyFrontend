@@ -488,7 +488,7 @@ export class Frame {
       }
       if (sortedChangeIndex < 50) {
         await this.loopLoadAnnotations();
-        if (this.updateStateCaller == this.callUpdateState) {
+        if (this.updateStateCaller == callUpdateState) {
           this.updateStateCaller();
         }
       }
@@ -574,7 +574,7 @@ export class Frame {
           changeData.redoChanges.push(copyObject(original ?? { _id: annotation._id, remove: true }));
         }
         if ((original ?? {}).remove == true) {
-          delete original.remove;
+          original.remove = false;
         }
         if ((original ?? {}).a == null && annotation.a == null) {
           annotation.a = changeData.collaborator;

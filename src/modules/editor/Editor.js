@@ -990,11 +990,11 @@ export class Editor {
       //let redrawAction = false;
       for (let i = 0; i < data.length; i++) {
         let anno = data[i];
-        let pendingAnno;
+        /*let pendingAnno;
         if (anno.pending != null) {
           pendingAnno = this.annotations[anno.pending];
-        }
-        let existingAnno = this.annotations[anno._id] ?? pendingAnno;
+        }*/
+        let existingAnno = this.annotations[anno._id]; // ?? pendingAnno;
         if (existingAnno != null) {
           if (existingAnno.serverSync > anno.sync) {
             continue; // Discard event as it's old
@@ -1002,7 +1002,7 @@ export class Editor {
           existingAnno.serverSync = anno.sync;
           existingAnno.revert = anno;
 
-          if (pendingAnno != null) {
+          /*if (pendingAnno != null) {
             let selectBox = this.content.querySelector('.eSelect[anno="' + anno.pending + '"]');
             if (selectBox != null) {
               selectBox.setAttribute("anno", anno._id);
@@ -1069,7 +1069,7 @@ export class Editor {
             }
 
             await this.render.setMarginSize();
-          }
+          }*/
           
           // CHECKS IF SERVER IS AFTER LAST SHORT EDIT SYNC
           if (existingAnno.render.sync > anno.sync) {

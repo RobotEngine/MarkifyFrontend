@@ -850,10 +850,10 @@ export class Module {
               member.cursorRender = merge;
             } else {
               original = this.editor.annotations[annoID];
-              if (original != null && original.pointer != null) {
+              /*if (original != null && original.pointer != null) {
                 annoID = original.pointer;
                 original = this.editor.annotations[annoID];
-              }
+              }*/
               anno._id = annoID;
               let isNewAnno = annoID.startsWith("pending_") == true;
               if (original == null && isNewAnno == true) {

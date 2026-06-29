@@ -16,14 +16,14 @@ export class Save {
       return;
     }
     anno.collab = collab == true;
-    let setExpire = getEpoch();
+    /*let setExpire = getEpoch();
     if ([anno.render.a ?? this.editor.self.modify, anno.render.m].includes(this.editor.self.modify) == true) {
       setExpire += 30000; // 30 seconds until expire
     } else {
       setExpire += 10000; // 10 seconds until expire
-    }
+    }*/
+    anno.expire = getEpoch() + 10000; // 10 seconds until expire
     if (anno.expire == null) {
-      anno.expire = setExpire;
       this.timeoutAnnotations.push(anno.render._id);
     }
     if (this.runningTimeout == true) {
@@ -38,9 +38,9 @@ export class Save {
       let epoch = getEpoch();
       for (let i = 0; i < this.timeoutAnnotations.length; i++) {
         let annotation = this.editor.annotations[this.timeoutAnnotations[i]];
-        if ((annotation ?? {}).pointer != null) { // If synced is availiable, update to it
+        /*if ((annotation ?? {}).pointer != null) { // If synced is availiable, update to it
           annotation = this.editor.annotations[annotation.pointer];
-        }
+        }*/
 
         if ((annotation ?? {}).render == null || (connected == false && annotation.collab != true)) {
           this.timeoutAnnotations.splice(i, 1);
@@ -64,16 +64,17 @@ export class Save {
         delete annotation.expire;
         delete annotation.collab;
 
-        if (annotation.pending != null) {
+        /*if (annotation.pending != null) {
           delete this.editor.annotations[annotation.pending];
           delete annotation.render.pending;
-        }
+        }*/
 
         if (annotation.revert == null) {
           continue;
         }
 
-        if (annotation.render._id.includes("pending_") == false) { // Must not be a new annotation:
+        //if (annotation.render._id.includes("pending_") == false) {
+        if (annotation.revert._id != null) { // Must not be a new annotation:
           delete annotation.retry;
           await this.apply(annotation.revert, { overwrite: true, timeout: false });
           delete annotation.revert;
@@ -121,10 +122,10 @@ export class Save {
           delete mutt.annoRefresh;
         }
         let anno = this.editor.annotations[mutt._id];
-        if (anno != null && anno.pointer != null) {
+        /*if (anno != null && anno.pointer != null) {
           mutt._id = anno.pointer;
           anno = this.editor.annotations[mutt._id];
-        }
+        }*/
         if (anno == null) {
           continue;
         }
@@ -137,7 +138,7 @@ export class Save {
           this.enableTimeout(anno);
           continue;
         }
-        if ((mutt.parent ?? "").startsWith("pending_") == true && mutt.remove != true) {
+        /*if ((mutt.parent ?? "").startsWith("pending_") == true && mutt.remove != true) {
           let parentAnno = this.editor.annotations[mutt.parent];
           if (parentAnno != null) {
             if (parentAnno.pointer != null) {
@@ -152,7 +153,7 @@ export class Save {
               continue;
             }
           }
-        }
+        }*/
 
         delete mutt.sig;
         delete anno.save;
@@ -162,7 +163,7 @@ export class Save {
           this.enableTimeout(anno);
           anno.retry--;
         }
-        if (mutt._id.startsWith("pending_") == true) {
+        /*if (mutt._id.startsWith("pending_") == true) {
           if (mutt.f == null) {
             mutt.annoRefresh = anno;
             setPendingSave[mutt._id] = mutt;
@@ -170,7 +171,7 @@ export class Save {
           } else if (mutt.remove == true) {
             continue;
           }
-        }
+        }*/
         if (anno.render.from == "root") {
           if (mutt.from == null) {
             mutt.annoRefresh = anno;
@@ -193,7 +194,7 @@ export class Save {
           if ((this.editor.parameters ?? []).length > 0) {
             path += "?" + this.editor.parameters.join("&");
           }
-          let [result] = await sendRequest("POST", path, { mutations: mutations }, { session: this.editor.session });
+          let [result] = await sendRequest("POST", path, { mutations }, { session: this.editor.session });
           saveSuccess = result == 200;
         } catch (err) {
           console.log("SAVE ERROR:", err);
@@ -204,9 +205,9 @@ export class Save {
             if (anno == null) {
               continue;
             }
-            if (anno.pointer != null) {
+            /*if (anno.pointer != null) {
               anno = this.editor.annotations[anno.pointer];
-            }
+            }*/
             if (anno.retry == null) {
               anno.retry = 3;
             }
@@ -234,10 +235,10 @@ export class Save {
     }
 
     let existingAnnotation = this.editor.annotations[annoID];
-    if ((existingAnnotation ?? {}).pointer != null) {
+    /*if ((existingAnnotation ?? {}).pointer != null) {
       annoID = existingAnnotation.pointer;
       existingAnnotation = this.editor.annotations[annoID];
-    }
+    }*/
     let annotation = existingAnnotation ?? { render: {} };
 
     if (existingAnnotation == null) {
@@ -312,10 +313,10 @@ export class Save {
 
     let annotation = this.editor.annotations[data._id] ?? {};
     let newAnnotation = annotation.render == null;
-    if (annotation.pointer != null) {
+    /*if (annotation.pointer != null) {
       data._id = annotation.pointer;
       annotation = this.editor.annotations[data._id] ?? {};
-    }
+    }*/
     let annoID = data._id;
 
     let merged = { ...(annotation.render ?? {}), ...data };
@@ -410,12 +411,12 @@ export class Save {
         if (this.editor.selecting[render._id] != null) {
           continue;
         }
-        if ((render.parent ?? "").startsWith("pending_") == true) {
+        /*if ((render.parent ?? "").startsWith("pending_") == true) {
           let parentAnno = this.editor.annotations[render.parent];
           if (parentAnno != null && parentAnno.pointer != null) {
             render.parent = parentAnno.pointer;
           }
-        }
+        }*/
 
         let historyUpdate;
 

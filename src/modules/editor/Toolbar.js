@@ -588,9 +588,9 @@ export class Module {
     let annotations = this.editor.utils.annotationsInChunks(Object.keys(checkChunks));
     for (let i = 0; i < annotations.length; i++) {
       let annotation = annotations[i] ?? {};
-      if (annotation.pointer != null) {
+      /*if (annotation.pointer != null) {
         annotation = this.editor.annotations[annotation.pointer];
-      }
+      }*/
       let render = annotation.render;
       if (render == null || this.editor.selecting[render._id] != null) {
         continue;
@@ -668,10 +668,10 @@ export class Module {
       if (this.checkSubToolEnabled(newAnno.f) == false) {
         continue;
       }
-      let tempID = this.editor.render.tempID();
-      parentIDs[newAnno._id] = tempID;
+      let newID = this.editor.render.generateID();
+      parentIDs[newAnno._id] = newID;
       newAnno.old_ID = newAnno._id;
-      newAnno._id = tempID;
+      newAnno._id = newID;
       let annoRect = this.editor.utils.getRect(newAnno);
       let [topLeftX, topLeftY, bottomRightX, bottomRightY] = rotatedBounds(annoRect.x, annoRect.y, annoRect.endX, annoRect.endY, annoRect.rotation);
       if (topLeftX < minLeft || minLeft == null) {
@@ -818,17 +818,17 @@ export class Module {
       }
       maxZIndex = Math.max(maxZIndex ?? render.l ?? this.editor.utils.maxLayer, render.l ?? maxZIndex ?? this.editor.utils.maxLayer);
       minZIndex = Math.min(minZIndex ?? render.l ?? this.editor.utils.minLayer, render.l ?? minZIndex ?? this.editor.utils.minLayer);
-      let tempID = this.editor.render.tempID();
-      parentIDs[annoID] = tempID;
-      saveAnnoData.push({ ...copyObject(render), _id: tempID });
+      let newID = this.editor.render.generateID();
+      parentIDs[annoID] = newID;
+      saveAnnoData.push({ ...copyObject(render), _id: newID });
     }
 
     let annotations = this.editor.utils.annotationsInChunks(Object.keys(checkChunks));
     for (let i = 0; i < annotations.length; i++) {
       let annotation = annotations[i] ?? {};
-      if (annotation.pointer != null) {
+      /*if (annotation.pointer != null) {
         annotation = this.editor.annotations[annotation.pointer];
-      }
+      }*/
       let render = annotation.render;
       if (render == null || this.editor.selecting[render._id] != null || this.checkSubToolEnabled(render.f) == false) {
         continue;
@@ -843,9 +843,9 @@ export class Module {
       }
       maxZIndex = Math.max(maxZIndex ?? render.l ?? this.editor.utils.maxLayer, render.l ?? maxZIndex ?? this.editor.utils.maxLayer);
       minZIndex = Math.min(minZIndex ?? render.l ?? this.editor.utils.minLayer, render.l ?? minZIndex ?? this.editor.utils.minLayer);
-      let tempID = this.editor.render.tempID();
-      parentIDs[render._id] = tempID;
-      saveAnnoData.push({ ...copyObject(render), _id: tempID });
+      let newID = this.editor.render.generateID();
+      parentIDs[render._id] = newID;
+      saveAnnoData.push({ ...copyObject(render), _id: newID });
     }
 
     let { x: centerPageX, y: centerPageY } = this.editor.utils.scaleToDoc(this.editor.page.offsetWidth / 2, this.editor.page.offsetHeight / 2);
@@ -1088,7 +1088,7 @@ export class Module {
             continue;
           }
           this.editor.selecting[selectID].remove = true;
-          this.editor.selecting[selectID].done = true;
+          //this.editor.selecting[selectID].done = true;
         }
         this.selection.action = "save";
         return await this.selection.endAction();

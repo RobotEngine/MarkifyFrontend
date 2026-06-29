@@ -123,9 +123,9 @@ export class Utility {
         if (annotationKeys[key] == null) {
           annotationKeys[key] = true;
           let anno = this.editor.annotations[key] ?? {};
-          if (anno.pointer != null) {
+          /*if (anno.pointer != null) {
             anno = this.editor.annotations[anno.pointer] ?? { render: {} };
-          }
+          }*/
           annotations.push(anno);
         }
       }
@@ -218,10 +218,10 @@ export class Utility {
       if (annotation == null) {
         break;
       }
-      if (annotation.pointer != null) {
+      /*if (annotation.pointer != null) {
         annoid = annotation.pointer;
         annotation = this.editor.annotations[annoid];
-      }
+      }*/
       if (annotation == null) {
         break;
       }
@@ -435,12 +435,12 @@ export class Utility {
   async parentFromAnnotation(anno, includeSelecting) {
     let id = anno._id;
     let prevParent = anno.prevParent;
-    if (prevParent != null) {
+    /*if (prevParent != null) {
       let parentAnno = this.editor.annotations[prevParent];
       if (parentAnno != null && parentAnno.pointer != null) {
         prevParent = parentAnno.pointer;
       }
-    }
+    }*/
     let { centerX: x, centerY: y } = this.getRect(anno, includeSelecting);
     let selfRenderModule = (await this.editor.render.getModule(null, (anno || {}).f)) ?? {};
     let chunk = this.pointInChunk(x, y);
@@ -463,10 +463,10 @@ export class Utility {
         continue;
       }
       let annotation = this.editor.annotations[annoid] ?? {};
-      if (annotation.pointer != null) {
+      /*if (annotation.pointer != null) {
         annoid = annotation.pointer;
         annotation = this.editor.annotations[annoid] ?? {};
-      }
+      }*/
       let type = (annotation.render ?? {}).f;
       if (type == null || checkedTypes[type] != null) {
         continue;
@@ -488,10 +488,10 @@ export class Utility {
         continue;
       }
       let annotation = this.editor.annotations[annoid] ?? {};
-      if (annotation.pointer != null) {
+      /*if (annotation.pointer != null) {
         annoid = annotation.pointer;
         annotation = this.editor.annotations[annoid] ?? {};
-      }
+      }*/
       let render = annotation.render ?? {}; // { ...(annotation.render ?? {}), ...(this.editor.selecting[annoid] ?? {}) };
       if (includeSelecting == true) {
         render = { ...render, ...(this.editor.selecting[annoid] ?? {}) };
@@ -620,9 +620,9 @@ export class Utility {
         let annoid = this.editor.annotationPages[i][0];
         if ((annoid ?? "").startsWith("pending_") == true) {
           let anno = this.editor.annotations[annoid] ?? {};
-          if (anno.pointer != null) {
+          /*if (anno.pointer != null) {
             annoid = anno.pointer;
-          }
+          }*/
         }
         if (annoid == render._id) {
           this.editor.annotationPages.splice(i, 1);
@@ -794,9 +794,9 @@ export class Utility {
     this.editor.pipeline.publish("page_change", { page: this.editor.currentPage, pageId: annoID });
     if ((annoID ?? "").startsWith("pending_") == true) {
       let anno = this.editor.annotations[annoID] ?? {};
-      if (anno.pointer != null) {
+      /*if (anno.pointer != null) {
         annoID = anno.pointer;
-      }
+      }*/
     }
     this.scrollToAnnotation((this.editor.annotations[annoID] ?? {}).render, { animation });
     this.editor.exitObserve();

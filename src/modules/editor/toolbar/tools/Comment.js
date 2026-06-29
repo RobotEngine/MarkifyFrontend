@@ -761,7 +761,7 @@ export class Tool {
           return;
         }
         let newComment = {
-          _id: this.editor.render.tempID(),
+          _id: this.editor.render.generateID(),
           f: "comment",
           parent: this.annotation.render._id,
           d: replyQuill.getContents().ops, //{ b: addText },
@@ -881,7 +881,7 @@ export class Tool {
 
     this.annotation = {
       render: {
-        _id: this.editor.render.tempID(),
+        _id: this.editor.render.generateID(),
         f: "comment",
         p: [round(position.x) - (1 / this.editor.zoom), round(position.y) - (1 / this.editor.zoom)],
         s: [0, 0],

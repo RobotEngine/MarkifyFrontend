@@ -80,19 +80,14 @@ export class Render {
     let now = Math.max(Math.floor(getEpoch()), this.idNow ?? 0);
 
     if (this.idCounter >= 256) {
-      /*while (now == this.idNow) {
-        now = Math.floor(getEpoch());
-      }*/
-      if (now == this.idNow) {
-        now++;
+      //while (now == this.idNow) {
+      //  now = Math.floor(getEpoch());
+      //}
+      if (now <= this.idNow) {
+        now = this.idNow + 1;
       }
       this.idCounter = 0;
     }
-    /*
-    // If the clock has naturally ticked forward, we can safely reset the counter for free!
-    else if (now > this.idNow) {
-      this.idCounter = 0;
-    }*/
 
     this.idNow = now;
 
@@ -328,9 +323,9 @@ export class Render {
     if (annotation == null) {
       return {};
     }
-    if (annotation.pointer != null) { // If synced is availiable, update to it
+    /*if (annotation.pointer != null) { // If synced is availiable, update to it
       annotation = this.editor.annotations[annotation.pointer] ?? annotation;
-    }
+    }*/
     let render = annotation.render;
     if (annotation.render == null) {
       return {};
@@ -373,9 +368,9 @@ export class Render {
     let parentAnnotation
     if (parent != null) {
       parentAnnotation = this.editor.annotations[parent] ?? {};
-      if (parentAnnotation.pointer != null) {
+      /*if (parentAnnotation.pointer != null) {
         parentAnnotation = this.editor.annotations[parentAnnotation.pointer] ?? parentAnnotation;
-      }
+      }*/
       if (parentAnnotation.render != null) {
         if (parentAnnotation.component == null && parentAnnotation.render.parent != _id) {
           parentAnnotation = await this.create(parentAnnotation);
@@ -610,9 +605,9 @@ export class Render {
     let render = annotation.render;
     if (render != null) {
       let parentAnnotation = this.editor.annotations[render.parent] ?? {};
-      if (parentAnnotation.pointer != null) {
+      /*if (parentAnnotation.pointer != null) {
         parentAnnotation = this.editor.annotations[parentAnnotation.pointer] ?? parentAnnotation;
-      }
+      }*/
       if (parentAnnotation.renderedChildren != null) {
         delete parentAnnotation.renderedChildren[render._id];
       }

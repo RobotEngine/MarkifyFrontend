@@ -488,7 +488,7 @@ export class Frame {
       }
       if (sortedChangeIndex < 50) {
         await this.loopLoadAnnotations();
-        if (this.updateStateCaller == this.callUpdateState) {
+        if (this.updateStateCaller == callUpdateState) {
           this.updateStateCaller();
         }
       }

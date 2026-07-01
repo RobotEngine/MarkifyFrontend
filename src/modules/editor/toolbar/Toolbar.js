@@ -189,18 +189,20 @@ export class Toolbar {
         }
         div.style.setProperty("--toolOpacity", (toolPreference.opacity ?? 100) / 100);
       } else if (tool.hasAttribute("module") == true) {
-        if (options.ignore != true) {
-          let newModule = await this.toolbar.loadModule(tool.getAttribute("module"));
-          if (newModule != null) {
-            newModule.toolbar = this.toolbar;
-            newModule.editor = this.editor;
-            if (newModule.setToolbarButton != null) {
-              newModule.setToolbarButton(div);
+        if (this.toolbar.subToolbar != null) {
+          if (options.ignore != true) {
+            let newModule = await this.toolbar.loadModule(tool.getAttribute("module"));
+            if (newModule != null) {
+              newModule.toolbar = this.toolbar;
+              newModule.editor = this.editor;
+              if (newModule.setToolbarButton != null) {
+                newModule.setToolbarButton(div);
+              }
             }
+            tool.removeAttribute("disabled");
+          } else {
+            tool.setAttribute("disabled", "");
           }
-          tool.removeAttribute("disabled");
-        } else {
-          tool.setAttribute("disabled", "");
         }
       }
     }

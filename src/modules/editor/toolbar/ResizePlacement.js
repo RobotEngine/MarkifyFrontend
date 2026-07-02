@@ -163,7 +163,7 @@ export class ResizePlacement {
         this.editor.save.syncSave(true);
       }
     }
-    this.editor.render.remove(this.annotation);
+    this.editor.render.remove(this.annotationPreview);
     this.annotation = null;
     this.annotationPreview = null;
   }

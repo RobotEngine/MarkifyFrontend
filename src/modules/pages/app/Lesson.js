@@ -25,17 +25,18 @@ export class Page extends PageFrame {
   html = `<div class="lPageHolder"></div>`;
   css = {
     ".lPageHolder": `position: fixed; display: flex; box-sizing: border-box; width: 100vw; width: 100dvw; height: 100vh; height: 100dvh; padding: 8px; left: 0px; top: 0px; contain: strict; justify-content: center; touch-action: none`,
-    ".lPageHolder[resize]": `user-select: none; cursor: col-select`,
+    ".lPageHolder[resize]": `user-select: none`,
+    ".lPageHolder[resize]:after": `content: ""; position: absolute; top: 0px; left: 0px; right: 0px; bottom: 0px; z-index: 998; background: transparent; cursor: col-resize; pointer-events: auto !important`,
     ".lPageHolder[maximize]": `padding: 0px !important`,
     ".lPage": `--shadowOpacity: .3; position: relative; display: flex; width: 100%; height: 100%; flex: 1; z-index: 1; background: var(--pageColor); box-shadow: 0px 0px 8px 0px rgba(var(--themeRGB), var(--shadowOpacity)); border-radius: 12px; overflow: hidden; transition: all .2s, flex .4s; contain: strict; will-change: flex`, //min-width: min(var(--minPageSize), 100%);
     ".lPage[active]": `--shadowOpacity: .5 !important`,
     ".lPage[remove]": `flex: 0 !important; opacity: 0 !important; min-width: 0px !important`,
-    ".lPageHolder[resize] .lPage": `min-width: unset; transition: unset`,
-    ".lPageHolder[resize] .lPage *": `pointer-events: none !important`,
+    ".lPageHolder[resize] .lPage": `min-width: unset; transition: unset; -webkit-transform: translateZ(0); transform: translateZ(0); backface-visibility: hidden; -webkit-backface-visibility: hidden`,
+    //".lPageHolder[resize] .lPage *": `pointer-events: none !important`,
     ".lPageHolder[maximize] .lPage": `position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; transform: scale(.95) !important; opacity: 0 !important; transition: .2s transform, .2s opacity, .2s border-radius !important; pointer-events: all`,
     ".lPageHolder[maximize] .lPage[active]": `transform: scale(1) !important; z-index: 3 !important; border-radius: 0px !important; opacity: 1 !important`,
 
-    ".lPageDivider": `display: flex; flex-shrink: 0; width: 8px; max-width: 8px; height: 100%; z-index: 2; justify-content: center; align-items: center; cursor: col-resize; transition: .2s`,
+    ".lPageDivider": `display: flex; flex-shrink: 0; width: 8px; max-width: 8px; height: 100%; z-index: 999; justify-content: center; align-items: center; cursor: col-resize; transition: .2s`,
     ".lPageDivider div": `--color: var(--gray); width: 2px; height: calc(min(50px, 100%) - 8px); background-color: var(--color); background-image: linear-gradient(0, transparent, var(--color) 25%, var(--color) 75%, transparent); border-radius: 2px; transition: .2s`,
     ".lPageDivider[remove]": `width: 0px; opacity: 0`,
     ".lPageHolder[maximize] .lPageDivider": "display: none",
@@ -258,6 +259,191 @@ export class Page extends PageFrame {
     }
   }
 
+  //divider;
+  //dividerStartX;
+  //beforePage;
+  //beforePageWidth = this.minPageSize;
+  //removeBeforePage = false;
+  //afterPage;
+  //afterPageWidth = this.minPageSize;
+  //removeAfterPage = false;
+  //isDividerTicking = false;
+  startDivider(event) {
+    this.divider = event.target.closest(".lPageDivider");
+    if (this.divider != null) {
+      this.dividerStartX = event.x ?? event.clientX ?? ((event.changedTouches ?? [])[0] ?? {}).clientX ?? 0;
+      
+      this.removeBeforePage = false;
+      this.removeAfterPage = false;
+
+      this.beforePage = this.divider.previousElementSibling;
+      if (this.beforePage != null) {
+        this.beforePageWidth = this.beforePage.offsetWidth;
+      }
+      this.afterPage = this.divider.nextElementSibling;
+      if (this.afterPage != null) {
+        this.afterPageWidth = this.afterPage.offsetWidth;
+      }
+
+      let dividersCount = this.pageHolder.querySelectorAll(":scope > .lPageDivider").length;
+      this.cachedHolderWidth = this.pageHolder.offsetWidth - (dividersCount * 8) - 16;
+
+      this.pageHolder.setAttribute("resize", "");
+    }
+  }
+  updateDivider(event) {
+    if (this.divider == null || this.beforePage == null || this.afterPage == null) {
+      return this.endDivider();
+    }
+    if (mouseDown() == false) {
+      return this.endDivider();
+    }
+    
+    event.preventDefault();
+    
+    this.latestMoveEvent = event;
+
+    if (this.isDividerTicking != true) {
+      this.isDividerTicking = true;
+      window.requestAnimationFrame(() => { this.drawDivider(); });
+    }
+  }
+  drawDivider() {
+    if (this.divider == null) {
+      this.isDividerTicking = false;
+      return;
+    }
+
+    let event = this.latestMoveEvent;
+    let mouseX = event.x ?? event.clientX ?? ((event.changedTouches ?? [])[0] ?? {}).clientX ?? 0;
+    let changeX = mouseX - (this.dividerStartX ?? mouseX);
+
+    if (this.beforePageWidth + changeX < this.minPageSize) {
+      let correct = this.minPageSize - (this.beforePageWidth + changeX);
+      changeX += correct;
+      this.beforePage.style.transform = "translateX(" + (-1 * correct) + "px)";
+      this.beforePage.style.minWidth = "var(--minPageSize)";
+      let setOpacity = ((this.minPageSize / 2) - correct) / (this.minPageSize / 2);
+      if (setOpacity > 0) {
+        this.removeBeforePage = false;
+        this.beforePage.style.opacity = setOpacity;
+      } else {
+        this.removeBeforePage = true;
+        this.beforePage.style.opacity = 0;
+      }
+    } else {
+      this.removeBeforePage = false;
+      this.beforePage.removeAttribute("scale");
+      this.beforePage.style.removeProperty("transform");
+      this.beforePage.style.removeProperty("min-width");
+      this.beforePage.style.removeProperty("opacity");
+    }
+
+    if (this.afterPageWidth - changeX < this.minPageSize) {
+      let correct = this.minPageSize - (this.afterPageWidth - changeX);
+      changeX -= correct;
+      this.removeAfterPage = true;
+      this.afterPage.style.transform = "translateX(" + correct + "px)";
+      this.afterPage.style.minWidth = "var(--minPageSize)";
+      let setOpacity = ((this.minPageSize / 2) - correct) / (this.minPageSize / 2);
+      if (setOpacity > 0) {
+        this.removeAfterPage = false;
+        this.afterPage.style.opacity = setOpacity;
+      } else {
+        this.removeAfterPage = true;
+        this.afterPage.style.opacity = 0;
+      }
+    } else {
+      this.removeAfterPage = false;
+      this.afterPage.removeAttribute("scale");
+      this.afterPage.style.removeProperty("transform");
+      this.afterPage.style.removeProperty("min-width");
+      this.afterPage.style.removeProperty("opacity");
+    }
+
+    let setBeforeWidth = this.beforePageWidth + changeX;
+    let setAfterWidth = this.afterPageWidth - changeX;
+    if (Math.abs(setBeforeWidth - setAfterWidth) < 20) {
+      let setWidth = (this.beforePageWidth + this.afterPageWidth) / 2;
+      setBeforeWidth = setWidth;
+      setAfterWidth = setWidth;
+    }
+    if (setBeforeWidth < 0) {
+      setAfterWidth += setBeforeWidth;
+      setBeforeWidth = 0;
+    }
+    if (setAfterWidth < 0) {
+      setBeforeWidth += setAfterWidth;
+      setAfterWidth = 0;
+    }
+
+    let holderWidth = this.cachedHolderWidth;
+    this.beforePage.style.flex = "1 1 " + ((setBeforeWidth / holderWidth) * 100) + "%";
+    this.afterPage.style.flex = "1 1 " + ((setAfterWidth / holderWidth) * 100) + "%";
+
+    this.pushToPipelines(null, "resize", { event });
+    this.pushToPipelines(null, "bounds_change", { type: "resize", event });
+
+    this.isDividerTicking = false;
+  }
+  endDivider(event) {
+    if (this.divider == null) {
+      return;
+    }
+    this.divider = null;
+    this.dividerStartX = null;
+    this.latestMoveEvent = null;
+    this.isDividerTicking = false;
+    
+    this.pageHolder.removeAttribute("resize");
+
+    let holderWidth = this.pageHolder.offsetWidth - (this.pageHolder.querySelectorAll(":scope > .lPageDivider").length * 8) - 16;
+    if (this.beforePage != null) {
+      this.beforePage.removeAttribute("scale");
+      this.beforePage.style.removeProperty("transform");
+      this.beforePage.style.removeProperty("opacity");
+      if (this.removeBeforePage == true) {
+        if (this.afterPage != null) {
+          this.afterPage.style.flex = "1 1 " + (((this.afterPageWidth + this.beforePageWidth) / holderWidth) * 100) + "%";
+        }
+        this.removePage(this.beforePage.getAttribute("pageid"), this.beforePage.getAttribute("pagetype"), { animate: true });
+      } else if (this.removeAfterPage != true) {
+        this.beforePage.style.flex = "1 1 " + ((Math.max(this.beforePage.offsetWidth, this.minPageSize) / holderWidth) * 100) + "%";
+      }
+    }
+    if (this.afterPage != null) {
+      this.afterPage.removeAttribute("scale");
+      this.afterPage.style.removeProperty("transform");
+      this.afterPage.style.removeProperty("opacity");
+      if (this.removeAfterPage == true) {
+        if (this.beforePage != null) {
+          this.beforePage.style.flex = "1 1 " + (((this.beforePageWidth + this.afterPageWidth) / holderWidth) * 100) + "%";
+        }
+        this.removePage(this.afterPage.getAttribute("pageid"), this.afterPage.getAttribute("pagetype"), { animate: true });
+      } else if (this.removeBeforePage != true) {
+        this.afterPage.style.flex = "1 1 " + ((Math.max(this.afterPage.offsetWidth, this.minPageSize) / holderWidth) * 100) + "%";
+      }
+    }
+    this.pushToPipelines(null, "resize", { event: "page_remove" });
+    this.pushToPipelines(null, "bounds_change", { event: "page_remove" });
+  }
+
+  sizeUpdate() {
+    if ((fixed.offsetWidth > 800 && fixed.offsetHeight > 400 && this.exporting != true) || this.isEmbed == true) {
+      if (this.maximized == true) {
+        this.maximized = false;
+        this.pageHolder.removeAttribute("maximize");
+        this.pushToPipelines(null, "maximize", { maximize: false });
+      }
+    } else {
+      if (this.maximized == false) {
+        this.maximized = true;
+        this.pageHolder.setAttribute("maximize", "");
+        this.pushToPipelines(null, "maximize", { maximize: true });
+      }
+    }
+  }
+
   lesson = {};
   members = {};
   collaborators = {};
@@ -276,6 +462,318 @@ export class Page extends PageFrame {
   signalStrength = 1;
 
   maximized = false;
+
+  setSubscribes() {
+    if (this.exporting == true) {
+      return;
+    }
+
+    socket.remotes["member"] = (data) => {
+      if (data.lesson != null && data.lesson != this.id) {
+        return;
+      }
+      switch (data.task) {
+        case "kick":
+          this.session = null;
+          if (userID == null || data.filled == true) {
+            setPage("pages/app/join", { passParams: data.filled == true });
+          } else {
+            setPage("pages/app/dashboard");
+          }
+          alertModule.open("error", "<b>You've Been Kicked</b>The lesson owner has removed you from the lesson.");
+          break;
+        case "delete":
+          this.session = null;
+          if (userID == null || data.filled == true) {
+            setPage("pages/app/join", { passParams: data.filled == true });
+          } else {
+            setPage("pages/app/dashboard");
+          }
+          break;
+        case "preference":
+          switch (data.type) {
+            case "emoji":
+              this.recentEmojis = data.data ?? [];
+              for (let i = 0; (i < this.defaultEmojis.length && this.recentEmojis.length < 21); i++) {
+                if (this.recentEmojis.includes(this.defaultEmojis[i]) == false) {
+                  this.recentEmojis.push(this.defaultEmojis[i]);
+                }
+              }
+              break;
+            default:
+              this.preferences.update(data.data);
+          }
+      }
+      this.pushToPipelines(null, "self", data);
+    }
+    socket.remotes["lesson_" + this.id] = async (data) => {
+      let events = [];
+      if (Array.isArray(data.data) == false) {
+        events.push(data.data);
+      } else {
+        events = data.data;
+      }
+
+      for (let i = 0; i < events.length; i++) {
+        let body = events[i];
+        if (data.tool == null) {
+          switch (data.task) {
+            case "join":
+              let member = this.members[body._id];
+              if (member == null) {
+                this.members[body._id] = {};
+                member = this.members[body._id];
+                this.memberCount++;
+              }
+              objectUpdate(body, member);
+              let collaborator = this.collaborators[body.modify] ?? {};
+              collaborator.name = body.name;
+              collaborator.color = body.color;
+              if (body.hasOwnProperty("email") == true) {
+                collaborator.email = body.email;
+              }
+              if (body.hasOwnProperty("image") == true) {
+                collaborator.image = body.image;
+              }
+              if (collaborator._id == null) {
+                this.collaborators[body.modify] = { _id: body.modify, ...collaborator };
+              } else {
+                this.pushToPipelines(null, "collaborator_update", collaborator);
+                this.pushToPipelines(null, "collaborator_update_" + body.modify, collaborator);
+              }
+              if (body.access == 1 && (member.access == null || member.access < 1)) {
+                this.editorCount++;
+              } else if (body.access == 0 && member.access > 0) {
+                this.editorCount--;
+              }
+              if (body.hand != null && member.hand == null) {
+                this.handCount++;
+              } else if (body.hand == null && member.hand != null) {
+                this.handCount--;
+              }
+              if (body._id != this.sessionID) {
+                if (body.active == false && member.active != false) {
+                  this.idleCount++;
+                } else if (body.active != false && member.active == false) {
+                  this.idleCount--;
+                }
+              }
+              break;
+            case "leave":
+              if (this.members[body._id] != null) {
+                let member = this.members[body._id];
+                if (member.access == 1) {
+                  this.editorCount--;
+                }
+                if (member.hand != null) {
+                  this.handCount--;
+                }
+                if (body._id != this.sessionID) {
+                  if (member.active == false) {
+                    this.idleCount--;
+                  }
+                }
+                body.member = member;
+                delete this.members[body._id];
+                this.memberCount--;
+              }
+              break;
+            case "update":
+              if (this.members[body._id] != null) {
+                let member = this.members[body._id];
+                if (body.access == 1 && member.access < 1) {
+                  this.editorCount++;
+                } else if (body.access == 0 && member.access > 0) {
+                  this.editorCount--;
+                }
+                if (body.hand != null && member.hand == null) {
+                  this.handCount++;
+                } else if (body.hasOwnProperty("hand") == true && member.hand != null) {
+                  this.handCount--;
+                }
+                if (body.hasOwnProperty("active") == true && body._id != this.sessionID) {
+                  if (body.active == false && member.active != false) {
+                    this.idleCount++;
+                  } else if (body.active != false && member.active == false) {
+                    this.idleCount--;
+                  }
+                }
+                objectUpdate(body, member);
+                if (member.access > 0 && member.hand != null) {
+                  member.hand = null;
+                  this.handCount--;
+                }
+                let collaborator = this.collaborators[member.modify];
+                if (collaborator != null) {
+                  let change = false;
+                  if (body.hasOwnProperty("name") == true) {
+                    collaborator.name = body.name;
+                    change = true;
+                  }
+                  if (body.hasOwnProperty("color") == true) {
+                    collaborator.color = body.color;
+                    change = true;
+                  }
+                  if (body.hasOwnProperty("email") == true) {
+                    collaborator.email = body.email;
+                    change = true;
+                  }
+                  if (body.hasOwnProperty("image") == true) {
+                    collaborator.image = body.image;
+                    change = true;
+                  }
+                  if (change == true) {
+                    this.pushToPipelines(null, "collaborator_update", collaborator);
+                    this.pushToPipelines(null, "collaborator_update_" + member.modify, collaborator);
+                  }
+                }
+              } else {
+                return;
+              }
+              break;
+            case "set":
+              objectUpdate(body, this.lesson);
+
+              if (body.hasOwnProperty("name") == true) {
+                document.title = (this.lesson.name ?? "Untitled Lesson") + " | Markify";
+              }
+              if (body.settings != null) {
+                if (body.settings.forceLogin == false && this.self.access < 2) {
+                  setFrame("pages/app/join", null, { passParams: true });
+                }
+              }
+
+              if (body.hasOwnProperty("tool") == true) {
+                for (let i = 0; i < body.tool.length; i++) {
+                  let tool = body.tool[i];
+                  if (this.pages[tool] == null) {
+                    if (body.hasOwnProperty(tool) == false) {
+                      continue;
+                    }
+                    let nextPageID = body.tool[i + 1];
+                    let insertBefore;
+                    if (nextPageID != null) {
+                      insertBefore = this.pageHolder.querySelector('.lPage[pageid="' + nextPageID + '"]');
+                    }
+                    await this.addPage(tool, tool, { insertBefore, percent: .5 });
+                  }
+                }
+                let currentPagesKeys = Object.keys(this.pages);
+                for (let i = 0; i < currentPagesKeys.length; i++) {
+                  let tool = currentPagesKeys[i];
+                  if (body.tool.includes(tool) == false) {
+                    await this.removePage(tool, tool);
+                  }
+                }
+              }
+              break;
+            case "subset":
+              objectUpdate(body.set, this.lesson);
+              break;
+            case "addsources":
+              this.sources = { ...this.sources, ...getObject(body.sources ?? [], "_id") };
+              break;
+            case "folderset":
+              this.folder = body.folder;
+          }
+        }
+        this.pushToPipelines(data.tool, data.task, body);
+      }
+    }
+    socket.remotes["long_" + this.id] = async (data) => {
+      if (this.exporting == true) {
+        return;
+      }
+      this.pushToPipelines(data.tool ?? "board", "long", data);
+    }
+    socket.remotes["breakout_" + this.id] = async (data) => {
+      if (this.exporting == true) {
+        return;
+      }
+      this.pushToPipelines(data.tool ?? "board", "long", data);
+    }
+  }
+
+  //sentPing = false;
+  async sendPing() {
+    if (connected == false) {
+      return;
+    }
+    let params = [];
+    if (this.active == false && this.exporting != true) {
+      params.push("idle");
+    }
+    if (this.signalStrength == 2) {
+      params.push("weak");
+    }
+    if (this.lesson.tool.length < 1) {
+      params.push("newlesson");
+    }
+    let path = "lessons/ping";
+    if (params.length > 0) {
+      path += "?" + params.join("&");
+    }
+    this.sentPing = true;
+    let [code] = await sendRequest("GET", path, null, { session: this.session, allowError: [403, 419] });
+    if (code == 403) {
+      if (sendBody.pin != null) {
+        setPage("pages/app/join", { passParams: true }); // Send back to join page
+      } else {
+        setPage("pages/app/lesson", { passParams: true }); // Refresh to rejoin
+      }
+    } else if (code != 200 && code != 0 && code != null) {
+      setPage("pages/app/lesson", { construct: { session: this.session }, passParams: true });
+    }
+  }
+
+  pingSocketFilter = {};
+  awaitingPongs = {};
+  pongTimeoutTime = 500; // In MS
+  sendSocketPing(attempt) {
+    if (connected == false || document.visibilityState != "visible") {
+      return;
+    }
+    attempt = attempt ?? 1;
+    let pingID = getEpoch();
+    setTimeout(() => {
+      let updateSignalStrength;
+      if (this.awaitingPongs[pingID] == "") {
+        delete this.awaitingPongs[pingID];
+
+        // STRONG INTERNET
+        if (this.signalStrength != 3) {
+          if (attempt < 3) {
+            // Try 2 more times to make sure:
+            return this.sendSocketPing(attempt + 1);
+          } else {
+            // Enable everything:
+            updateSignalStrength = { oldSignalStrength: this.signalStrength, signalStrength: 3 };
+            this.signalStrength = 3;
+            this.sendPing();
+            alertModule.open("info", "<b>Connection Restored</b>A strong connection has been established, all features enabled.");
+          }
+        }
+      } else {
+        // WEAK INTERNET
+        if (this.signalStrength != 2) {
+          if (attempt < 3) {
+            // Try 2 more times to make sure:
+            return this.sendSocketPing(attempt + 1);
+          } else {
+            // Disable the stuff:
+            updateSignalStrength = { oldSignalStrength: this.signalStrength, signalStrength: 2 };
+            this.signalStrength = 2;
+            this.sendPing();
+            alertModule.open("info", "<b>Weak Connection</b>While you're still connected, real-time collaboration is disabled to save bandwidth.");
+          }
+        }
+      }
+      if (updateSignalStrength != null) {
+        this.pushToPipelines(null, "signal_strength", updateSignalStrength);
+      }
+    }, this.pongTimeoutTime);
+    socket.publish(this.pingSocketFilter, pingID, { publishToSelf: true });
+  }
 
   async js(page, joinData) {
     this.id = getParam("lesson") ?? "";
@@ -309,237 +807,65 @@ export class Page extends PageFrame {
       import("@modules/lesson/pages/Export.js");
     }
 
-    let pageHolder = page.querySelector(".lPageHolder");
+    this.pageHolder = page.querySelector(".lPageHolder");
 
     let newTools = (getParam("type") ?? "board").split(",");
     let isNewLesson = this.id == "" && joinData.pin == null;
 
-    let divider;
-    let dividerStartX;
-    let beforePage;
-    let beforePageWidth = this.minPageSize;
-    let removeBeforePage = false;
-    let afterPage;
-    let afterPageWidth = this.minPageSize;
-    let removeAfterPage = false;
-    pageHolder.style.setProperty("--minPageSize", this.minPageSize + "px");
-    let startDivider = (event) => {
-      divider = event.target.closest(".lPageDivider");
-      if (divider != null) {
-        dividerStartX = event.x ?? event.clientX ?? ((event.changedTouches ?? [])[0] ?? {}).clientX ?? 0;
-        
-        removeBeforePage = false;
-        removeAfterPage = false;
+    // Setup divider handle:
+    this.beforePageWidth = this.minPageSize;
+    this.afterPageWidth = this.minPageSize;
+    this.pageHolder.style.setProperty("--minPageSize", this.minPageSize + "px");
 
-        beforePage = divider.previousElementSibling;
-        if (beforePage != null) {
-          beforePageWidth = beforePage.offsetWidth;
-        }
-        afterPage = divider.nextElementSibling;
-        if (afterPage != null) {
-          afterPageWidth = afterPage.offsetWidth;
-        }
-
-        pageHolder.setAttribute("resize", "");
-      }
-    }
-    let updateDivider = (event) => {
-      if (divider == null) {
-        return endDivider();
-      }
-      if (beforePage == null || afterPage == null) {
-        return endDivider();
-      }
-      if (mouseDown() == false) {
-        return endDivider();
-      }
-      event.preventDefault();
-
-      let mouseX = event.x ?? event.clientX ?? ((event.changedTouches ?? [])[0] ?? {}).clientX ?? 0;
-      let changeX = mouseX - (dividerStartX ?? mouseX);
-
-      if (beforePageWidth + changeX < this.minPageSize) {
-        let correct = this.minPageSize - (beforePageWidth + changeX);
-        changeX += correct;
-        //let setScale = (this.minPageSize - correct) / this.minPageSize;
-        //beforePage.setAttribute("scale", setScale);
-        beforePage.style.transform = "translateX(" + (-1 * correct) + "px)"; //"scale(" + setScale + ")";
-        //beforePage.style.transformOrigin = "left";
-        beforePage.style.minWidth = "var(--minPageSize)";
-        let setOpacity = ((this.minPageSize / 2) - correct) / (this.minPageSize / 2);
-        if (setOpacity > 0) {
-          removeBeforePage = false;
-          beforePage.style.opacity = ((this.minPageSize / 2) - correct) / (this.minPageSize / 2);
-        } else {
-          removeBeforePage = true;
-          beforePage.style.opacity = 0;
-        }
-      } else {
-        removeBeforePage = false;
-        beforePage.removeAttribute("scale");
-        beforePage.style.removeProperty("transform");
-        beforePage.style.removeProperty("min-width");
-        beforePage.style.removeProperty("opacity");
-      }
-      if (afterPageWidth - changeX < this.minPageSize) {
-        let correct = this.minPageSize - (afterPageWidth - changeX);
-        changeX -= correct;
-        removeAfterPage = true;
-        //let setScale = (this.minPageSize - correct) / this.minPageSize;
-        //afterPage.setAttribute("scale", setScale);
-        afterPage.style.transform = "translateX(" + correct + "px)"; //"scale(" + setScale + ")";
-        //afterPage.style.transformOrigin = "right";
-        afterPage.style.minWidth = "var(--minPageSize)";
-        let setOpacity = ((this.minPageSize / 2) - correct) / (this.minPageSize / 2);
-        if (setOpacity > 0) {
-          removeAfterPage = false;
-          afterPage.style.opacity = ((this.minPageSize / 2) - correct) / (this.minPageSize / 2);
-        } else {
-          removeAfterPage = true;
-          afterPage.style.opacity = 0;
-        }
-      } else {
-        removeAfterPage = false;
-        afterPage.removeAttribute("scale");
-        afterPage.style.removeProperty("transform");
-        afterPage.style.removeProperty("min-width");
-        afterPage.style.removeProperty("opacity");
-      }
-
-      let setBeforeWidth = beforePageWidth + changeX;
-      let setAfterWidth = afterPageWidth - changeX;
-      if (Math.abs(setBeforeWidth - setAfterWidth) < 20) {
-        let setWidth = (beforePageWidth + afterPageWidth) / 2;
-        setBeforeWidth = setWidth;
-        setAfterWidth = setWidth;
-      }
-      if (setBeforeWidth < 0) {
-        setAfterWidth += setBeforeWidth;
-        setBeforeWidth = 0;
-      }
-      if (setAfterWidth < 0) {
-        setBeforeWidth += setAfterWidth;
-        setAfterWidth = 0;
-      }
-      let holderWidth = pageHolder.offsetWidth - (pageHolder.querySelectorAll(":scope > .lPageDivider").length * 8) - 16;
-      beforePage.style.flex = "1 1 " + ((setBeforeWidth / holderWidth) * 100) + "%";
-      afterPage.style.flex = "1 1 " + ((setAfterWidth / holderWidth) * 100) + "%";
-
-      this.pushToPipelines(null, "resize", { event: event });
-      this.pushToPipelines(null, "bounds_change", { type: "resize", event: event });
-    }
-    let endDivider = async () => {
-      if (divider == null) {
-        return;
-      }
-      divider = null;
-      dividerStartX = null;
-      
-      pageHolder.removeAttribute("resize");
-
-      let holderWidth = pageHolder.offsetWidth - (pageHolder.querySelectorAll(":scope > .lPageDivider").length * 8) - 16;
-      if (beforePage != null) {
-        beforePage.removeAttribute("scale");
-        beforePage.style.removeProperty("transform");
-        beforePage.style.removeProperty("opacity");
-        if (removeBeforePage == true) {
-          //beforePage.style.minWidth = "0px";
-          //beforePage.style.maxWidth = "0px";
-          //beforePage.style.flex = "0";
-          //beforePage.style.opacity = 0;
-          if (afterPage != null) {
-            afterPage.style.flex = "1 1 " + (((afterPageWidth + beforePageWidth) / holderWidth) * 100) + "%";
-          }
-          this.removePage(beforePage.getAttribute("pageid"), beforePage.getAttribute("pagetype"), { animate: true });
-        } else if (removeAfterPage != true) {
-          beforePage.style.flex = "1 1 " + ((Math.max(beforePage.offsetWidth, this.minPageSize) / holderWidth) * 100) + "%";
-        }
-      }
-      if (afterPage != null) {
-        afterPage.removeAttribute("scale");
-        afterPage.style.removeProperty("transform");
-        afterPage.style.removeProperty("opacity");
-        if (removeAfterPage == true) {
-          //afterPage.style.minWidth = "0px";
-          //afterPage.style.maxWidth = "0px";
-          //afterPage.style.flex = "0";
-          //afterPage.style.opacity = 0;
-          if (beforePage != null) {
-            beforePage.style.flex = "1 1 " + (((beforePageWidth + afterPageWidth) / holderWidth) * 100) + "%";
-          }
-          this.removePage(afterPage.getAttribute("pageid"), afterPage.getAttribute("pagetype"), { animate: true });
-        } else if (removeBeforePage != true) {
-          afterPage.style.flex = "1 1 " + ((Math.max(afterPage.offsetWidth, this.minPageSize) / holderWidth) * 100) + "%";
-        }
-      }
-      this.pushToPipelines(null, "resize", { event: "page_remove" });
-      this.pushToPipelines(null, "bounds_change", { event: "page_remove" });
-    }
-
-    let isEmbed = getParam("embed") != null;
-    let sizeUpdate = () => {
-      if ((fixed.offsetWidth > 800 && fixed.offsetHeight > 400 && this.exporting != true) || isEmbed == true) {
-        if (this.maximized == true) {
-          this.maximized = false;
-          pageHolder.removeAttribute("maximize");
-          this.pushToPipelines(null, "maximize", { maximize: false });
-        }
-      } else {
-        if (this.maximized == false) {
-          this.maximized = true;
-          pageHolder.setAttribute("maximize", "");
-          this.pushToPipelines(null, "maximize", { maximize: true });
-        }
-      }
-    }
+    this.isEmbed = getParam("embed") != null;
     this.addEventListener(window, "resize", (event) => {
-      sizeUpdate();
+      this.sizeUpdate();
 
-      this.pushToPipelines(null, "resize", { event: event });
-      this.pushToPipelines(null, "bounds_change", { type: "resize", event: event });
+      this.pushToPipelines(null, "resize", { event });
+      this.pushToPipelines(null, "bounds_change", { type: "resize", event });
     });
-    sizeUpdate();
+    this.sizeUpdate();
 
     this.addEventListener(window, "pointerdown", (event) => {
-      startDivider(event);
+      this.startDivider(event);
     }, { passive: false });
 
     this.addEventListener(window, "pointermove", (event) => {
-      this.pushToPipelines(null, "pointermove", { event: event });
-      this.pushToPipelines(null, "click_move", { type: "pointermove", event: event });
-      updateDivider(event);
+      this.pushToPipelines(null, "pointermove", { event });
+      this.pushToPipelines(null, "click_move", { type: "pointermove", event });
+      this.updateDivider(event);
     }, { passive: false });
     this.addEventListener(window, "touchmove", (event) => {
-      this.pushToPipelines(null, "touchmove", { event: event });
+      this.pushToPipelines(null, "touchmove", { event });
     }, { passive: false });
 
     this.addEventListener(window, "pointerup", (event) => {
-      this.pushToPipelines(null, "pointerup", { event: event });
-      this.pushToPipelines(null, "click_end", { type: "pointerup", event: event });
-      endDivider();
+      this.pushToPipelines(null, "pointerup", { event });
+      this.pushToPipelines(null, "click_end", { type: "pointerup", event });
+      this.endDivider();
     }, { passive: false });
     this.addEventListener(window, "touchend", (event) => {
-      this.pushToPipelines(null, "touchend", { event: event });
+      this.pushToPipelines(null, "touchend", { event });
     }, { passive: false });
 
     this.addEventListener(window, "keydown", (event) => {
-      this.pushToPipelines(null, "keydown", { event: event });
+      this.pushToPipelines(null, "keydown", { event });
     }, { passive: false });
     this.addEventListener(window, "keyup", (event) => {
-      this.pushToPipelines(null, "keyup", { event: event });
+      this.pushToPipelines(null, "keyup", { event });
     }, { passive: false });
 
     this.addEventListener(window, "paste", (event) => {
-      this.pushToPipelines(null, "paste", { event: event });
+      this.pushToPipelines(null, "paste", { event });
     }, { passive: false });
     this.addEventListener(window, "copy", (event) => {
-      this.pushToPipelines(null, "copy", { event: event });
+      this.pushToPipelines(null, "copy", { event });
     }, { passive: false });
 
     this.active = document.visibilityState == "visible";
     let visibilityChange = (active) => {
       this.active = active;
-      if (this.sendPing != null) {
+      if (this.lesson != null) {
         this.sendPing();
       }
       this.pushToPipelines(null, "visibilitychange", { active: this.active });
@@ -556,7 +882,7 @@ export class Page extends PageFrame {
     this.addEventListener(document, "fullscreenchange", () => {
       this.pushToPipelines(null, "fullscreenchange", { fullscreen: document.fullscreenElement != null });
     });
-    this.addEventListener(window, "beforeunload", (event) => { this.pushToPipelines(null, "beforeunload", { event: event }); });
+    this.addEventListener(window, "beforeunload", (event) => { this.pushToPipelines(null, "beforeunload", { event }); });
 
     window.updateAccountSettings = (change) => {
       this.pushToPipelines(null, "account_settings", { settings: change ?? account.settings ?? {} });
@@ -567,237 +893,7 @@ export class Page extends PageFrame {
       this.pushToPipelines(null, "signal_strength", { oldSignalStrength: oldSignalStrength, signalStrength: 1 });
     }
 
-    let setSubscribes = () => {
-      if (this.exporting == true) {
-        return;
-      }
-
-      socket.remotes["member"] = (data) => {
-        if (data.lesson != null && data.lesson != this.id) {
-          return;
-        }
-        switch (data.task) {
-          case "kick":
-            this.session = null;
-            if (userID == null || data.filled == true) {
-              setPage("pages/app/join", { passParams: data.filled == true });
-            } else {
-              setPage("pages/app/dashboard");
-            }
-            alertModule.open("error", "<b>You've Been Kicked</b>The lesson owner has removed you from the lesson.");
-            break;
-          case "delete":
-            this.session = null;
-            if (userID == null || data.filled == true) {
-              setPage("pages/app/join", { passParams: data.filled == true });
-            } else {
-              setPage("pages/app/dashboard");
-            }
-            break;
-          case "preference":
-            switch (data.type) {
-              case "emoji":
-                this.recentEmojis = data.data ?? [];
-                for (let i = 0; (i < this.defaultEmojis.length && this.recentEmojis.length < 21); i++) {
-                  if (this.recentEmojis.includes(this.defaultEmojis[i]) == false) {
-                    this.recentEmojis.push(this.defaultEmojis[i]);
-                  }
-                }
-                break;
-              default:
-                this.preferences.update(data.data);
-            }
-        }
-        this.pushToPipelines(null, "self", data);
-      }
-      socket.remotes["lesson_" + this.id] = async (data) => {
-        let events = [];
-        if (Array.isArray(data.data) == false) {
-          events.push(data.data);
-        } else {
-          events = data.data;
-        }
-
-        for (let i = 0; i < events.length; i++) {
-          let body = events[i];
-          if (data.tool == null) {
-            switch (data.task) {
-              case "join":
-                let member = this.members[body._id];
-                if (member == null) {
-                  this.members[body._id] = {};
-                  member = this.members[body._id];
-                  this.memberCount++;
-                }
-                objectUpdate(body, member);
-                let collaborator = this.collaborators[body.modify] ?? {};
-                collaborator.name = body.name;
-                collaborator.color = body.color;
-                if (body.hasOwnProperty("email") == true) {
-                  collaborator.email = body.email;
-                }
-                if (body.hasOwnProperty("image") == true) {
-                  collaborator.image = body.image;
-                }
-                if (collaborator._id == null) {
-                  this.collaborators[body.modify] = { _id: body.modify, ...collaborator };
-                } else {
-                  this.pushToPipelines(null, "collaborator_update", collaborator);
-                  this.pushToPipelines(null, "collaborator_update_" + body.modify, collaborator);
-                }
-                if (body.access == 1 && (member.access == null || member.access < 1)) {
-                  this.editorCount++;
-                } else if (body.access == 0 && member.access > 0) {
-                  this.editorCount--;
-                }
-                if (body.hand != null && member.hand == null) {
-                  this.handCount++;
-                } else if (body.hand == null && member.hand != null) {
-                  this.handCount--;
-                }
-                if (body._id != this.sessionID) {
-                  if (body.active == false && member.active != false) {
-                    this.idleCount++;
-                  } else if (body.active != false && member.active == false) {
-                    this.idleCount--;
-                  }
-                }
-                break;
-              case "leave":
-                if (this.members[body._id] != null) {
-                  let member = this.members[body._id];
-                  if (member.access == 1) {
-                    this.editorCount--;
-                  }
-                  if (member.hand != null) {
-                    this.handCount--;
-                  }
-                  if (body._id != this.sessionID) {
-                    if (member.active == false) {
-                      this.idleCount--;
-                    }
-                  }
-                  body.member = member;
-                  delete this.members[body._id];
-                  this.memberCount--;
-                }
-                break;
-              case "update":
-                if (this.members[body._id] != null) {
-                  let member = this.members[body._id];
-                  if (body.access == 1 && member.access < 1) {
-                    this.editorCount++;
-                  } else if (body.access == 0 && member.access > 0) {
-                    this.editorCount--;
-                  }
-                  if (body.hand != null && member.hand == null) {
-                    this.handCount++;
-                  } else if (body.hasOwnProperty("hand") == true && member.hand != null) {
-                    this.handCount--;
-                  }
-                  if (body.hasOwnProperty("active") == true && body._id != this.sessionID) {
-                    if (body.active == false && member.active != false) {
-                      this.idleCount++;
-                    } else if (body.active != false && member.active == false) {
-                      this.idleCount--;
-                    }
-                  }
-                  objectUpdate(body, member);
-                  if (member.access > 0 && member.hand != null) {
-                    member.hand = null;
-                    this.handCount--;
-                  }
-                  let collaborator = this.collaborators[member.modify];
-                  if (collaborator != null) {
-                    let change = false;
-                    if (body.hasOwnProperty("name") == true) {
-                      collaborator.name = body.name;
-                      change = true;
-                    }
-                    if (body.hasOwnProperty("color") == true) {
-                      collaborator.color = body.color;
-                      change = true;
-                    }
-                    if (body.hasOwnProperty("email") == true) {
-                      collaborator.email = body.email;
-                      change = true;
-                    }
-                    if (body.hasOwnProperty("image") == true) {
-                      collaborator.image = body.image;
-                      change = true;
-                    }
-                    if (change == true) {
-                      this.pushToPipelines(null, "collaborator_update", collaborator);
-                      this.pushToPipelines(null, "collaborator_update_" + member.modify, collaborator);
-                    }
-                  }
-                } else {
-                  return;
-                }
-                break;
-              case "set":
-                objectUpdate(body, this.lesson);
-
-                if (body.hasOwnProperty("name") == true) {
-                  document.title = (this.lesson.name ?? "Untitled Lesson") + " | Markify";
-                }
-                if (body.settings != null) {
-                  if (body.settings.forceLogin == false && this.self.access < 2) {
-                    setFrame("pages/app/join", null, { passParams: true });
-                  }
-                }
-
-                if (body.hasOwnProperty("tool") == true) {
-                  for (let i = 0; i < body.tool.length; i++) {
-                    let tool = body.tool[i];
-                    if (this.pages[tool] == null) {
-                      if (body.hasOwnProperty(tool) == false) {
-                        continue;
-                      }
-                      let nextPageID = body.tool[i + 1];
-                      let insertBefore;
-                      if (nextPageID != null) {
-                        insertBefore = pageHolder.querySelector('.lPage[pageid="' + nextPageID + '"]');
-                      }
-                      await this.addPage(tool, tool, { insertBefore, percent: .5 });
-                    }
-                  }
-                  let currentPagesKeys = Object.keys(this.pages);
-                  for (let i = 0; i < currentPagesKeys.length; i++) {
-                    let tool = currentPagesKeys[i];
-                    if (body.tool.includes(tool) == false) {
-                      await this.removePage(tool, tool);
-                    }
-                  }
-                }
-                break;
-              case "subset":
-                objectUpdate(body.set, this.lesson);
-                break;
-              case "addsources":
-                this.sources = { ...this.sources, ...getObject(body.sources ?? [], "_id") };
-                break;
-              case "folderset":
-                this.folder = body.folder;
-            }
-          }
-          this.pushToPipelines(data.tool, data.task, body);
-        }
-      }
-      socket.remotes["long_" + this.id] = async (data) => {
-        if (this.exporting == true) {
-          return;
-        }
-        this.pushToPipelines(data.tool ?? "board", "long", data);
-      }
-      socket.remotes["breakout_" + this.id] = async (data) => {
-        if (this.exporting == true) {
-          return;
-        }
-        this.pushToPipelines(data.tool ?? "board", "long", data);
-      }
-    }
-    setSubscribes();
+    this.setSubscribes();
 
     let sendBody = { ss: socket.secureID };
 
@@ -868,7 +964,7 @@ export class Page extends PageFrame {
       if (this.lesson.tool.length > 0) {
         modifyParams("lesson", this.id);
       }
-      setSubscribes();
+      this.setSubscribes();
     }
     this.lesson.settings = this.lesson.settings ?? {};
 
@@ -947,98 +1043,18 @@ export class Page extends PageFrame {
     }
 
     if (this.session != null) {
-      let sentPing = false;
-      this.sendPing = async () => {
-        if (connected == false) {
-          return;
-        }
-        let params = [];
-        if (this.active == false && this.exporting != true) {
-          params.push("idle");
-        }
-        if (this.signalStrength == 2) {
-          params.push("weak");
-        }
-        if (this.lesson.tool.length < 1) {
-          params.push("newlesson");
-        }
-        let path = "lessons/ping";
-        if (params.length > 0) {
-          path += "?" + params.join("&");
-        }
-        sentPing = true;
-        let [code] = await sendRequest("GET", path, null, { session: this.session, allowError: [403, 419] });
-        if (code == 403) {
-          if (sendBody.pin != null) {
-            setPage("pages/app/join", { passParams: true }); // Send back to join page
-          } else {
-            setPage("pages/app/lesson", { passParams: true }); // Refresh to rejoin
-          }
-        } else if (code != 200 && code != 0 && code != null) {
-          setPage("pages/app/lesson", { construct: { session: this.session }, passParams: true });
-        }
-      }
-  
-      let pingSocketFilter = { c: "member", o: this.sessionID, t: this.sessionToken };
-      let awaitingPongs = {};
-      let pongTimeoutTime = 500; // ms
-      subscribe(pingSocketFilter, (pingID) => {
-        if (getEpoch() - pingID < pongTimeoutTime) {
-          awaitingPongs[pingID] = "";
+      this.pingSocketFilter = { c: "member", o: this.sessionID, t: this.sessionToken };
+      subscribe(this.pingSocketFilter, (pingID) => {
+        if (getEpoch() - pingID < this.pongTimeoutTime) {
+          this.awaitingPongs[pingID] = "";
         }
       });
-      let sendSocketPing = (attempt) => {
-        if (connected == false || document.visibilityState != "visible") {
-          return;
-        }
-        attempt = attempt ?? 1;
-        let pingID = getEpoch();
-        setTimeout(() => {
-          let updateSignalStrength;
-          if (awaitingPongs[pingID] == "") {
-            delete awaitingPongs[pingID];
-  
-            // STRONG INTERNET
-            if (this.signalStrength != 3) {
-              if (attempt < 3) {
-                // Try 2 more times to make sure:
-                return sendSocketPing(attempt + 1);
-              } else {
-                // Enable everything:
-                updateSignalStrength = { oldSignalStrength: this.signalStrength, signalStrength: 3 };
-                this.signalStrength = 3;
-                this.sendPing();
-                alertModule.open("info", "<b>Connection Restored</b>A strong connection has been established, all features enabled.");
-              }
-            }
-          } else {
-            // WEAK INTERNET
-            if (this.signalStrength != 2) {
-              if (attempt < 3) {
-                // Try 2 more times to make sure:
-                return sendSocketPing(attempt + 1);
-              } else {
-                // Disable the stuff:
-                updateSignalStrength = { oldSignalStrength: this.signalStrength, signalStrength: 2 };
-                this.signalStrength = 2;
-                this.sendPing();
-                alertModule.open("info", "<b>Weak Connection</b>While you're still connected, real-time collaboration is disabled to save bandwidth.");
-              }
-            }
-          }
-          if (updateSignalStrength != null) {
-            this.pushToPipelines(null, "signal_strength", updateSignalStrength);
-          }
-        }, pongTimeoutTime);
-        socket.publish(pingSocketFilter, pingID, { publishToSelf: true });
-      }
-      
       this.addListener({ type: "interval", interval: setInterval(async () => {
-        if (sentPing == false) {
+        if (this.sentPing == false) {
           this.sendPing();
         }
-        sentPing = false;
-        sendSocketPing();
+        this.sentPing = false;
+        this.sendSocketPing();
       }, 60000) }); // PING every minute
     }
 

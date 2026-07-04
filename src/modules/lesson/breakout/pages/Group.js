@@ -703,12 +703,12 @@ export class Page {
     
     // Undo/Redo history events:
     this.pipeline.subscribe("updateHistory", "history_update", (data) => {
-      if (data.history.length > 0 && data.location > -1 && this.editor.self.access > 0) {
+      if (data.history.length > 0 && data.location > -1 && this.editor.self.access >= this.editor.minimumEditingAccess) {
         this.undoButton.removeAttribute("disabled");
       } else {
         this.undoButton.setAttribute("disabled", "");
       }
-      if (data.history.length > data.location + 1 && this.editor.self.access > 0) {
+      if (data.history.length > data.location + 1 && this.editor.self.access >= this.editor.minimumEditingAccess) {
         this.redoButton.removeAttribute("disabled");
       } else {
         this.redoButton.setAttribute("disabled", "");

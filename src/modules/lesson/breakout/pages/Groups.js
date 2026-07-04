@@ -217,6 +217,8 @@ export class Page {
     modifyParams("team");
   }
 
+  loadShowGroups = false;
+  
   removeAllGroups() {
     this.loadShowGroups = false;
 

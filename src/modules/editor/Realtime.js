@@ -849,18 +849,18 @@ export class Module {
               hasCursorAnno = true;
               member.cursorRender = merge;
             } else {
-              original = this.editor.annotations[annoID];
+              original = this.editor.annotations[annoID] ?? {};
               /*if (original != null && original.pointer != null) {
                 annoID = original.pointer;
                 original = this.editor.annotations[annoID];
               }*/
               anno._id = annoID;
-              let isNewAnno = annoID.startsWith("pending_") == true;
+              /*let isNewAnno = annoID.startsWith("pending_") == true;
               if (original == null && isNewAnno == true) {
                 this.editor.annotations[annoID] = {};
                 original = this.editor.annotations[annoID];
               }
-              original = original ?? {};
+              original = original ?? {};*/
               let originalRender = original.render ?? {};
               if ((originalRender.a ?? originalRender.m) != null && this.editor.utils.canMemberModify(originalRender, memberData) != true) { // Can't edit another member's work:
                 delete userSelection[annoID];
@@ -904,7 +904,7 @@ export class Module {
                 original.render = setRender;
                 delete original.render.done;
 
-                if (isNewAnno == false) {
+                /*if (isNewAnno == false) {
                   original.render.m = memberData.modify;
                 } else {
                   anno.lock = anno.lock ?? original.render.lock ?? [];
@@ -912,7 +912,17 @@ export class Module {
                     anno.lock.push("c"); // Add default collaborator lock
                   }
                   original.render.a = memberData.modify;
+                }*/
+                if (original.render.a != null) {
+                  original.render.m = memberData.modify;
+                } else {
+                  original.render.lock = anno.lock ?? original.render.lock ?? [];
+                  if (original.render.lock.includes("c") == false) {
+                    original.render.lock.push("c"); // Add default collaborator lock
+                  }
+                  original.render.a = memberData.modify;
                 }
+
                 original.render.sync = time;
 
                 await this.editor.save.apply({ ...anno, sync: time });

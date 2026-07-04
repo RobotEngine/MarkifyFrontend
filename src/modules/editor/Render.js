@@ -237,7 +237,7 @@ export class Render {
     if ((annotation.component ?? {}).holder != null) {
       return holder;
     }
-    if (annotation.render._id == null || annotation.render._id.startsWith("pending_") == true) {
+    if (annotation.render._id == null || annotation.animate == false) {
       return holder;
     }
     if (annotation.render.f == "page") {

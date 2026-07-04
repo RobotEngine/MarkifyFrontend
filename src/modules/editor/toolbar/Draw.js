@@ -60,7 +60,7 @@ export class Draw {
     let toolPreference = this.toolbar.getToolPreference();
     let useThickness = this.THICKNESS ?? toolPreference.thickness;
     let halfUseThickness = round(useThickness / 2);
-    this.annotation = {
+    let annotation = {
       render: {
         _id: this.editor.render.generateID(),
         f: this.FUNCTION,
@@ -77,8 +77,9 @@ export class Draw {
     this.pointerId = event.pointerId;
     this.shiftKeyEnabled = event.shiftKey == true;
     this.USE_COALESCED_EVENTS = true;
-    this.editor.realtimeSelect[this.annotation.render._id] = this.annotation.render;
-    await this.editor.render.create(this.annotation);
+    this.editor.realtimeSelect[annotation.render._id] = annotation.render;
+    await this.editor.render.create(annotation);
+    this.annotation = annotation;
   }
   async handleDraw(event, mouseX, mouseY) {
     if (this.annotation == null) {
@@ -90,7 +91,6 @@ export class Draw {
     if (event.shiftKey == true) {
       this.shiftKeyEnabled = true;
     }
-    
     let rect = this.editor.utils.localBoundingRect(this.annotation.component.getElement());
     let { x, y } = this.editor.utils.scaleToDoc(mouseX - rect.left, mouseY - rect.top, true);
     let halfT = round(this.annotation.render.t / 2);

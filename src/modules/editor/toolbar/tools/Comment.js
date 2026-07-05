@@ -94,9 +94,9 @@ class MoreDropdown {
 
     let copyButton = frame.querySelector('.eToolbarCommentMoreAction[option="copylink"]');
     copyButton.addEventListener("click", () => {
-      if (commentID.startsWith("pending_") == true) {
+      /*if ((parent.editor.annotations[commentID] ?? {}).pending == true) {
         return;
-      }
+      }*/
       copyClipboardText("https://markify.app/join?lesson=" + parent.editor.lesson.id + "&annotation=" + commentID, "link");
     });
     if (root == false) {
@@ -762,6 +762,7 @@ export class Tool {
         }
         let newComment = {
           _id: this.editor.render.generateID(),
+          pending: true,
           f: "comment",
           parent: this.annotation.render._id,
           d: replyQuill.getContents().ops, //{ b: addText },
@@ -882,6 +883,7 @@ export class Tool {
     this.annotation = {
       render: {
         _id: this.editor.render.generateID(),
+        pending: true,
         f: "comment",
         p: [round(position.x) - (1 / this.editor.zoom), round(position.y) - (1 / this.editor.zoom)],
         s: [0, 0],

@@ -155,13 +155,18 @@ export class Save {
           }
         }*/
 
-        delete mutt.sig;
-        delete anno.save;
-        delete anno.resizing;
-
         if (anno.retry > 0) {
           this.enableTimeout(anno);
           anno.retry--;
+        }
+        if (mutt.pending == true) {
+          if (mutt.f == null) {
+            mutt.annoRefresh = anno;
+            setPendingSave[mutt._id] = mutt;
+            continue;
+          } else if (mutt.remove == true) {
+            continue;
+          }
         }
         /*if (mutt._id.startsWith("pending_") == true) {
           if (mutt.f == null) {
@@ -181,6 +186,13 @@ export class Save {
             continue;
           }
         }
+
+        delete mutt.pending;
+        delete mutt.sig;
+        
+        delete anno.save;
+        delete anno.resizing;
+
         mutationObject[mutt._id] = { ...(mutationObject[mutt._id] ?? {}), ...mutt };
       }
 

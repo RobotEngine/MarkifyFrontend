@@ -820,7 +820,7 @@ export class Module {
       minZIndex = Math.min(minZIndex ?? render.l ?? this.editor.utils.minLayer, render.l ?? minZIndex ?? this.editor.utils.minLayer);
       let newID = this.editor.render.generateID();
       parentIDs[annoID] = newID;
-      saveAnnoData.push({ ...copyObject(render), _id: newID });
+      saveAnnoData.push({ ...copyObject(render), _id: newID, pending: true });
     }
 
     let annotations = this.editor.utils.annotationsInChunks(Object.keys(checkChunks));
@@ -845,7 +845,7 @@ export class Module {
       minZIndex = Math.min(minZIndex ?? render.l ?? this.editor.utils.minLayer, render.l ?? minZIndex ?? this.editor.utils.minLayer);
       let newID = this.editor.render.generateID();
       parentIDs[render._id] = newID;
-      saveAnnoData.push({ ...copyObject(render), _id: newID });
+      saveAnnoData.push({ ...copyObject(render), _id: newID, pending: true });
     }
 
     let { x: centerPageX, y: centerPageY } = this.editor.utils.scaleToDoc(this.editor.page.offsetWidth / 2, this.editor.page.offsetHeight / 2);

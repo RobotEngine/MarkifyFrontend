@@ -1002,6 +1002,10 @@ export class Editor {
           existingAnno.serverSync = anno.sync;
           existingAnno.revert = anno;
 
+          if (existingAnno.render != null) {
+            delete existingAnno.render.pending;
+          }
+
           /*if (pendingAnno != null) {
             let selectBox = this.content.querySelector('.eSelect[anno="' + anno.pending + '"]');
             if (selectBox != null) {
@@ -1184,7 +1188,7 @@ export class Editor {
         let resyncKeys = Object.keys(this.resync.annotations);
         for (let i = 0; i < resyncKeys.length; i++) {
           let anno = this.resync.annotations[resyncKeys[i]] ?? {};
-          if (anno.save == true && (anno.render._id.includes("pending_") == false || anno.render.remove != true)) {
+          if (anno.save == true && (anno.render.remove != true || anno.render.pending != true)) {
             let render = copyObject(anno.render);
             delete anno.expire;
             this.annotations[render._id] = { render: render };

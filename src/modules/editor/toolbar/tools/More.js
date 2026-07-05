@@ -237,7 +237,7 @@ class MoreDropdown {
         for (let i = 0; i < selectKeys.length; i++) {
           let annotation = parent.editor.annotations[selectKeys[i]];
           let render = annotation.render ?? annotation.revert ?? {};
-          if (render._id.startsWith("pending_") == true) {
+          if (render.pending == true) {
             pending = true;
           }
           if (parent.editor.utils.canMemberModify(render) == false || parent.editor.utils.isLocked(render) == true) {
@@ -346,7 +346,7 @@ export class Tool {
   }
   copyLink() {
     let id = Object.keys(this.editor.selecting)[0];
-    if (id == null || id.startsWith("pending_") == true) {
+    if (id == null) {
       return;
     }
     copyClipboardText("https://markify.app/join?lesson=" + this.editor.lesson.id + "&annotation=" + id, "link");

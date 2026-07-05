@@ -42,7 +42,7 @@ export class Tool {
       });
     }
 
-    if (preference._id.startsWith("pending_") == true) {
+    if (preference.pending == true) {
       await this.editor.save.syncSave(true);
     }
 
@@ -59,7 +59,7 @@ export class Tool {
         return;
       }
       preference = this.toolbar.getPreferenceTool();
-      if (preference._id.startsWith("pending_") == true) {
+      if (preference.pending == true) {
         return;
       }
       if (files.length > 50) {

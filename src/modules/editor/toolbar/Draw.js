@@ -63,6 +63,7 @@ export class Draw {
     let annotation = {
       render: {
         _id: this.editor.render.generateID(),
+        pending: true,
         f: this.FUNCTION,
         p: [round(position.x - halfUseThickness), round(position.y - halfUseThickness)],
         s: [0, 0],

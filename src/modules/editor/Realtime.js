@@ -855,6 +855,7 @@ export class Module {
                 original = this.editor.annotations[annoID];
               }*/
               anno._id = annoID;
+              let isNewAnno = anno.pending == true;
               /*let isNewAnno = annoID.startsWith("pending_") == true;
               if (original == null && isNewAnno == true) {
                 this.editor.annotations[annoID] = {};
@@ -913,7 +914,7 @@ export class Module {
                   }
                   original.render.a = memberData.modify;
                 }*/
-                if (original.render.a != null) {
+                if (isNewAnno == false) {
                   original.render.m = memberData.modify;
                 } else {
                   original.render.lock = anno.lock ?? original.render.lock ?? [];

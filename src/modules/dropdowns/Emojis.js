@@ -35,6 +35,7 @@ export class Frame {
 
     let recent = extra.recent ?? [];
     let callback = extra.callback;
+    let editor = extra.parent ?? {};
 
     this.dropdown.maxHeight = this.maxHeight; // Force max height to get set!
 
@@ -109,7 +110,7 @@ export class Frame {
         return;
       }
       let annoID = extra.button.closest(".eAnnotation").getAttribute("anno");
-      if (annoID.startsWith("pending_") == true) {
+      if (editor.annotations != null && (editor.annotations[annoID] ?? {}).render.pending == true) {
         return;
       }
       if (callback != null) {

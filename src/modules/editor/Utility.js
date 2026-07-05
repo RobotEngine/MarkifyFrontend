@@ -618,18 +618,18 @@ export class Utility {
     if (render.f == "page") { // Update Annotation Pages
       for (let i = 0; i < this.editor.annotationPages.length; i++) {
         let annoid = this.editor.annotationPages[i][0];
-        if ((annoid ?? "").startsWith("pending_") == true) {
+        /*if ((annoid ?? "").startsWith("pending_") == true) {
           let anno = this.editor.annotations[annoid] ?? {};
-          /*if (anno.pointer != null) {
+          if (anno.pointer != null) {
             annoid = anno.pointer;
-          }*/
-        }
+          }
+        }*/
         if (annoid == render._id) {
           this.editor.annotationPages.splice(i, 1);
           break;
         }
       }
-      if (render.remove != true && (render._id ?? "").startsWith("pending_-") == false) {
+      if (render.remove != true && render.pending != true) {
         if (render.parent == null) {
           let rect = this.getRect(render);
           let [topLeftX, topLeftY, bottomRightX, bottomRightY] = rotatedBounds(rect.x, rect.y, rect.endX, rect.endY, rect.rotation);
@@ -666,9 +666,9 @@ export class Utility {
       }
       if (missingParent == false) {
         if (rootComment == null) { // IS a root comment:
-          if (render.pending != null && (render._id ?? "").startsWith("pending_") == false) {
+          /*if (render.pending != null && (render._id ?? "").startsWith("pending_") == false) {
             delete this.editor.comments[render.pending];
-          }
+          }*/
           if (render.remove != true) {
             this.editor.comments[render._id] = { render, replies: {} };
           } else {
@@ -680,9 +680,9 @@ export class Utility {
             this.editor.comments[rootComment._id] = { render: rootComment, replies: {} };
             rootData = this.editor.comments[rootComment._id];
           }
-          if (render.pending != null && (render._id ?? "").startsWith("pending_") == false) {
+          /*if (render.pending != null && (render._id ?? "").startsWith("pending_") == false) {
             delete rootData.replies[render.pending];
-          }
+          }*/
           if (render.remove != true) {
             rootData.replies[render._id] = true;
           } else {
@@ -792,12 +792,12 @@ export class Utility {
     }
     let annoID = pageData[0];
     this.editor.pipeline.publish("page_change", { page: this.editor.currentPage, pageId: annoID });
-    if ((annoID ?? "").startsWith("pending_") == true) {
+    /*if ((annoID ?? "").startsWith("pending_") == true) {
       let anno = this.editor.annotations[annoID] ?? {};
-      /*if (anno.pointer != null) {
+      if (anno.pointer != null) {
         annoID = anno.pointer;
-      }*/
-    }
+      }
+    }*/
     this.scrollToAnnotation((this.editor.annotations[annoID] ?? {}).render, { animation });
     this.editor.exitObserve();
   }

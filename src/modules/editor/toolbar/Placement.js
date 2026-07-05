@@ -84,6 +84,7 @@ export class Placement {
     }
     if (event != null && this.editor.isEditorContent(event.target) == true) {
       this.annotation.render._id = this.editor.render.generateID();
+      this.annotation.render.pending = true;
 
       await this.editor.save.push(this.annotation.render);
       await this.editor.history.push("remove", [{ _id: this.annotation.render._id }]);

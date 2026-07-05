@@ -699,6 +699,9 @@ export class Page extends PageFrame {
     if (connected == false) {
       return;
     }
+    if ((this.lesson ?? {}).tool == null) {
+      return;
+    }
     let params = [];
     if (this.active == false && this.exporting != true) {
       params.push("idle");
@@ -865,9 +868,7 @@ export class Page extends PageFrame {
     this.active = document.visibilityState == "visible";
     let visibilityChange = (active) => {
       this.active = active;
-      if (this.lesson != null) {
-        this.sendPing();
-      }
+      this.sendPing();
       this.pushToPipelines(null, "visibilitychange", { active: this.active });
     }
     this.addEventListener(window, "focus", () => {

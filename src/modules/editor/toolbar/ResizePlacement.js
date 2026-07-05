@@ -146,6 +146,7 @@ export class ResizePlacement {
     }
     if (event != null && (this.editor.isEditorContent(event.target) == true || this.resizeActive == true)) {
       this.annotation.render._id = this.editor.render.generateID();
+      this.annotation.render.pending = true;
       
       this.newAnnotation = await this.editor.save.push(this.annotation.render);
       await this.editor.history.push("remove", [{ _id: this.annotation.render._id }]);

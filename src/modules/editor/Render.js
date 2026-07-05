@@ -1,6 +1,6 @@
 // RENDER : Handles rendering objects/annotations onto the board:
 
-import { changeGlobalImports, randomString, getEpoch, sendRequest, sleep } from "@/crucial";
+import { changeGlobalImports, getEpoch, sendRequest, sleep } from "@/crucial";
 
 import { renderPage } from "./render/pdf/render-page";
 
@@ -40,9 +40,9 @@ export class Render {
   fragmentStorage = {};
   pdfFileLoading = {};
 
-  tempID() {
+  /*tempID() {
     return "pending_" + randomString(10) + Date.now();
-  }
+  }*/
   generateID() {
     // 24 Hex Chars (MongoDB ObjectID compatible):
     // 8 Chars = Epoch Seconds
@@ -237,7 +237,7 @@ export class Render {
     if ((annotation.component ?? {}).holder != null) {
       return holder;
     }
-    if (annotation.render._id == null || annotation.animate == false) {
+    if (annotation.render._id == null || annotation.render.pending == true) {
       return holder;
     }
     if (annotation.render.f == "page") {

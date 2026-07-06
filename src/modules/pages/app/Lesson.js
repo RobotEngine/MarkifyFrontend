@@ -719,10 +719,10 @@ export class Page extends PageFrame {
     this.sentPing = true;
     let [code] = await sendRequest("GET", path, null, { session: this.session, allowError: [403, 419] });
     if (code == 403) {
-      if (sendBody.pin != null) {
-        setPage("pages/app/join", { passParams: true }); // Send back to join page
-      } else {
+      if ((this.self.method ?? "").startsWith("pin_") == false) {
         setPage("pages/app/lesson", { passParams: true }); // Refresh to rejoin
+      } else {
+        setPage("pages/app/join", { passParams: true }); // Send back to join page
       }
     } else if (code != 200 && code != 0 && code != null) {
       setPage("pages/app/lesson", { construct: { session: this.session }, passParams: true });

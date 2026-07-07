@@ -1060,9 +1060,12 @@ export class Frame {
       let annotations = Object.entries(this.annotations);
       for (let i = 0; i < annotations.length; i++) {
         let [annoID, annotation] = annotations[i];
-        if (annotation.render != null) {
-          this.editor.annotations[annoID] = { render: copyObject(annotation.render) };
-          this.presentAnnotations[annoID] = { hidden: annotation.render.hidden == true };
+        let render = annotation.render;
+        if (render != null) {
+          if (render.remove != true && render.pending != true) {
+            this.editor.annotations[annoID] = { render: copyObject(render) };
+            this.presentAnnotations[annoID] = { hidden: render.hidden == true };
+          }
         }
       }
       for (let i = 0; i < annotations.length; i++) {

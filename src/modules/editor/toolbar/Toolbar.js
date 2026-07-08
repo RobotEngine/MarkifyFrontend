@@ -33,9 +33,9 @@ export class Toolbar {
         } else if (setSubToolTop < 0) {
           setSubToolTop = 0;
         }
-        if (subtoolHeight >= toolbarHeight) {
+        /*if (subtoolHeight >= toolbarHeight) {
           setSubToolTop += 4;
-        }
+        }*/
         contentContainer.style.top = (setSubToolTop + 12) + "px"; // 12 pixels to account for padding
 
         if (this.toolbar.toolbarHolder.hasAttribute("right") == false) {
@@ -103,9 +103,9 @@ export class Toolbar {
         } else if (setSubToolTop < 0) {
           setSubToolTop = 0;
         }
-        if (subtoolHeight >= toolbarHeight) {
+        /*if (subtoolHeight >= toolbarHeight) {
           setSubToolTop += 4;
-        }
+        }*/
         contentContainer.style.top = (setSubToolTop + 12) + "px"; // 12 pixels to account for padding
 
         if (this.toolbar.toolbarHolder.hasAttribute("right") == false) {
@@ -301,6 +301,8 @@ export class Toolbar {
     } else {
       contentContainer.style.transform = "translateX(100%)";
     }
+
+    this.toolbar.subToolbar.querySelector(".eSubToolContentScroll").addEventListener("scroll", () => { this.update(); });
 
     let contentHolder = this.toolbar.subToolbar.querySelector(".eSubToolContent");
     if (toolData.frame != null) {

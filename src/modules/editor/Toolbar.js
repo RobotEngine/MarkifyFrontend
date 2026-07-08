@@ -64,7 +64,7 @@ export class Module {
     ".eVerticalDivider": `width: 4px; height: calc(100% - 8px); margin: 0 2px; flex-shrink: 0; background: var(--hover); border-radius: 2px`,
 
     ".eSubToolHolder": `--maxWidth: calc(var(--maxToolbarWidth) - var(--toolbarWidth) - 12px); position: absolute; width: calc(var(--maxWidth) + 4px); height: 100%; padding: 12px; top: -12px; z-index: 2; overflow: hidden; pointer-events: none`,
-    ".eSubToolContainer .eSubToolHolder": `--maxWidth: calc(var(--maxToolbarWidth) - (var(--toolbarWidth) * 2) - (4px * 2));`,
+    ".eSubToolContainer .eSubToolHolder": `--maxWidth: calc(var(--maxToolbarWidth) - (var(--toolbarWidth) * 2) - (8px * 2));`,
     ".eToolbarHolder[left] .eSubToolHolder": `left: calc(100% - 12px)`,
     ".eToolbarHolder[right] .eSubToolHolder": `right: calc(100% - 12px)`,
     ".eSubToolContainer": `position: absolute; width: fit-content; max-width: calc(100% - 28px); max-height: 100%; background: var(--pageColor); opacity: 0; pointer-events: all; transition: opacity .25s, transform .25s; outline: none !important`,

@@ -18,7 +18,7 @@ export class Setup {
     ".brSetupProgress .largeButton": `--themeColor: var(--theme); --themeColor2: var(--themeColor); --borderRadius: 12px; max-width: 100%; padding: 6px 10px; margin: 3px; justify-content: center; font-size: 18px`,
     ".brSetupProgress .largeButton svg": `width: 24px`,
     ".brSetupProgress .largeButton[back] svg": `transform: scaleX(-1)`,
-    ".brSetupProgress div[dots]": `display: flex; flex-wrap: wrap; gap: 6px; padding: 6px; margin: 0 auto; justify-content: center; align-items: center; background: var(--pageColor); box-shadow: var(--lightShadow); border-radius: 20px`,
+    ".brSetupProgress div[dots]": `display: flex; flex-wrap: wrap; gap: 6px; padding: 6px; margin: 0 auto; justify-content: center; align-items: center; background: var(--pageColor); box-shadow: inset var(--lightShadow); border-radius: 20px`,
     ".brSetupProgress div[dots] button": `position: relative; display: flex; width: 28px; height: 28px; background: var(--hover); border-radius: 6px; pointer-events: none`,
     ".brSetupProgress div[dots] button:first-child": `border-radius: 14px 6px 6px 14px`,
     ".brSetupProgress div[dots] button:last-child": `border-radius: 6px 14px 14px 6px`,

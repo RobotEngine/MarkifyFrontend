@@ -23,7 +23,7 @@ export class Toolbar {
         let toolsRect = toolbar.getBoundingClientRect();
         let buttonRect = this.toolbar.currentToolButton.getBoundingClientRect();
 
-        contentScroll.style.maxHeight = toolbar.clientHeight + "px";
+        contentScroll.style.setProperty("--maxHeight", toolbar.clientHeight + "px");
 
         let toolbarHeight = toolbar.offsetHeight;
         let subtoolHeight = contentScroll.offsetHeight;
@@ -93,7 +93,7 @@ export class Toolbar {
         let toolsRect = toolbar.getBoundingClientRect();
         let buttonRect = this.toolbar.currentSubToolButton.getBoundingClientRect();
 
-        contentScroll.style.maxHeight = toolbar.clientHeight + "px";
+        contentScroll.style.setProperty("--maxHeight", toolbar.clientHeight + "px");
 
         let toolbarHeight = toolbar.offsetHeight;
         let subtoolHeight = contentScroll.offsetHeight;

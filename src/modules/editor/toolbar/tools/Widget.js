@@ -1,9 +1,9 @@
 
 
 export class Frame {
-  html = `<div class="eToolWidgetContainer" closetooltip></div>`;
+  html = `<div class="eToolWidgetContainer customScroll" closetooltip></div>`;
   css = {
-    ".eToolWidgetContainer": `box-sizing: border-box; width: min(400px, var(--maxWidth)); height: 1000px; padding: 12px`
+    ".eToolWidgetContainer": `box-sizing: border-box; width: min(400px, var(--maxWidth)); height: var(--maxHeight); padding: 12px; overflow: auto`,
   };
   js(frame) {
 

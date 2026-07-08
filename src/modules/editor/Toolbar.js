@@ -63,7 +63,7 @@ export class Module {
     ".eDivider": `width: calc(100% - 8px); height: 4px; margin: 2px 0; background: var(--hover); border-radius: 2px`,
     ".eVerticalDivider": `width: 4px; height: calc(100% - 8px); margin: 0 2px; flex-shrink: 0; background: var(--hover); border-radius: 2px`,
 
-    ".eSubToolHolder": `--maxWidth: calc(var(--maxToolbarWidth) - var(--toolbarWidth) - 4px); position: absolute; width: calc(var(--maxWidth) - 4px); height: 100%; padding: 12px; top: -12px; z-index: 2; overflow: hidden; pointer-events: none`,
+    ".eSubToolHolder": `--maxWidth: calc(var(--maxToolbarWidth) - var(--toolbarWidth) - 12px); position: absolute; width: calc(var(--maxWidth) + 4px); height: 100%; padding: 12px; top: -12px; z-index: 2; overflow: hidden; pointer-events: none`,
     ".eSubToolContainer .eSubToolHolder": `--maxWidth: calc(var(--maxToolbarWidth) - (var(--toolbarWidth) * 2) - (4px * 2));`,
     ".eToolbarHolder[left] .eSubToolHolder": `left: calc(100% - 12px)`,
     ".eToolbarHolder[right] .eSubToolHolder": `right: calc(100% - 12px)`,
@@ -81,7 +81,7 @@ export class Module {
     ".eToolbarHolder[left] .eSubToolShadow:after": `left: 0px`,
     ".eToolbarHolder[right] .eSubToolShadow:after": `right: 0px`,
     ".eSubToolContentHolder": `position: relative; max-width: 100%; background: var(--pageColor); z-index: 3; overflow: hidden; border-radius: inherit`,
-    ".eSubToolContentScroll": `width: fit-content; overflow: auto`,
+    ".eSubToolContentScroll": `width: fit-content; max-height: var(--maxHeight); overflow: auto`,
     ".eSubToolContainer[option] .eSubToolContentScroll": `overflow: visible`,
     ".eVerticalToolsHolder": `display: flex; flex-wrap: wrap; width: 50px; padding: 2px 0; justify-content: center; scrollbar-width: none`,
     ".eVerticalToolsHolder::-webkit-scrollbar": `display: none`,

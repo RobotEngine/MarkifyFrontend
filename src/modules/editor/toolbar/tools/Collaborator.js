@@ -74,7 +74,7 @@ export class Tool {
   </div>
   `;
   css = {
-    ".eSubToolCollaborator": `box-sizing: border-box; width: 34px; height: 34px; padding: 2px; margin: 4px; object-fit: cover; background: var(--pageColor); border-radius: 20px`,
+    ".eSubToolCollaborator": `box-sizing: border-box; width: 34px; height: 34px; padding: 2px; margin: 4px; object-fit: cover; background: var(--pageColor); border: solid 3px var(--theme); border-radius: 20px`,
 
     ".eSubToolCollaboratorHolder": `display: flex; flex-direction: column; width: fit-content; max-width: 100%; gap: 4px; align-items: center; border-radius: inherit`,
     ".eSubToolCollaboratorContent": `display: flex; flex-wrap: wrap; width: max-content; max-width: calc(100% - 16px); margin: 8px; gap: 4px; align-items: center; border-radius: inherit`,

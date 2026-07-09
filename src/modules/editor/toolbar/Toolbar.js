@@ -229,18 +229,16 @@ export class Toolbar {
     this.toolbar.subSubToolbar = toolbar.querySelector(".eSubToolHolder[new]");
     this.toolbar.subSubToolbar.removeAttribute("new");
     let contentContainer = this.toolbar.subSubToolbar.querySelector(".eSubToolContainer");
-    if (this.toolbar.toolbarHolder.hasAttribute("right") == false) {
-      contentContainer.style.transform = "translateX(-100%)";
-    } else {
-      contentContainer.style.transform = "translateX(100%)";
-    }
+    
     this.toolbar.applyToolModule(await this.toolbar.setFrame(
       this.toolbar.getModule(modulePath),
       this.toolbar.subSubToolbar.querySelector(".eSubToolContent"),
       { construct: { editor: this.editor, toolbar: this.toolbar, isToolbar: true } }
     ));
 
-    contentContainer.focus();
+    if (contentContainer != null) {
+      contentContainer.focus({ preventScroll: true });
+    }
   }
   closeSubSub(update) {
     if (this.toolbar.subSubToolbar == null) {
@@ -296,11 +294,6 @@ export class Toolbar {
     this.toolbar.subToolbar = toolbar.querySelector(".eSubToolHolder[new]");
     this.toolbar.subToolbar.removeAttribute("new");
     let contentContainer = this.toolbar.subToolbar.querySelector(".eSubToolContainer");
-    if (this.toolbar.toolbarHolder.hasAttribute("right") == false) {
-      contentContainer.style.transform = "translateX(-100%)";
-    } else {
-      contentContainer.style.transform = "translateX(100%)";
-    }
 
     this.toolbar.subToolbar.querySelector(".eSubToolContentScroll").addEventListener("scroll", () => { this.update(); });
 
@@ -315,7 +308,9 @@ export class Toolbar {
       contentHolder.innerHTML = toolData.html;
     }
 
-    contentContainer.focus();
+    if (contentContainer != null) {
+      contentContainer.focus({ preventScroll: true });
+    }
 
     return toolData;
   }

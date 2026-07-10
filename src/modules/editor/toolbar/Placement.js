@@ -87,7 +87,7 @@ export class Placement {
       return;
     }
     if (event != null && this.editor.isEditorContent(event.target) == true) {
-      this.annotation.render._id = this.editor.render.generateID() + "a";
+      this.annotation.render._id = this.editor.render.generateID();
       this.annotation.render.pending = true;
 
       await this.editor.save.push(this.annotation.render);

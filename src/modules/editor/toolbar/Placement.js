@@ -3,6 +3,7 @@ import { round, pointInRotatedBounds } from "../math";
 import insertCursor from "../icons/cursors/insert.svg?raw";
 
 export class Placement {
+  ACTIVE = true;
   PROPERTIES = {};
   USER_SELECT = "none";
   TOUCH_ACTION = "none";
@@ -14,13 +15,16 @@ export class Placement {
     this.clickMove(event);
   }
   async clickMove(event) {
+    if (this.ACTIVE == false) {
+      return this.clickEnd();
+    }
     if (this.annotation == null) {
       if (event != null && this.editor.isEditorContent(event.target) != true) {
         return;
       }
-      if (this.enable != null) {
+      /*if (this.enable != null) {
         this.enable();
-      }
+      }*/
       this.annotation = {
         render: this.PROPERTIES,
         animate: false
@@ -83,7 +87,7 @@ export class Placement {
       return;
     }
     if (event != null && this.editor.isEditorContent(event.target) == true) {
-      this.annotation.render._id = this.editor.render.generateID();
+      this.annotation.render._id = this.editor.render.generateID() + "a";
       this.annotation.render.pending = true;
 
       await this.editor.save.push(this.annotation.render);

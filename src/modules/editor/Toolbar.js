@@ -304,7 +304,7 @@ export class Module {
     }
     return await this.editor.newModule(module);
   }
-  async activateTool(extra, options = {}) {
+  async activateTool(moduleTemplate, extra, options = {}) {
     //this.editor.pinchZoomDisable = false;
     this.editor.usingStylus = false;
     this.selection.hideSelectBox = null;
@@ -341,8 +341,12 @@ export class Module {
     this.sidemenu.close();
 
     let newModule;
-    if (this.currentToolModulePath != null) {
-      newModule = await this.loadModule(this.currentToolModulePath);
+    if (moduleTemplate == null) {
+      if (this.currentToolModulePath != null) {
+        newModule = await this.loadModule(this.currentToolModulePath);
+      }
+    } else {
+      newModule = await this.editor.newModule(moduleTemplate);
     }
     this.currentToolModule = newModule ?? {};
     if (newModule != null) {
@@ -916,7 +920,7 @@ export class Module {
         if (this.currentToolModulePath != "selection/pan") {
           this.previousToolModule = this.currentToolModulePath;
           this.currentToolModulePath = "selection/pan";
-          await this.activateTool(null, { resetSelection: false });
+          await this.activateTool(null, null, { resetSelection: false });
         }
         if ((this.currentToolModule ?? {}).clickStart != null) {
           this.currentToolModule.clickStart(event);
@@ -971,7 +975,7 @@ export class Module {
         data.event.preventDefault();
         this.currentToolModulePath = this.previousToolModule;
         this.previousToolModule = null;
-        return this.activateTool(null, { resetSelection: false });
+        return this.activateTool(null, null, { resetSelection: false });
       }
       this.toolbar.setTool();
       await this.pushToolEvent("clickEnd", data.event);
@@ -1016,7 +1020,7 @@ export class Module {
         if (this.currentToolModulePath != "selection/pan") {
           this.previousToolModule = this.currentToolModulePath;
           this.currentToolModulePath = "selection/pan";
-          await this.activateTool(null, { resetSelection: false });
+          await this.activateTool(null, null, { resetSelection: false });
         }
         return;
       }
@@ -1143,7 +1147,7 @@ export class Module {
         data.event.preventDefault();
         this.currentToolModulePath = this.previousToolModule;
         this.previousToolModule = null;
-        return this.activateTool(null, { resetSelection: false });
+        return this.activateTool(null, null, { resetSelection: false });
       }
       this.pushToolEvent("keyup", data.event);
     });

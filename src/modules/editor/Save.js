@@ -22,8 +22,8 @@ export class Save {
     } else {
       setExpire += 10000; // 10 seconds until expire
     }*/
-    anno.expire = getEpoch() + 10000; // 10 seconds until expire
     if (anno.expire == null) {
+      anno.expire = getEpoch() + 10000; // 10 seconds until expire
       this.timeoutAnnotations.push(anno.render._id);
     }
     if (this.runningTimeout == true) {

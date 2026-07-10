@@ -257,11 +257,7 @@ export class Toolbar {
     (async () => {
       removeToolbar.style.zIndex = 1;
       let contentContainer = removeToolbar.querySelector(".eSubToolContainer");
-      if (this.toolbar.toolbarHolder.hasAttribute("right") == false) {
-        contentContainer.style.transform = "translateX(-100%)";
-      } else {
-        contentContainer.style.transform = "translateX(100%)";
-      }
+      contentContainer.style.removeProperty("transform");
       contentContainer.style.opacity = 0;
       await sleep(300);
       if (removeToolbar != null) {
@@ -328,11 +324,7 @@ export class Toolbar {
     (async () => {
       removeToolbar.style.zIndex = 1;
       let contentContainer = removeToolbar.querySelector(".eSubToolContainer");
-      if (this.toolbar.toolbarHolder.hasAttribute("right") == false) {
-        contentContainer.style.transform = "translateX(-100%)";
-      } else {
-        contentContainer.style.transform = "translateX(100%)";
-      }
+      contentContainer.style.removeProperty("transform");
       contentContainer.style.opacity = 0;
       await sleep(300);
       if (removeToolbar != null) {
@@ -399,7 +391,7 @@ export class Toolbar {
             this.toolbar.currentToolModulePath = toolData.module;
             this.toolbar.tooltip.update();
           }
-          this.toolbar.activateTool(passData);
+          this.toolbar.activateTool(null, passData);
           this.updateButtons(this.toolbar.subToolbar, { ignore: ignoreButtonUpdate });
         } else {
           this.toolbar.tooltip.update();
@@ -417,7 +409,7 @@ export class Toolbar {
         if (shortPress == true) {
           this.toolbar.currentSubTool = button.getAttribute("tool");
           this.toolbar.currentToolModulePath = button.getAttribute("module");
-          this.toolbar.activateTool(passData);
+          this.toolbar.activateTool(null, passData);
           this.updateButtons(null, { ignore: ignoreButtonUpdate });
         }
       } else { // Option

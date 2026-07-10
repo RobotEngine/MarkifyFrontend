@@ -34,9 +34,9 @@ export class ResizePlacement {
       if (event != null && this.editor.isEditorContent(event.target) != true) {
         return;
       }
-      if (this.enable != null) {
+      /*if (this.enable != null) {
         this.enable();
-      }
+      }*/
       this.annotation = {
         render: this.PROPERTIES,
         animate: false

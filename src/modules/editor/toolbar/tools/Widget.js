@@ -1,27 +1,41 @@
+import { Placement } from "../Placement";
 
+class WidgetTool extends Placement {
+  enable(extra) {
+    console.log(extra.widget);
+
+    let toolPreference = this.toolbar.getToolPreference();
+    this.PROPERTIES = {
+      f: "sticky",
+      s: [220, 220],
+      l: this.editor.maxLayer + 1,
+      d: "alignment"
+    };
+  }
+}
 
 export class Frame {
   html = `<div class="eToolWidgetContainer customScroll" closetooltip>
     <div class="eToolWidgetSection">
-      <button class="eToolWidgetTile">
+      <button class="eToolWidgetTile" widget="poll">
         <div class="eToolWidgetTilePreview"></div>
         <div class="eToolWidgetTileInfo">
           <div class="eToolWidgetTileTitle">Poll</div>
         </div>
       </button>
-      <button class="eToolWidgetTile">
+      <button class="eToolWidgetTile" widget="timer">
         <div class="eToolWidgetTilePreview"></div>
         <div class="eToolWidgetTileInfo">
           <div class="eToolWidgetTileTitle">Timer</div>
         </div>
       </button>
-      <button class="eToolWidgetTile">
+      <button class="eToolWidgetTile" widget="spinner">
         <div class="eToolWidgetTilePreview"></div>
         <div class="eToolWidgetTileInfo">
           <div class="eToolWidgetTileTitle">Spinner</div>
         </div>
       </button>
-      <button class="eToolWidgetTile">
+      <button class="eToolWidgetTile" widget="alignment">
         <div class="eToolWidgetTilePreview"></div>
         <div class="eToolWidgetTileInfo">
           <div class="eToolWidgetTileTitle">Alignment</div>
@@ -29,6 +43,7 @@ export class Frame {
       </button>
     </div>
   </div>`;
+
   css = {
     ".eToolWidgetContainer": `box-sizing: border-box; width: min(460px, var(--maxWidth)); max-height: var(--maxHeight); padding: 12px; overflow: auto`,
     ".eToolWidgetSection": `position: relative; display: grid; width: 100%; grid-gap: 12px; grid-template-columns: repeat(auto-fill, minmax(min(200px, 100%), 1fr))`,
@@ -40,7 +55,18 @@ export class Frame {
     ".eToolWidgetTileInfo": `display: flex; box-sizing: border-box; width: 100%; padding: 4px; margin-top: 4px; z-index: 2`,
     ".eToolWidgetTileTitle": `box-sizing: border-box; width: 100%; font-size: 16px; font-weight: 600; text-align: left`
   };
-  js(frame) {
 
+  js(frame) {
+    frame.addEventListener("click", (event) => {
+      let button = event.target.closest(".eToolWidgetTile");
+      if (button == null) {
+        return;
+      }
+      let widget = button.getAttribute("widget");
+      if (widget != null) {
+        this.toolbar.activateTool(WidgetTool, { widget });
+      }
+      this.toolbar.toolbar.closeSub(true);
+    });
   }
 }

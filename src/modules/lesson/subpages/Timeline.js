@@ -623,6 +623,7 @@ export class Frame {
     let tempSelections = [];
     let annotationRect = this.editor.utils.localBoundingRect(this.editor.annotationHolder);
     let updateAnnotationKeys = Object.keys(updatedAnnotations);
+    let anonymousMode = (this.lesson.lesson.settings ?? {}).anonymousMode == true && this.self.access < 4;
     for (let i = 0; i < updateAnnotationKeys.length; i++) {
       let annoID = updateAnnotationKeys[i];
       let { annotation, checkChunks } = updatedAnnotations[annoID];
@@ -670,14 +671,16 @@ export class Frame {
           this.realtimeHolder.insertAdjacentHTML("beforeend", `<div class="timelineSelect" new></div>`);
           selection = this.realtimeHolder.querySelector('.timelineSelect[new]');
           selection.removeAttribute("new");
-          selection.setAttribute("merged", mergedID);
-          selection.setAttribute("collaborator", modifyID);
-          (async (element, modifyid) => {
-            let collaborator = await this.editor.utils.getCollaborator(modifyid);
-            if (collaborator != null && element != null) {
-              element.style.setProperty("--themeColor", collaborator.color);
-            }
-          })(selection, modifyID);
+          if (anonymousMode == false) {
+            selection.setAttribute("merged", mergedID);
+            selection.setAttribute("collaborator", modifyID);
+            (async (element, modifyid) => {
+              let collaborator = await this.editor.utils.getCollaborator(modifyid);
+              if (collaborator != null && element != null) {
+                element.style.setProperty("--themeColor", collaborator.color);
+              }
+            })(selection, modifyID);
+          }
         }
         setSelectionBoxes[mergedID] = selection;
         if (isCurrentChange == false ||annotation.render.remove == true) {

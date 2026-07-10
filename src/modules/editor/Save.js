@@ -36,44 +36,43 @@ export class Save {
       let changeOccured = false;
       //let redrawAction = false;
       let epoch = getEpoch();
-      for (let i = 0; i < this.timeoutAnnotations.length; i++) {
-        let annotation = this.editor.annotations[this.timeoutAnnotations[i]];
-        /*if ((annotation ?? {}).pointer != null) { // If synced is availiable, update to it
-          annotation = this.editor.annotations[annotation.pointer];
-        }*/
+
+      let checkAnnotations = [ ...this.timeoutAnnotations ];
+      this.timeoutAnnotations = [];
+
+      while (checkAnnotations.length > 0) {
+        let annoID = checkAnnotations.pop();
+        let annotation = this.editor.annotations[annoID];
 
         if ((annotation ?? {}).render == null || (connected == false && annotation.collab != true)) {
-          this.timeoutAnnotations.splice(i, 1);
-          i--;
           continue;
         }
 
         if (annotation.expire > epoch) {
+          this.timeoutAnnotations.push(annoID);
           continue;
         }
+
         if (this.editor.toolbar != null
-          && this.editor.selecting[annotation.render._id] != null
+          && this.editor.selecting[annoID] != null
           && this.editor.toolbar.selection.action != null
         ) {
+          this.timeoutAnnotations.push(annoID);
           continue;
         }
-        
-        this.timeoutAnnotations.splice(i, 1);
-        i--;
+
+        if (this.pendingSaves[annoID] != null) {
+          this.timeoutAnnotations.push(annoID);
+          continue;
+        }
 
         delete annotation.expire;
         delete annotation.collab;
-
-        /*if (annotation.pending != null) {
-          delete this.editor.annotations[annotation.pending];
-          delete annotation.render.pending;
-        }*/
 
         if (annotation.revert == null) {
           continue;
         }
 
-        //if (annotation.render._id.includes("pending_") == false) {
         if (annotation.revert._id != null) { // Must not be a new annotation:
           delete annotation.retry;
           await this.apply(annotation.revert, { overwrite: true, timeout: false });
@@ -81,7 +80,7 @@ export class Save {
           changeOccured = true;
         } else {
           await this.editor.utils.setAnnotationChunks({ ...annotation, render: { ...annotation.render, remove: true } });
-          delete this.editor.annotations[annotation.render._id];
+          delete this.editor.annotations[annoID];
           changeOccured = true;
         }
       }

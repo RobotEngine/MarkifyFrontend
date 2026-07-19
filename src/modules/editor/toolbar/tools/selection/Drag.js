@@ -18,7 +18,12 @@ export class Tool {
       return;
     }
     let target = event.target;
-    if (target.closest("button") != null || target.closest("a") != null || target.closest(".eActionBar") != null) {
+    if (
+      target.closest("button") != null
+      || target.closest("a") != null
+      || target.closest("[noselect]") != null
+      || target.closest(".eActionBar") != null
+    ) {
       return this.toolbar.selection.clickAction(event, { clickStart: true });
     }
     if (this.editor.isEditorContent(target) != true) {
@@ -191,7 +196,7 @@ export class Tool {
       }
 
       let annotationModule = (await this.editor.render.getModule(annotation, render.f)) ?? {};
-      if (annotationModule.CAN_DRAG_SELECT == false) {
+      if (annotationModule.CAN_SELECT == false || annotationModule.CAN_DRAG_SELECT == false) {
         continue;
       }
       let { x, y, endX, endY, rotation, selectingParent } = this.editor.utils.getRect(render);
@@ -252,7 +257,11 @@ export class Tool {
       if (target.closest(".eActionBar") != null) {
         return;
       }
-      if (target.closest("button") != null || target.closest("a") != null) {
+      if (
+        target.closest("button") != null
+        || target.closest("a") != null
+        || target.closest("[noselect]") != null
+      ) {
         return this.toolbar.selection.updateBox();
       }
       let annotation = target.closest(".eAnnotation");

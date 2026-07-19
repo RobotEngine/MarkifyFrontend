@@ -585,7 +585,7 @@ export class Frame {
 
         let checkChunks = this.editor.utils.chunksFromAnnotation(annotation);
         if (this.editor.annotations[annotation._id] == null) {
-          this.editor.annotations[annotation._id] = { render: this.storedAnnotationStates[annotation._id] };
+          this.editor.addAnnotation({ ...this.storedAnnotationStates[annotation._id], _id: annotation._id });
         } else {
           this.editor.annotations[annotation._id].render = this.storedAnnotationStates[annotation._id];
         }
@@ -1066,7 +1066,7 @@ export class Frame {
         let render = annotation.render;
         if (render != null) {
           if (render.remove != true && render.pending != true) {
-            this.editor.annotations[annoID] = { render: copyObject(render) };
+            this.editor.addAnnotation(copyObject(render));
             this.presentAnnotations[annoID] = { hidden: render.hidden == true };
           }
         }

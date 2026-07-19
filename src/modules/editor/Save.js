@@ -79,8 +79,7 @@ export class Save {
           delete annotation.revert;
           changeOccured = true;
         } else {
-          await this.editor.utils.setAnnotationChunks({ ...annotation, render: { ...annotation.render, remove: true } });
-          delete this.editor.annotations[annoID];
+          await this.editor.removeAnnotation(annotation);
           changeOccured = true;
         }
       }
@@ -129,7 +128,7 @@ export class Save {
           continue;
         }
         if (anno.render == null) {
-          delete this.editor.annotations[mutt._id];
+          this.editor.removeAnnotation(null, mutt._id);
           continue;
         }
         if (Object.keys(mutationObject).length > 499) {
@@ -253,7 +252,7 @@ export class Save {
     let annotation = existingAnnotation ?? { render: {} };
 
     if (existingAnnotation == null) {
-      this.editor.annotations[annoID] = annotation;
+      annotation = this.editor.addAnnotation(annotation.render, annoID);
     }
 
     if (annotation.revert == null && options.timeout != false) {

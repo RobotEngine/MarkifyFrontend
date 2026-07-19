@@ -8,7 +8,12 @@ export class Tool {
     if (this.editor.isEditorContent(target) != true) {
       return;
     }
-    if (target.closest("button") != null || target.closest("a") != null || target.closest(".eActionBar") != null) {
+    if (
+      target.closest("button") != null
+      || target.closest("a") != null
+      || target.closest("[noselect]") != null
+      || target.closest(".eActionBar") != null
+    ) {
       return this.toolbar.selection.clickAction(event, { clickStart: true });
     }
     let annotation = target.closest(".eAnnotation");
@@ -64,9 +69,11 @@ export class Tool {
       }
       if (render != null && this.editor.selecting[annoID] == null) {
         let module = (await this.editor.render.getModule(original, render.f)) ?? {};
-        if (module.HOLD_FOR_SELECT != true || target.closest("[selectable]") != null) {
-          this.wasSelected = annoID;
-          this.editor.selecting[annoID] = {};
+        if (module.CAN_SELECT != false) {
+          if (module.HOLD_FOR_SELECT != true || target.closest("[selectable]") != null) {
+            this.wasSelected = annoID;
+            this.editor.selecting[annoID] = {};
+          }
         }
       }
     }
@@ -85,7 +92,12 @@ export class Tool {
       return;
     }
     await this.toolbar.selection.clickAction(event, { clickEnd: true });
-    if (target.closest("button") != null || target.closest("a") != null || target.closest(".eSelect") != null) {
+    if (
+      target.closest("button") != null
+      || target.closest("a") != null
+      || target.closest("[noselect]") != null
+      || target.closest(".eActionBar") != null
+    ) {
       return;
     }
     let { mouseX, mouseY } = this.editor.utils.localMousePosition(event);
@@ -105,15 +117,17 @@ export class Tool {
         this.editor.closeAlert(this.toolbar.someoneElsesAnnoWarning);
         this.toolbar.someoneElsesAnnoWarning = await this.editor.openAlert("warning", "<b>Annotation is Locked</b>Only the author may edit collaborator locked annotations.");
       }
-      if (event.shiftKey == true) {
-        if (this.wasSelected != annoID && this.editor.selecting[annoID] != null) {
-          delete this.editor.selecting[annoID];
+      if (annoModule.CAN_SELECT != false) {
+        if (event.shiftKey == true) {
+          if (this.wasSelected != annoID && this.editor.selecting[annoID] != null) {
+            delete this.editor.selecting[annoID];
+          } else {
+            this.editor.selecting[annoID] = {};
+          }
         } else {
+          this.editor.selecting = {};
           this.editor.selecting[annoID] = {};
         }
-      } else {
-        this.editor.selecting = {};
-        this.editor.selecting[annoID] = {};
       }
       if (this.wasSelected == null && annotation.querySelector("div[edit]") != null && annotation.querySelector("div[edit]").closest(".eAnnotation") == annotation && annotation.querySelector('div[contenteditable="true"]') == null) {
         this.toolbar.selection.clickAction({

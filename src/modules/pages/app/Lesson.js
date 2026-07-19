@@ -638,7 +638,7 @@ export class Page extends PageFrame {
                 document.title = (this.lesson.name ?? "Untitled Lesson") + " | Markify";
               }
               if (body.settings != null) {
-                if (body.settings.forceLogin == false && this.self.access < 2) {
+                if (body.settings.forceLogin == false && this.self.email == null) {
                   setFrame("pages/app/join", null, { passParams: true });
                 }
               }

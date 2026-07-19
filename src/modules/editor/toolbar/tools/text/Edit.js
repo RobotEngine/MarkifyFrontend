@@ -66,7 +66,7 @@ export class Tool {
         let currentFormats = this.quill.getFormat(selection.index - 1, 1);
         setTimeout(() => {
           this.applyFormats(currentFormats);
-        }, 0)
+        }, 0);
       }
     }
 

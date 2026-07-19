@@ -565,7 +565,7 @@ export class Selection {
             continue;
           }
           if (combineTools == null) {
-            combineTools = copyObject(annoModule.ACTION_BAR_TOOLS);
+            combineTools = [...annoModule.ACTION_BAR_TOOLS];
           }
           for (let c = 0; c < combineTools.length; c++) {
             if (annoModule.ACTION_BAR_TOOLS.includes(combineTools[c]) == false) {
@@ -2511,6 +2511,10 @@ export class Selection {
       }
     }
     this.saving = false;
+
+    if (options.saveImmediately == true) {
+      this.editor.save.syncSave(true);
+    }
 
     if (options.fromHistory != true) {
       if (pushChanges.length > 0) {

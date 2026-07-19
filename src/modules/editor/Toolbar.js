@@ -282,19 +282,22 @@ export class Module {
     }
   }
   async getModule(path) {
-    let moduleLoad = toolModules[toolModulePath + path + ".js"];
-    if (moduleLoad == null) {
-      return;
+    let moduleLoad;
+    if (typeof path == "string") {
+      moduleLoad = toolModules[toolModulePath + path + ".js"];
+    } else {
+      moduleLoad = await path;
     }
     if (typeof moduleLoad == "function") {
       moduleLoad = await moduleLoad();
     }
-    if (moduleLoad != null) {
-      if (moduleLoad.Tool != null) {
-        return moduleLoad.Tool;
-      } else {
-        return moduleLoad;
-      }
+    if (moduleLoad == null) {
+      return;
+    }
+    if (moduleLoad.Tool != null) {
+      return moduleLoad.Tool;
+    } else {
+      return moduleLoad;
     }
   }
   async loadModule(path) {
@@ -504,7 +507,7 @@ export class Module {
     }
 
     this.selection.action = "save";
-    await this.selection.endAction({ redrawActionBar: false, fromHistory: options.saveHistory == false });
+    await this.selection.endAction({ redrawActionBar: false, fromHistory: options.saveHistory == false, saveImmediately: options.saveImmediately });
     if (options.redrawActionBar != false) {
       await this.selection.updateActionBar({
         refreshActionBar: options.refreshActionBar ?? true,

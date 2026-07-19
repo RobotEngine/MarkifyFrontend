@@ -47,6 +47,7 @@ export class Editor {
     ".eAnnotation": `position: absolute; display: block; left: 0px; top: 0px; z-index: calc(var(--startZIndex) + var(--zIndex)); contain: size layout`,
     ".eAnnotation[hidden]": `display: none !important`,
     ".eAnnotation[anno]": `transition: all .25s, z-index 0s`,
+    ".eAnnotation[tooleditor]:after": `content: ""; position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; z-index: 999; pointer-events: all`,
     //".eAnnotation:not([anno])": `display: none !important`,
     ".eAnnotationHolder": `position: absolute; z-index: 10; contain: size style`, // layout will-change: contents
     //".eAnnotationHolder[notransition] > .eAnnotation": `transition: unset !important`,
@@ -222,6 +223,22 @@ export class Editor {
     }
   }
 
+  async saveAnnotation(update, options = {}) {
+    if (Array.isArray(update) == false) {
+      update = [update];
+    }
+    if (this.toolbar != null && this.toolbar.selection != null) {
+      let keys = Object.keys(this.selecting);
+      for (let i = 0; i < update.length; i++) {
+        let annotation = update[i];
+        this.selecting[annotation._id] = annotation;
+      }
+      this.toolbar.selection.action = "save";
+      //await this.forceShort();
+      return await this.toolbar.selection.endAction({ sentKeys: keys, redrawActionBar: true, ...options });
+    }
+  }
+
   cleanupSelections() {
     if (this.toolbar != null && this.toolbar.selection != null) {
       return this.toolbar.selection.cleanup();
@@ -321,6 +338,37 @@ export class Editor {
     };
     this.updatePageScroll();
     this.frame.style.setProperty("--interfacePadding", this.scrollOffset + "px");
+  }
+
+  addAnnotation(render, annoID) {
+    annoID = render._id ?? annoID;
+    if (annoID == null) {
+      return;
+    }
+
+    this.annotations[annoID] = { render, chunks: [] };
+
+    let annotation = this.annotations[annoID];
+
+    // Process worker...
+
+    return annotation;
+  }
+  async removeAnnotation(annotation, annoID) {
+    if (annotation == null && annoID != null) {
+      annotation = this.annotations[annoID];
+    }
+    if (annotation == null) {
+      return;
+    }
+    let render = annotation.render ?? {};
+    annoID = annoID ?? render._id;
+    
+    await this.utils.setAnnotationChunks({ ...annotation, render: { ...render, remove: true } });
+
+    // Process remove worker...
+    
+    delete this.annotations[annoID];
   }
 
   scrollTo(left, top, animate) {
@@ -733,8 +781,7 @@ export class Editor {
       addAnno.from = "root";
       let existingAnno = this.annotations[addAnno._id];
       if (existingAnno == null) { // || existingAnno.render.sync < addAnno.sync
-        this.annotations[addAnno._id] = {};
-        existingAnno = this.annotations[addAnno._id];
+        existingAnno = this.addAnnotation({ _id: addAnno._id });
       }
       existingAnno.render = addAnno;
       changedAnnotations.push(existingAnno);
@@ -773,8 +820,7 @@ export class Editor {
         let addAnno = body.annotations[i];
         let existingAnno = this.annotations[addAnno._id];
         if (existingAnno == null || existingAnno.render.sync < addAnno.sync) {
-          this.annotations[addAnno._id] = { render: addAnno };
-          existingAnno = this.annotations[addAnno._id];
+          existingAnno = this.addAnnotation(addAnno);
         }
         addedAnnotations.push(existingAnno);
       }
@@ -1191,7 +1237,7 @@ export class Editor {
           if (anno.save == true && (anno.render.remove != true || anno.render.pending != true)) {
             let render = copyObject(anno.render);
             delete anno.expire;
-            this.annotations[render._id] = { render: render };
+            this.addAnnotation(render);
             this.save.pendingSaves[render._id] = { ...this.save.pendingSaves[render._id], ...render };
           }
         }

@@ -102,7 +102,7 @@ export class Text {
         optimize(context) {
           super.optimize(context);
 
-          if (this.children.length >= 1) {
+          /*if (this.children.length >= 1) {
             let child = this.children.head;
             let attributes = child?.attributes?.attributes;
 
@@ -116,7 +116,12 @@ export class Text {
                   this.domNode.style.color = value;
                   //super.format("custom-color-attributor", value);
                 } else if (name == "ql-font") {
-                  this.domNode.style.fontFamily = (fontMapping[value] ?? [])[0] ?? "var(--font)";
+                  let font = (fontMapping[value] ?? [])[0];
+                  if (font != null) {
+                    this.domNode.style.fontFamily = '"' + font + '", sans-serif';
+                  } else {
+                    this.domNode.style.fontFamily = "var(--font)";
+                  }
                   //super.format("custom-family-attributor", value);
                 } else if (name == "font-size") {
                   this.domNode.style.fontSize = value;
@@ -124,7 +129,7 @@ export class Text {
                 }
               }
             }
-          }
+          }*/
         }
       }
       ListItem.blotName = "list";

@@ -1,5 +1,6 @@
 export class BaseAnnotation {
   cache = {};
+  
   getElement() {
     return this.element;
   }

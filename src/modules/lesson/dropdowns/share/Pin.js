@@ -16,9 +16,9 @@ class EnlargeModal {
     ".eSharePinEnlargeHolder": `display: flex; flex-direction: column; align-items: center`,
     ".eSharePinEnlargeLink": "--fontSize: clamp(14px, 2vw, 32px); width: fit-content; font-size: var(--fontSize); padding: calc(var(--fontSize) / 2.5) calc(var(--fontSize) / 1.5); background: var(--pageColor); box-shadow: var(--lightShadow); border-radius: calc(var(--fontSize) * 2)",
     ".eSharePinEnlargeLink a": `color: var(--theme); font-weight: 700; text-decoration: none`,
-    ".eSharePinEnlargeDisplay": `--fontSize: clamp(60px, 8vw, 150px); display: flex; flex-wrap: wrap; margin-top: 16px; justify-content: center; align-items: center; color: var(--theme); font-size: var(--fontSize); font-weight: 700; background: var(--pageColor); box-shadow: var(--lightShadow); border-radius: calc((var(--fontSize) / 3) + 4px + (var(--fontSize) / 16))`,
+    ".eSharePinEnlargeDisplay": `--fontSize: clamp(60px, 8vw, 150px); display: flex; flex-wrap: wrap; margin-top: 16px; justify-content: center; align-items: center; color: var(--theme); font-size: var(--fontSize); font-weight: 700; background: var(--pageColor); box-shadow: var(--lightShadow); border-radius: calc((var(--fontSize) / 3) + ((var(--fontSize) / 16) * 2))`,
     ".eSharePinEnlargeDisplay span[section]": `display: block; min-height: 74px; padding: 0 calc(var(--fontSize) / 5); margin: calc(var(--fontSize) / 6); border: solid 4px var(--hover); border-radius: calc(var(--fontSize) / 3)`,
-    ".eSharePinEnlargeDisplay span[section] span": `display: inline-block; height: 74px; margin: 0 calc(var(--fontSize) / 16)`,
+    ".eSharePinEnlargeDisplay span[section] span": `display: inline-block; margin: 0 calc(var(--fontSize) / 16)`,
     ".eSharePinEnlargeDisplay div": `width: calc(var(--fontSize) / 5); height: calc(var(--fontSize) / 5); background: var(--hover); border-radius: calc(var(--fontSize) / 5)`,
     //".eSharePinEnlargeClose": `padding: 4px 10px; margin-top: 16px; background: var(--pageColor); box-shadow: var(--lightShadow); border-radius: 16px`
   };

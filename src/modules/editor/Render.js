@@ -570,8 +570,7 @@ export class Render {
       if (long != true) {
         await this.hide(annotation);
       } else {
-        await this.editor.utils.setAnnotationChunks({ ...annotation, render: { ...render, remove: true } });
-        delete this.editor.annotations[_id];
+        await this.editor.removeAnnotation({ ...annotation, render: { ...render, remove: true } });
       }
     }
 

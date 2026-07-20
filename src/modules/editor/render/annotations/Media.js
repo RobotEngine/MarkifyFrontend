@@ -60,6 +60,7 @@ export class Annotation extends BaseAnnotation {
     } else {
       this.editor.exportPromises.push(new Promise(async (resolve) => {
         image.addEventListener("load", resolve);
+        image.addEventListener("error", resolve);
         if (this.properties.d != null || image.hasAttribute("src") == false) {
           if (this.properties.d != null && this.properties.d.startsWith("blob:") == false) {
             image.src = assetURL + this.properties.d;

@@ -49,7 +49,6 @@ export class Widget {
     ".eWidgetTimerRing:before": `content: ""; position: absolute; width: 96.8%; height: 96.8%; left: 50%; top: 50%; transform: translate(-50%, -50%); border-radius: 50%; box-shadow: inset var(--lightShadow)`,
     ".eWidgetTimerRing:after": `content: ""; position: absolute; width: 81.6%; height: 81.6%; left: 50%; top: 50%; transform: translate(-50%, -50%); border-radius: 50%; box-shadow: var(--lightShadow)`,
     ".eWidgetTimerRing svg": `width: 100%; height: 100%; transform: rotate(-90deg)`,
-    ".eWidgetTimerRingProgress": `transition: stroke-dashoffset .1s linear, stroke .3s`,
 
     ".eWidgetTimerTop": `display: flex; padding: 4px; align-items: center; background: var(--pageColor); box-shadow: inset var(--lightShadow); border-radius: 16px; z-index: 1`,
     ".eWidgetTimerBtn": `display: flex; width: 24px; height: 24px; padding: 0; align-items: center; justify-content: center; border-radius: 12px; transition: .2s`,
@@ -82,7 +81,6 @@ export class Widget {
       100% { transform: scale(1); box-shadow: var(--darkShadow) }
     `,
     ".eWidgetTimer[ended]": `animation: widgetTimerEndPulse .6s cubic-bezier(.2, .8, .2, 1) 3`,
-    ".eWidgetTimer[ended] .eWidgetTimerRingProgress": `stroke: var(--error) !important`,
     ".eWidgetTimer[ended] .eWidgetTimerInput": `color: var(--error) !important`,
     ".eWidgetTimer[ended] .eWidgetTimerColon": `color: var(--error) !important`
   };
@@ -234,7 +232,7 @@ export class Widget {
       });
 
       inputEl.addEventListener("keydown", (e) => {
-        if (e.key === "Enter") inputEl.blur();
+        if (e.key == "Enter") inputEl.blur();
       });
 
       inputEl.addEventListener("change", () => {
@@ -266,25 +264,48 @@ export class Widget {
     this.btnPlus.addEventListener("click", () => {
       this.clearEndState();
       let currentDuration = this.parent.properties.duration ?? this.DEFAULT_DURATION;
-      let newDuration = currentDuration + (60 * 1000);
+      let originalDuration = this.parent.properties.originalDuration ?? currentDuration;
+      let started = this.parent.properties.started;
+
+      // Calculate the real remaining time right now
+      let elapsed = started != null ? (getEpoch() - started) : 0;
+      let remainingMs = Math.max(0, currentDuration - elapsed);
+
+      let payload = { _id: this.parent.properties._id };
+
+      if (started != null && remainingMs == 0) {
+        payload.started = getEpoch();
+        payload.duration = 60 * 1000;
+        payload.originalDuration = 60 * 1000;
+      } else {
+        payload.duration = currentDuration + (60 * 1000);
+        payload.originalDuration = originalDuration + (60 * 1000);
+      }
       
-      this.editor.saveAnnotation({
-        _id: this.parent.properties._id,
-        duration: newDuration,
-        originalDuration: newDuration
-      });
+      this.editor.saveAnnotation(payload, { saveImmediately: true });
     });
 
     this.btnMinus.addEventListener("click", () => {
       this.clearEndState();
       let currentDuration = this.parent.properties.duration ?? this.DEFAULT_DURATION;
-      let newDuration = Math.max(60 * 1000, currentDuration - (60 * 1000));
-      
-      this.editor.saveAnnotation({
-        _id: this.parent.properties._id,
-        duration: newDuration,
-        originalDuration: newDuration
-      });
+      let originalDuration = this.parent.properties.originalDuration ?? currentDuration;
+      let started = this.parent.properties.started;
+
+      let elapsed = started != null ? (getEpoch() - started) : 0;
+      let remainingMs = Math.max(0, currentDuration - elapsed);
+
+      let payload = { _id: this.parent.properties._id };
+
+      if (started != null && remainingMs == 0) {
+        payload.started = null;
+        payload.duration = 60 * 1000;
+        payload.originalDuration = 60 * 1000;
+      } else {
+        payload.duration = Math.max(60 * 1000, currentDuration - (60 * 1000));
+        payload.originalDuration = Math.max(60 * 1000, originalDuration - (60 * 1000));
+      }
+
+      this.editor.saveAnnotation(payload, { saveImmediately: true });
     });
 
     this.btnPlay.addEventListener("click", () => {
@@ -296,15 +317,17 @@ export class Widget {
         let currentDuration = this.parent.properties.duration ?? this.DEFAULT_DURATION;
         let remaining = Math.max(0, currentDuration - elapsed);
 
-        this.editor.saveAnnotation({
-          _id: this.parent.properties._id,
-          started: null,
-          duration: remaining
-        });
+        if (remaining > 500) {
+          this.editor.saveAnnotation({
+            _id: this.parent.properties._id,
+            started: null,
+            duration: remaining
+          });
+        }
       } else {
-        this.clearEndState();
         let original = this.parent.properties.originalDuration ?? this.parent.properties.duration ?? this.DEFAULT_DURATION;
-        
+        this.clearEndState();
+          
         this.editor.saveAnnotation({
           _id: this.parent.properties._id,
           started: getEpoch(),
@@ -330,26 +353,44 @@ export class Widget {
     let remainingMs = duration;
 
     if (started != null) {
-      let elapsed = getEpoch() - started;
+      // If the network 'started' timestamp is new, lock in a local reference
+      if (this.networkStartSaved != started) {
+        this.networkStartSaved = started;
+        
+        // Find out how long ago the server thinks it started, then translate that to local time
+        let ageMs = getEpoch() - started; 
+        this.localStartPerf = performance.now() - ageMs; 
+      }
+
+      // Calculate elapsed purely using the smooth, drift-free local performance timer
+      let elapsed = performance.now() - this.localStartPerf;
       remainingMs = Math.max(0, duration - elapsed);
+    } else {
+      // Reset our local anchors when paused or stopped
+      this.networkStartSaved = null;
+      this.localStartPerf = null;
     }
 
-    let totalSeconds = Math.ceil(remainingMs / 1000);
+    if (remainingMs > 0 && this.hasEnded == true) {
+      this.clearEndState();
+    }
+
+    let totalSeconds = Math.round(remainingMs / 1000);
 
     if (started != null) {
       if (totalSeconds < 6 && totalSeconds > 0) {
-        if (totalSeconds !== this.lastTickSecond) {
+        if (totalSeconds != this.lastTickSecond) {
           this.playTickSound();
           this.lastTickSecond = totalSeconds;
         }
-      } else if (remainingMs <= 0 && !this.hasEnded) {
+      } else if (remainingMs <= 0 && this.hasEnded != true) {
         this.hasEnded = true;
         this.playAlarmSound();
         this.container.setAttribute("ended", "");
       }
     }
 
-    if (document.activeElement !== this.minsInput && document.activeElement !== this.secsInput) {
+    if (document.activeElement != this.minsInput && document.activeElement != this.secsInput) {
       let minutes = Math.floor(totalSeconds / 60);
       let seconds = totalSeconds % 60;
 
@@ -380,7 +421,7 @@ export class Widget {
   }
 
   render() {
-    if (this.animationFrame) {
+    if (this.animationFrame != null) {
       cancelAnimationFrame(this.animationFrame);
     }
 

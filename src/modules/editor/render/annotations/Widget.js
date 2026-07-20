@@ -1,12 +1,12 @@
-import { changeGlobalImports, setFrame } from "@/crucial";
+import { changeGlobalImports, setFrame, sleep } from "@/crucial";
 
 import { BaseAnnotation } from "../BaseAnnotation";
 
-const widgets = changeGlobalImports(import.meta.glob("../widgets/*/index.js"));
+const widgets = changeGlobalImports(import.meta.glob("../widgets/*/Widget.js"));
 const widgetsPath = "../widgets/";
 
 export const loadWidgetModule = async (type) => {
-  let moduleLoad = widgets[widgetsPath + type + "/index.js"];
+  let moduleLoad = widgets[widgetsPath + type + "/widget.js"];
   if (moduleLoad == null) {
     return;
   }
@@ -59,8 +59,8 @@ export class Annotation extends BaseAnnotation {
 
     if (this.cache.widget != this.properties.d) {
       this.cache.widget = this.properties.d;
-      //this.element.setAttribute("loading", "");
-      (async () => {
+
+      let loadWidget = async () => {
         let widgetTemplate = await loadWidgetModule(this.properties.d);
         
         if (widgetTemplate != null && this.element != null) {
@@ -87,7 +87,12 @@ export class Annotation extends BaseAnnotation {
         }
 
         this.CAN_SELECT = true;
-      })();
+      }
+      if (this.editor.exporting != true) {
+        loadWidget();
+      } else {
+        this.editor.exportPromises.push(new Promise(async (resolve) => { resolve(await loadWidget()); }));
+      }
     }
 
     this.setID();

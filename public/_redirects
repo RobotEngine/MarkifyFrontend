@@ -9,8 +9,8 @@
 # /privacy   /privacy.html  200
 # /embed     /embed.html    200
 
-# Force a true 404 for missing static chunks (prevents HTML-as-JS error) (DISABLED)
-# /assets/*  -  404
+# Force a true 404 for missing static chunks (prevents HTML-as-JS error)
+/assets/* /index.html 404
 
 # SPA Catch-all (Must be last): (DISABLED)
 # This handles /join, /export, /embed, AND React/Vue routing.

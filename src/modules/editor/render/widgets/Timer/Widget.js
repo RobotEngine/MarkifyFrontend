@@ -282,7 +282,7 @@ export class Widget {
         payload.originalDuration = originalDuration + (60 * 1000);
       }
       
-      this.editor.saveAnnotation(payload, { saveImmediately: true });
+      this.editor.saveAnnotation(payload);
     });
 
     this.btnMinus.addEventListener("click", () => {
@@ -305,7 +305,7 @@ export class Widget {
         payload.originalDuration = Math.max(60 * 1000, originalDuration - (60 * 1000));
       }
 
-      this.editor.saveAnnotation(payload, { saveImmediately: true });
+      this.editor.saveAnnotation(payload);
     });
 
     this.btnPlay.addEventListener("click", () => {

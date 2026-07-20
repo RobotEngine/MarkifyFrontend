@@ -1,20 +1,8 @@
-import {
-  PageFrame,
-
-  userID,
-  account,
-
-  setPage,
-  sleep,
-  getParam,
-  getLocalStore,
-  setLocalStore,
-  modifyParams,
-  sendRequest,
-  promptLogin
-} from "@/crucial";
+import { PageFrame, userID, account, setPage, sleep, getParam, getLocalStore, setLocalStore, modifyParams, sendRequest, promptLogin } from "@/crucial";
 
 import { alert as alertModule } from "@modules/utility/Alert";
+
+import { close as closeIcon } from "@modules/utility/core-icons";
 
 export class Page extends PageFrame {
   turnstileEnabled = false;
@@ -49,8 +37,8 @@ export class Page extends PageFrame {
           <div class="jNameInput"><input placeholder="Screen Name"></input></div>
           <div class="jAuthHolder">
             <img src="../images/profiles/default.svg" profile accountimage>
-            <span accountuser>Robot Engine</span>
-            <button class="buttonAnim border" title="Logout and switch account."></button>
+            <span accountuser></span>
+            <button class="buttonAnim border" title="Logout and switch account.">${closeIcon}</button>
           </div>
         </div>
         <button class="largeButton border" join>Join Lesson</button>
@@ -282,7 +270,6 @@ export class Page extends PageFrame {
             promptLogin();
           }
         });
-        setSVG(switchAccountButton, "../images/tooltips/close.svg");
         joinAccount.style.display = "flex";
         joinNickname.parentElement.style.display = "none";
       }

@@ -103,7 +103,7 @@ export class Widget {
       let { name, color } = names[i] ?? {};
 
       if (name == null) {
-        name = "";
+        continue;
       }
 
       // If the name is too long for the slice depth, slice it and add an ellipsis:

@@ -882,7 +882,7 @@ export class Page extends PageFrame {
 
             // Handle adding or moving folder lesson tiles:
             if (body.hasOwnProperty("folder") == true) {
-              if (currentRecord.folder != null && currentRecord.folder != body.folder) {
+              if (currentRecord.folder != null && currentRecord.folder != record.folder) {
                 let existingSectionRecord = this.records[currentRecord.folder];
                 if (existingSectionRecord != null) {
                   let recordIndex = existingSectionRecord.indexOf(currentRecord._id);

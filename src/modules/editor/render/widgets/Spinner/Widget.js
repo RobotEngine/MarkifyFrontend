@@ -102,6 +102,10 @@ export class Widget {
     for (let i = 0; i < names.length; i++) {
       let { name, color } = names[i] ?? {};
 
+      if (name == null) {
+        name = "";
+      }
+
       // If the name is too long for the slice depth, slice it and add an ellipsis:
       if (name.length > maxCharsAllowed && maxCharsAllowed > 3) {
         name = name.substring(0, maxCharsAllowed - 3) + "...";
@@ -133,7 +137,7 @@ export class Widget {
       let angleInDegrees = names.length == 1 ? 0 : (accumulatedPercent - (slicePercent / 2)) * 360;
 
       buffer.push(`
-        <path d="${pathData}" fill="${color}" opacity=".5" stroke="var(--pageColor)" stroke-width="4"></path>
+        <path d="${pathData}" fill="${color ?? "var(--theme)"}" opacity=".5" stroke="var(--pageColor)" stroke-width="4"></path>
         <text x="${this.cx + this.r - 36}" 
           y="${this.cy + (dynamicFontSize * 0.35)}" 
           transform="rotate(${angleInDegrees}, ${this.cx}, ${this.cy})" 
@@ -496,7 +500,7 @@ export class Widget {
     requestAnimationFrame(animate);
   }
 
-  updateSpinButton() {
+  updateInteractivity() {
     if (this.editor.utils.canMemberModify(this.parent.properties) == false) {
       this.spinButton.setAttribute("disabled", "");
       this.winnerContent.style.pointerEvents = "none";
@@ -536,7 +540,7 @@ export class Widget {
 
       this.editor.saveAnnotation({ _id: this.parent.properties._id, winner, started, duration }, { saveImmediately: true });
     });
-    this.updateSpinButton();
+    this.updateInteractivity();
 
     this.winnerContent.addEventListener("click", (event) => {
       this.editor.saveAnnotation({ _id: this.parent.properties._id, winner: null }, { saveImmediately: true });
@@ -575,7 +579,7 @@ export class Widget {
         this.createWheel(Object.values(this.members));
       }
       if (this.editor.self._id == data._id && data.hasOwnProperty("access") == true) {
-        this.updateSpinButton();
+        this.updateInteractivity();
       }
     });
     this.parent.subscribe("leave", (data) => {
@@ -595,7 +599,7 @@ export class Widget {
     });
     this.parent.subscribe("set", (data) => {
       if (data.hasOwnProperty("settings") == true) {
-        this.updateSpinButton();
+        this.updateInteractivity();
       }
     });
 
@@ -633,7 +637,7 @@ export class Widget {
       }
     }
 
-    this.updateSpinButton();
+    this.updateInteractivity();
   }
 
   renderPreview() {

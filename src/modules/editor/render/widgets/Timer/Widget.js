@@ -58,8 +58,8 @@ export class Widget {
     ".eWidgetTimerStepText": `margin: 0 6px; font-size: 14px; font-weight: 600`,
 
     ".eWidgetTimerDisplay": `display: flex; flex-direction: column; width: 100%; align-items: center; z-index: 1`,
-    ".eWidgetTimerInputGroup": `display: flex; align-items: center; justify-content: center; font-size: 50px; font-weight: 700; letter-spacing: 2px; pointer-events: auto`,
-    ".eWidgetTimerInput": `display: inline-block; width: 76px; padding: 0; margin: 0; background: transparent; border: none; outline: none; text-align: center; font-size: inherit; font-weight: inherit; font-family: inherit; letter-spacing: inherit; transition: .4s`,
+    ".eWidgetTimerInputGroup": `display: flex; align-items: center; justify-content: center; color: var(--textColor); font-size: 50px; font-weight: 700; letter-spacing: 2px; pointer-events: auto`,
+    ".eWidgetTimerInput": `display: inline-block; width: 76px; padding: 0; margin: 0; background: transparent; border: none; outline: none; color: inherit; font-size: inherit; font-weight: inherit; font-family: inherit; letter-spacing: inherit; transition: .4s`,
     ".eWidgetTimerMins": `text-align: right`,
     ".eWidgetTimerSecs": `text-align: left`,
     ".eWidgetTimerInput:focus": `color: var(--theme)`,
@@ -195,14 +195,31 @@ export class Widget {
     this.lastTickSecond = -1;
   }
 
+  updateInteractivity() {
+    if (this.editor.utils.canMemberModify(this.parent.properties) == false) {
+      this.containerTop.setAttribute("disabled", "");
+      this.btnPlay.setAttribute("disabled", "");
+      this.btnReset.setAttribute("disabled", "");
+      this.minsInput.style.pointerEvents = "none";
+      this.secsInput.style.pointerEvents = "none";
+    } else {
+      this.containerTop.removeAttribute("disabled");
+      this.btnPlay.removeAttribute("disabled");
+      this.btnReset.removeAttribute("disabled");
+      this.minsInput.style.removeProperty("pointer-events");
+      this.secsInput.style.removeProperty("pointer-events");
+    }
+  }
+
   async js(frame) {
     this.container = frame.querySelector(".eWidgetTimer");
     this.minsInput = frame.querySelector(".eWidgetTimerMins");
     this.secsInput = frame.querySelector(".eWidgetTimerSecs");
     this.progressCircle = frame.querySelector(".eWidgetTimerRingProgress");
 
-    this.btnMinus = frame.querySelector(".eWidgetTimerMinus");
-    this.btnPlus = frame.querySelector(".eWidgetTimerPlus");
+    this.containerTop = frame.querySelector(".eWidgetTimerTop");
+    this.btnMinus = this.containerTop.querySelector(".eWidgetTimerMinus");
+    this.btnPlus = this.containerTop.querySelector(".eWidgetTimerPlus");
     this.btnPlay = frame.querySelector(".eWidgetTimerPlayBtn");
     this.btnReset = frame.querySelector(".eWidgetTimerResetBtn");
 
@@ -345,6 +362,18 @@ export class Widget {
         originalDuration: this.DEFAULT_DURATION
       });
     });
+
+    this.parent.subscribe("update", (data) => {
+      if (this.editor.self._id == data._id && data.hasOwnProperty("access") == true) {
+        this.updateInteractivity();
+      }
+    });
+    this.parent.subscribe("set", (data) => {
+      if (data.hasOwnProperty("settings") == true) {
+        this.updateInteractivity();
+      }
+    });
+    this.updateInteractivity();
   }
 
   updateUI() {
@@ -426,6 +455,7 @@ export class Widget {
     }
 
     this.updateUI();
+    this.updateInteractivity();
   }
 
   renderPreview() {

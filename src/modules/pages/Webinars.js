@@ -56,7 +56,7 @@ class EmbedModal {
 
 export class Page extends PageFrame {
   title = "Summer PD";
-  
+
   html = `<div class="wPageHolder">
     <div class="wPage">
       <div class="wInterface customScroll">
@@ -248,7 +248,7 @@ export class Page extends PageFrame {
     ".WEventTimeHolder": `box-sizing: border-box; display: flex; flex-wrap: wrap; gap: 8px; width: 100%; margin-top: 8px`,
     ".WEventTimeHolder div": `padding: 4px 10px; box-shadow: inset var(--lightShadow); border-radius: 16px; font-size: 14px; font-weight: 500`,
     ".WEventTimeHolder div b": `color: var(--theme); font-weight: 700`,
-    ".wEventContent": `box-sizing: border-box; display: flex; flex-wrap: wrap; gap: 12px; width: 100%; padding: 12px; align-items: center; z-index: 2`,
+    ".wEventContent": `box-sizing: border-box; display: flex; flex-wrap: wrap; gap: 12px; width: 100%; padding: 12px; justify-content: center; align-items: center; z-index: 2`,
     ".wEventContentText": `flex: 1 1 300px; font-size: 14px; line-height: 1.25; text-align: left`,
     ".wEventContent .largeButton": `--borderRadius: 14px; height: fit-content; background: var(--theme); color: #fff`
   };

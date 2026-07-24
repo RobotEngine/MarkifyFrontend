@@ -105,7 +105,7 @@ export class Page extends PageFrame {
               </div>
               <div class="wInfoPresenterLabel">
                 <div name>Jeff Stark, PhD</div>
-                <div role>Educator</div>
+                <div role>Professor</div>
               </div>
             </a>
           </div>

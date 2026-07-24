@@ -3,9 +3,10 @@ import { setPage, checkForAuth, PageFrame, userID, account, getParam, modifyPara
 import { modal as modalModule } from "@modules/utility/Modal";
 
 import logoIcon from "@assets/logo.svg?raw";
-import boardBadgeIcon from "@assets/badges/boardblur.svg?raw";
-import breakoutBadgeIcon from "@assets/badges/breakoutblur.svg?raw";
-import boardBreakoutBadgeIcon from "@assets/badges/boardbreakoutblur.svg?raw";
+
+import boardBadgeIcon from "@assets/badges/blurred/board.png?no-inline";
+import breakoutBadgeIcon from "@assets/badges/blurred/breakout.png?no-inline";
+import boardBreakoutBadgeIcon from "@assets/badges/blurred/boardbreakout.png?no-inline";
 
 import splashBannerImg from "@assets/webinars/summerseries/wavesbeach.png?no-inline";
 import summerseriesImg from "@assets/webinars/summerseries/logo.png?no-inline";
@@ -112,7 +113,7 @@ export class Page extends PageFrame {
 
             <a class="wEvent" event="evt-O3Mefd6onUQiZJn">
               <div class="wEventHeader">
-                <div class="wEventLogo">${boardBadgeIcon}</div>
+                <div class="wEventLogo"><img src="${boardBadgeIcon}" /></div>
                 <div class="WEventInfo">
                   <div class="WEventInfoTitle">Whole-Class Collaboration That Works</div>
                   <div class="WEventTimeHolder">
@@ -128,7 +129,7 @@ export class Page extends PageFrame {
             </a>
             <a class="wEvent" event="evt-whhzNUVYeGCL7TR">
               <div class="wEventHeader">
-                <div class="wEventLogo">${breakoutBadgeIcon}</div>
+                <div class="wEventLogo"><img src="${breakoutBadgeIcon}" /></div>
                 <div class="WEventInfo">
                   <div class="WEventInfoTitle">Group Work That Works</div>
                   <div class="WEventTimeHolder">
@@ -144,7 +145,7 @@ export class Page extends PageFrame {
             </a>
             <a class="wEvent" event="evt-t4EvLXShKQjA8uR">
               <div class="wEventHeader">
-                <div class="wEventLogo">${boardBadgeIcon}</div>
+                <div class="wEventLogo"><img src="${boardBadgeIcon}" /></div>
                 <div class="WEventInfo">
                   <div class="WEventInfoTitle">Whole-Class Collaboration That Works</div>
                   <div class="WEventTimeHolder">
@@ -160,7 +161,7 @@ export class Page extends PageFrame {
             </a>
             <a class="wEvent" event="evt-II60KMUuUDfnt9D">
               <div class="wEventHeader">
-                <div class="wEventLogo">${breakoutBadgeIcon}</div>
+                <div class="wEventLogo"><img src="${breakoutBadgeIcon}" /></div>
                 <div class="WEventInfo">
                   <div class="WEventInfoTitle">Group Work That Works</div>
                   <div class="WEventTimeHolder">
@@ -176,7 +177,7 @@ export class Page extends PageFrame {
             </a>
             <a class="wEvent" event="evt-JxgRQ7wABFWPx8f">
               <div class="wEventHeader">
-                <div class="wEventLogo">${boardBreakoutBadgeIcon}</div>
+                <div class="wEventLogo"><img src="${boardBreakoutBadgeIcon}" /></div>
                 <div class="WEventInfo">
                   <div class="WEventInfoTitle">Tying Whole-Class and Group Work Into One Lesson</div>
                   <div class="WEventTimeHolder">
@@ -209,7 +210,7 @@ export class Page extends PageFrame {
     ".wTopSection[right]": `border-bottom-left-radius: 12px`,
     ".wTopLogo": `display: flex; height: 38px; padding: 0; user-select: none; justify-content: center; align-items: center; border-radius: 6px`,
     ".wTopLogo:hover": `background: var(--hover)`,
-    ".wTopLogo svg": `width: fit-content; height: 100%; transition: .2s`,
+    ".wTopLogo svg": `height: 100%; transition: .2s`,
     ".wOpen": `box-sizing: border-box; height: 32px; padding: 6px 10px; margin: 0 4px; background: var(--theme); border-radius: 16px; color: #fff; font-size: 16px; font-weight: 600; text-decoration: none`,
 
     ".wContentHolder": `position: relative; box-sizing: border-box; display: flex; flex-wrap: wrap; gap: 24px; width: 100%; height: 100%; padding: 66px 16px 16px; overflow-x: none; overflow-y: scroll; z-index: 1; transition: .5s`,
@@ -242,7 +243,7 @@ export class Page extends PageFrame {
     ".wEvent:before": `content: ""; position: absolute; width: calc(100% + (var(--hoverSize) * 2)); height: calc(100% + (var(--hoverSize) * 2)); left: 50%; top: 50%; transform: translate(-50%, -50%); background: var(--pageColor); box-shadow: 0px 0px 8px 0px rgba(var(--themeRGB), var(--shadowOpacity)); border-radius: calc(18px + var(--hoverSize)); z-index: 1; transition: .2s`,
     ".wEventHeader": `display: flex; flex-wrap: wrap; z-index: 2`,
     ".wEventLogo": `width: 80px; max-width: 100%; height: 80px`, // padding: 6px; box-shadow: inset var(--lightShadow); border-radius: 12px
-    ".wEventLogo svg": `width: 100%; height: 100%`,
+    ".wEventLogo img": `width: 100%; height: 100%`,
     ".WEventInfo": `display: flex; flex-direction: column; flex: 1 1 300px; padding: 12px; justify-content: space-between`,
     ".WEventInfoTitle": `font-size: 18px; font-weight: 600; text-align: left`,
     ".WEventTimeHolder": `box-sizing: border-box; display: flex; flex-wrap: wrap; gap: 8px; width: 100%; margin-top: 8px`,

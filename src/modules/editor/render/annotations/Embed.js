@@ -2,21 +2,30 @@ import { BaseAnnotation } from "../BaseAnnotation";
 
 import { cleanString } from "@/crucial";
 
+import { Tool as OpenLinkTool } from "../../toolbar/actions/media/embed/OpenLink";
+import { Tool as EnlargeTool } from "../../toolbar/actions/media/embed/Enlarge";
+import { Tool as SetTool } from "../../toolbar/actions/media/embed/Set";
+import { Tool as UnlockTool } from "../../toolbar/actions/Unlock";
+import { Tool as DeleteTool } from "../../toolbar/actions/Delete";
+
+import playIcon from "../../icons/actions/play.svg?raw";
 import linkIcon from "../../icons/actions/link.svg?raw";
 
 export class Annotation extends BaseAnnotation {
-  ACTION_BAR_TOOLS = ["media/embed/openlink", "media/embed/enlarge", "media/embed/set", "unlock", "delete"];
+  ACTION_BAR_TOOLS = [OpenLinkTool, EnlargeTool, SetTool, UnlockTool, DeleteTool];
 
   css = {
     ".eAnnotation[embed]": `display: flex; background: var(--pageColor); border-radius: 16px; box-shadow: 0px 0px 8px rgba(0, 0, 0, .2); pointer-events: all; text-align: left`,
     ".eAnnotation[embed] div[holder]": `display: flex; flex-direction: column; width: calc(100% - 16px); flex: 1; padding: 8px`,
     ".eAnnotation[embed] div[content]": `position: relative; width: 100%; flex: 1; overflow: hidden; border-radius: 8px; background: radial-gradient(var(--theme), var(--secondary)); pointer-events: all !important;`,
-    ".eAnnotation[embed] div[content] img[thumbnail]": `position: absolute; display: none; width: 100%; height: 100%; left: 0px; top: 0px; object-fit: cover; background: #fff`,
-    ".eAnnotation[embed] div[content] iframe": `position: absolute; left: 0px; top: 0px; transform-origin: top left; background: var(--pageColor); border: none`,
+    ".eAnnotation[embed] div[content] img[thumbnail]": `position: absolute; display: none; width: 100%; height: 100%; left: 0px; top: 0px; object-fit: cover; background: #fff; z-index: 1`,
+    ".eAnnotation[embed] div[content] iframe": `position: absolute; left: 0px; top: 0px; transform-origin: top left; background: var(--pageColor); border: none; opacity: 0; z-index: 2; transition: opacity .4s`,
     ".eAnnotation[embed]:not([notransition]) div[content]": `pointer-events: all`,
-    ".eAnnotation[embed] div[content] div[activate]": `position: absolute; display: none; width: 100%; height: 100%; left: 0px; top: 0px; justify-content: center; align-items: center; background: radial-gradient(rgba(0, 0, 0, .5), rgba(0, 0, 0, .2)); backdrop-filter: blur(4px); transition: .3s`,
-    ".eAnnotation[embed] div[content] div[activate] button": `width: 80px; height: 80px; max-width: 80%; max-height: 80%`,
-    ".eAnnotation[embed] div[content] div[activate] button img": `width: 100%; height: 100%`,
+    ".eAnnotation[embed] div[content] div[activate]": `position: absolute; display: none; width: 100%; height: 100%; left: 0px; top: 0px; justify-content: center; align-items: center; background: radial-gradient(rgba(0, 0, 0, .6), rgba(0, 0, 0, .2)); border-radius: inherit; transition: .4s; z-index: 3`, //backdrop-filter: blur(4px);
+    ".eAnnotation[embed] div[content] div[activate] button": `width: 80px; height: 80px; max-width: 80%; max-height: 80%; background: rgba(var(--themeRGB), .3); backdrop-filter: blur(8px); border-radius: 50%; transition: .2s`,
+    ".eAnnotation[embed] div[content] div[activate] button:hover": `transform: scale(1.1)`,
+    ".eAnnotation[embed] div[content] div[activate] button:active": `transform: scale(1.05)`,
+    ".eAnnotation[embed] div[content] div[activate] button svg": `--theme: #fff; width: 100%; height: 100%; margin-left: 4px`,
     ".eAnnotation[embed] div[details]": `margin-top: 8px`,
     ".eAnnotation[embed] div[details] div[input]": `display: none; align-items: center; pointer-events: all`,
     ".eAnnotation[embed] div[details] div[input][visible]": `display: flex !important`,
@@ -38,7 +47,7 @@ export class Annotation extends BaseAnnotation {
       this.element.innerHTML = `<div holder>
         <div content>
           <img thumbnail>
-          <div activate><button><img></button></div>
+          <div activate><button>${playIcon}</button></div>
         </div>
         <div details>
           <div input>
@@ -78,7 +87,6 @@ export class Annotation extends BaseAnnotation {
       if (this.exporting != true) {
         if (this.properties.embed.url != null) {
           if (embedFrame == null) {
-            embedActivate.querySelector("img").src = "../images/editor/actions/play.svg";
             embedActivate.style.display = "flex";
           }
         } else {

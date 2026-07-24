@@ -106,7 +106,7 @@ export class Annotation extends BaseAnnotation {
     ".eAnnotation[comment] > div[commentholder] > div[comment]:after": `content: ""; position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; border-radius: inherit; box-shadow: 0px 0px 6px var(--themeColor); opacity: .6; transition: .2s`,
     ".eAnnotation[comment]:not([selected]):hover > div[commentholder] > div[comment]": `width: var(--animateWidth); height: var(--animateHeight); padding: 4px`,
     ".eAnnotation[comment]:not([selected]):hover > div[commentholder] > div[comment]:after": `box-shadow: 0px 0px 10px var(--themeColor)`,
-    ".eAnnotation[comment] > div[commentholder] > div[comment] div[container]": `display: flex; box-sizing: border-box; width: 100%; height: 100%; padding: 4px; border-radius: inherit; overflow: hidden`,
+    ".eAnnotation[comment] > div[commentholder] > div[comment] div[container]": `box-sizing: border-box; display: flex; width: 100%; height: 100%; padding: 4px; border-radius: inherit; overflow: hidden`,
     ".eAnnotation[comment] > div[commentholder] > div[comment] div[profileholder]": `flex-shrink: 0; width: 24px; height: 24px; background: var(--themeColor); border-radius: 12px; overflow: hidden`,
     ".eAnnotation[comment] > div[commentholder] > div[comment] div[profileholder] > div[dots]": `display: flex; gap: 2px; width: 100%; height: 100%; justify-content: center; align-items: center`,
     ".eAnnotation[comment] > div[commentholder] > div[comment] div[profileholder] > div[dots] > div": `width: 4px; height: 4px; background: var(--pageColor); border-radius: 2px`,

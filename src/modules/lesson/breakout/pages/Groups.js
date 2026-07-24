@@ -69,7 +69,7 @@ export class Page {
     ".brgsGroupHolder": `--interfacePadding: 58px; --tilePadding: 16px; --totalWidth: calc((var(--columnWidth) * var(--columnCount)) + (var(--tilePadding) * (var(--columnCount) - 1))); position: relative; box-sizing: border-box; display: flex; flex-direction: column; width: 100%; height: 100%; padding-top: calc(var(--interfacePadding) + 8px); background: var(--pageColor); contain: strict; overflow-x: hidden; overflow-y: scroll; overflow-anchor: none; z-index: 1; align-items: center; transition: .5s`,
     
     ".brgsTopHolder": `position: relative; width: 100%; height: 50px; margin-bottom: 8px; visibility: visible`,
-    ".brgsTop": `position: absolute; display: flex; box-sizing: border-box; width: 100%; gap: 8px; padding-bottom: 8px; left: 0px; top: 0px; justify-content: space-between; overflow-x: auto; overflow-y: hidden; scrollbar-width: none`,
+    ".brgsTop": `position: absolute; box-sizing: border-box; display: flex; width: 100%; gap: 8px; padding-bottom: 8px; left: 0px; top: 0px; justify-content: space-between; overflow-x: auto; overflow-y: hidden; scrollbar-width: none`,
     ".brgsTopHolder[scroll] .brgsTop": `gap: 0px !important; padding: 0 6px !important; padding-bottom: 0px !important; background: var(--pageColor); box-shadow: var(--lightShadow); pointer-events: all`,
     ".brgsTop::-webkit-scrollbar": `display: none`,
     ".brgsTopSection[scroll]": `display: none`,
@@ -77,7 +77,7 @@ export class Page {
     ".brgsTopScroll": `position: absolute; display: flex; width: 36px; height: 36px; top: 50%; transform: translateY(-50%); background: rgba(var(--hoverRGB), .75); opacity: 0; backdrop-filter: blur(2px); border-radius: 18px; justify-content: center; align-items: center; z-index: 200`,
     ".brgsTopScroll svg": `width: 22px`,
     ".brgsTopScroll:active": `transform: translateY(-50%) scale(.85) !important`,
-    ".brgsTopSection": `display: flex; box-sizing: border-box; height: 50px; padding: 6px; flex-shrink: 0; align-items: center; background: var(--pageColor); box-shadow: var(--lightShadow); pointer-events: all`,
+    ".brgsTopSection": `box-sizing: border-box; display: flex; height: 50px; padding: 6px; flex-shrink: 0; align-items: center; background: var(--pageColor); box-shadow: var(--lightShadow); pointer-events: all`,
     ".brgsTopHolder[scroll] .brgsTopSection": `padding: 6px 0px !important; box-shadow: unset !important`,
     ".brgsTopSection[left]": `border-bottom-right-radius: 12px`,
     ".brgsTopSection[right]": `border-bottom-left-radius: 12px`,
@@ -103,7 +103,7 @@ export class Page {
     ".brgsBottomHolder": `position: relative; flex: 1; width: 100%; margin: auto 0 8px 0; visibility: visible`,
     ".brgsBottom": `position: absolute; display: flex; width: 100%; height: 100%; padding-top: 8px; left: 0px; top: 0px; overflow-x: auto; overflow-y: hidden; justify-content: space-between; align-items: flex-end; scrollbar-width: none`,
     ".brgsBottom::-webkit-scrollbar": `display: none`,
-    ".brgsBottomSection": `display: flex; box-sizing: border-box; height: 50px; padding: 6px; flex-shrink: 0; align-items: center; background: var(--pageColor); box-shadow: var(--lightShadow); border-radius: 12px 12px 0 0; pointer-events: all`,
+    ".brgsBottomSection": `box-sizing: border-box; display: flex; height: 50px; padding: 6px; flex-shrink: 0; align-items: center; background: var(--pageColor); box-shadow: var(--lightShadow); border-radius: 12px 12px 0 0; pointer-events: all`,
     ".brgsBottomSection[hidden]": `display: none`,
     
     ".brgsOpenBoard": `display: none; box-shadow: var(--boardLightShadow); border-top-left-radius: 0`,
@@ -142,7 +142,7 @@ export class Page {
     ".brgsTileMembers": `position: relative; width: 100%`,
     ".brgsTileMember": `--shadow: var(--lightShadow); position: relative; width: calc(100% - 8px); padding: 0; margin: 4px 4px 0; background: var(--pageColor); border-radius: 6px`,
     ".brgsTileMember:before": `content: ""; position: absolute; box-sizing: border-box; width: 100%; height: 100%; left: 0px; top: 0px; border-radius: inherit; contain: strict; pointer-events: none; border: solid 2px var(--hover)`, //box-shadow: var(--shadow)
-    ".brgsTileMemberContent": `display: flex; box-sizing: border-box; width: 100%; gap: 6px; padding: 6px; overflow: hidden; justify-content: space-between`,
+    ".brgsTileMemberContent": `box-sizing: border-box; display: flex; width: 100%; gap: 6px; padding: 6px; overflow: hidden; justify-content: space-between`,
     ".brgsTileMemberNameHolder": `display: flex; min-width: 0; align-items: center`,
     ".brgsTileMember:not([active]) .brgsTileMemberNameHolder > div": `opacity: .5 !important`,
     ".brgsTileMemberNameCursor": `flex-shrink: 0; position: relative; box-sizing: border-box; width: 28px; height: 28px; margin-right: 6px; background: var(--pageColor); border: solid 4px var(--themeColor); border-radius: 8px 14px 14px; transition: .2s`,

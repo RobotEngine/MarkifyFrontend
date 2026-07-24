@@ -7,7 +7,7 @@ export class Widget {
   HEIGHT = 300;
 
   OPTIONS = {
-    RESIZE_PRESERVE_ASPECT: true,
+    RESIZE_PRESERVE_ASPECT: true
   };
 
   html = `<div class="eWidgetSpinner">
@@ -73,21 +73,21 @@ export class Widget {
       names = [...names, ...names];
     }
 
-    names.sort((a, b) => {
+    this.currentMembers = names.filter((value) => {
+      return (value ?? {}).name != null;
+    }).sort((a, b) => {
       return (a.name + (a.color ?? "")).localeCompare(b.name + (b.color ?? ""));
     });
-
-    this.currentMembers = names;
     
     this.wheelGroup.innerHTML = "";
 
-    let slicePercent = 1 / names.length;
+    let slicePercent = 1 / this.currentMembers.length;
     let accumulatedPercent = 0;
 
     // --- DYNAMIC SCALING MATH ---
-    let sliceAngleRad = (2 * Math.PI) / names.length;
+    let sliceAngleRad = (2 * Math.PI) / this.currentMembers.length;
     let textRadius = this.r * 0.5; 
-    let availableWidth = names.length == 1 ? 60 : 2 * textRadius * Math.sin(sliceAngleRad / 2);    
+    let availableWidth = this.currentMembers.length == 1 ? 60 : 2 * textRadius * Math.sin(sliceAngleRad / 2);    
     let dynamicFontSize = Math.max(12, Math.min(24, availableWidth * 0.4));
 
     // Available radial length for text before hitting the center hole (~160 SVG pixels):
@@ -99,12 +99,8 @@ export class Widget {
     // ---------------------------
 
     let buffer = [];
-    for (let i = 0; i < names.length; i++) {
-      let { name, color } = names[i] ?? {};
-
-      if (name == null) {
-        continue;
-      }
+    for (let i = 0; i < this.currentMembers.length; i++) {
+      let { name, color } = this.currentMembers[i] ?? {};
 
       // If the name is too long for the slice depth, slice it and add an ellipsis:
       if (name.length > maxCharsAllowed && maxCharsAllowed > 3) {
@@ -115,9 +111,8 @@ export class Widget {
       accumulatedPercent += slicePercent;
       let [endX, endY] = this.getCoordinatesForPercent(accumulatedPercent);
 
-      let pathData
-      ;
-      if (names.length > 1) { // If there's more than 1 item, draw a standard wedge slice:
+      let pathData;
+      if (this.currentMembers.length > 1) { // If there's more than 1 item, draw a standard wedge slice:
         let largeArcFlag = slicePercent > 0.5 ? 1 : 0;
         pathData = `
           M ${this.cx} ${this.cy}
@@ -134,7 +129,7 @@ export class Widget {
         `;
       }
 
-      let angleInDegrees = names.length == 1 ? 0 : (accumulatedPercent - (slicePercent / 2)) * 360;
+      let angleInDegrees = this.currentMembers.length == 1 ? 0 : (accumulatedPercent - (slicePercent / 2)) * 360;
 
       buffer.push(`
         <path d="${pathData}" fill="${color ?? "var(--theme)"}" opacity=".5" stroke="var(--pageColor)" stroke-width="4"></path>
@@ -280,7 +275,7 @@ export class Widget {
       return;
     }
     let winnerText = this.winnerContent.querySelector(".eWidgetSpinnerWheelWinnerText");
-    winnerText.innerHTML = "<b></b> Won!";
+    winnerText.innerHTML = "<b></b>";
     let nameText = winnerText.querySelector("b");
     nameText.textContent = winner[1];
     let color = winner[2];

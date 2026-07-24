@@ -2,8 +2,12 @@ import { BaseAnnotation } from "../BaseAnnotation";
 
 import { assetURL } from "@/crucial";
 
+import { Tool as BorderTool } from "../../toolbar/actions/media/Border";
+import { Tool as UnlockTool } from "../../toolbar/actions/Unlock";
+import { Tool as DeleteTool } from "../../toolbar/actions/Delete";
+
 export class Annotation extends BaseAnnotation {
-  ACTION_BAR_TOOLS = ["media/border", "unlock", "delete"];
+  ACTION_BAR_TOOLS = [BorderTool, UnlockTool, DeleteTool];
 
   SELECTION_FUNCTION(selection) {
     if (["bottomright", "topleft", "topright", "bottomleft"].includes(selection.handle) == true) {

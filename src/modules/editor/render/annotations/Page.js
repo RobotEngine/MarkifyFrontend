@@ -7,6 +7,16 @@ import { contrastCheck } from "../../utils/contrast-check";
 import { darkenHex } from "../../utils/darken-hex";
 import { lightenHex } from "../../utils/lighten-hex";
 
+import { Tool as UploadTool } from "../../toolbar/actions/page/Upload";
+import { Tool as ResizeTool } from "../../toolbar/actions/page/Resize";
+import { Tool as TypeTool } from "../../toolbar/actions/page/Type";
+import { Tool as RotateTool } from "../../toolbar/actions/page/Rotate";
+import { Tool as SetTitleTool } from "../../toolbar/actions/page/SetTitle";
+import { Tool as HideTool } from "../../toolbar/actions/page/Hide";
+import { Tool as ColorTool } from "../../toolbar/actions/Color";
+import { Tool as UnlockTool } from "../../toolbar/actions/Unlock";
+import { Tool as DeleteTool } from "../../toolbar/actions/Delete";
+
 export class Annotation extends BaseAnnotation {
   CAN_PARENT_CHILDREN = true;
   HOLD_FOR_SELECT = true;
@@ -17,7 +27,7 @@ export class Annotation extends BaseAnnotation {
   CAN_FLIP = false;
   SELECT_BOX_COVER = true;
 
-  ACTION_BAR_TOOLS = ["page/upload", "page/resize", "page/type", "page/rotate", "page/settitle", "page/hide", "color", "unlock", "delete"];
+  ACTION_BAR_TOOLS = [UploadTool, ResizeTool, TypeTool, RotateTool, SetTitleTool, HideTool, ColorTool, UnlockTool, DeleteTool];
 
   SELECTION_FUNCTION(selection, render) {
     if (render.source != null && ["bottomright", "topleft", "topright", "bottomleft"].includes(selection.handle) == true) {

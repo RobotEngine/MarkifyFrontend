@@ -339,7 +339,7 @@ export class Widget {
             _id: this.parent.properties._id,
             started: null,
             duration: remaining
-          });
+          }, { saveImmediately: true });
         }
       } else {
         let original = this.parent.properties.originalDuration ?? this.parent.properties.duration ?? this.DEFAULT_DURATION;
@@ -349,7 +349,7 @@ export class Widget {
           _id: this.parent.properties._id,
           started: getEpoch(),
           originalDuration: original
-        });
+        }, { saveImmediately: true });
       }
     });
 
@@ -360,7 +360,7 @@ export class Widget {
         started: null,
         duration: this.DEFAULT_DURATION,
         originalDuration: this.DEFAULT_DURATION
-      });
+      }, { saveImmediately: true });
     });
 
     this.parent.subscribe("update", (data) => {

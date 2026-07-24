@@ -22,9 +22,11 @@ import openSidebarIcon from "@assets/dashboard/opensidebar.svg?raw";
 import folderIcon from "@assets/dashboard/folder.svg?raw";
 import folderArrowIcon from "@assets/dashboard/folderarrow.svg?raw";
 
-const CURRENT_BANNER = null; // "breakout-alpha-release" "1.0-release"
-const BANNER_TITLE = "Introducing Markify Breakout (BETA)";
-const BANNER_DESCRIPTION = "Markify Breakout allows for lessons to be “broken out” into individual or team work.";
+const CURRENT_BANNER = "summer-series-webinars"; // "breakout-alpha-release" "1.0-release"
+import BANNER_IMAGE from "@assets/webinars/summerseries/logo.png?no-inline";
+const BANNER_TITLE = "Live Webinars: <i><b>The Markify Summer Series</b></i>";
+const BANNER_DESCRIPTION = "For the first time ever, we're hosting FREE webinars on how to best use Markify! Learn how to connect whole-class instruction and small-group breakouts in 30 minute sessions.";
+const BANNER_ACTION_BUTTON = "Reserve Your Spot";
 
 export class Page extends PageFrame {
   title = "Dashboard";
@@ -97,14 +99,14 @@ export class Page extends PageFrame {
       </div>
       <div class="dLessonsHolder customScroll" tabindex="-1">
         <div class="dBannerHolder">
-          <div class="dBanner" style="--theme: var(--breakoutTheme); --secondary: var(--breakoutSecondary); --hover: var(--breakoutHover); --darkShadow: var(--breakoutDarkShadow)">
-            <img class="dBannerIcon" src="../images/breakoutbluricon.png" />
+          <div class="dBanner">
+            <img class="dBannerIcon" src="${BANNER_IMAGE}" />
             <div class="dBannerContent">
               <div class="dBannerTitle">${BANNER_TITLE}</div>
               <div class="dBannerText">${BANNER_DESCRIPTION}</div>
             </div>
             <div class="dBannerButtons">
-              <button class="dBannerAction buttonAnim border"></button>
+              <button class="dBannerAction buttonAnim border">${BANNER_ACTION_BUTTON}</button>
               <button class="dBannerClose buttonAnim border">${closeIcon}</button>
             </div>
           </div>
@@ -115,7 +117,7 @@ export class Page extends PageFrame {
     </div>
   </div>`;
   css = {
-    ".dPageHolder": `position: fixed; display: flex; box-sizing: border-box; width: 100vw; width: 100dvw; height: 100vh; height: 100dvh; padding: 8px; left: 0px; top: 0px; justify-content: center`, //transition: .2s
+    ".dPageHolder": `position: fixed; box-sizing: border-box; display: flex; width: 100vw; width: 100dvw; height: 100vh; height: 100dvh; padding: 8px; left: 0px; top: 0px; justify-content: center`, //transition: .2s
     ".dPage": `position: relative; display: flex; width: 100%; height: 100%; max-width: 1585px; box-shadow: var(--darkShadow); border-radius: 12px; overflow: hidden`, //transition: .2s
     
     ".dSidebarHolder": `position: relative; max-width: min(270px, 100%); height: 100%; flex-shrink: 0; background: var(--pageColor); z-index: 2; transition: .4s`,
@@ -150,7 +152,7 @@ export class Page extends PageFrame {
     ".dCreateBreakoutLessonButton": `--themeColor: var(--breakoutTheme); --hover: var(--breakoutHover); --borderRadius: 14px`,
 
     ".dSidebarSorts": `display: flex; flex-direction: column; gap: 8px; padding: 8px`,
-    ".dSidebarSearch": `display: flex; box-sizing: border-box; width: calc(100% - 8px); margin: 4px; align-items: center; background: rgba(var(--background), .5); --borderColor: var(--hover); --borderWidth: 4px; --borderRadius: 12px`,
+    ".dSidebarSearch": `box-sizing: border-box; display: flex; width: calc(100% - 8px); margin: 4px; align-items: center; background: rgba(var(--background), .5); --borderColor: var(--hover); --borderWidth: 4px; --borderRadius: 12px`,
     ".dSidebarSearch svg": `--theme: var(--secondary); width: 26px; height: 26px; margin-left: 6px`,
     ".dSidebarSearch input": `width: 100%; padding: 6px 6px 6px 2px; background: unset; outline: unset; border: unset; color: var(--textColor); font-family: var(--font); font-weight: 600; font-size: 18px`,
     ".dSidebarSearch input::placeholder": `color: var(--hover)`,
@@ -215,19 +217,19 @@ export class Page extends PageFrame {
     ".dSidebarActionContentFrame": `position: absolute; width: 100%; height: fit-content; left: 0px; top: 0px; opacity: 0; z-index: 2; transition: .3s`,
 
     ".dLessonsHolder": `position: relative; display: flex; flex-direction: column; width: 100%; min-height: 100%; background: var(--pageColor); overflow-x: hidden; overflow-y: auto; z-index: 1; transition: .3s; outline: none !important`,
-    ".dSelectedTitleHolder": `--percent: 0; position: sticky; display: flex; box-sizing: border-box; width: 100%; padding: 20px; top: 0px; background: rgba(var(--background), calc(.7 * var(--percent))); backdrop-filter: blur(calc(4px * var(--percent))); z-index: 2; transition: background .2s, backdrop-filter .2s, box-shadow .2s`,
+    ".dSelectedTitleHolder": `--percent: 0; position: sticky; box-sizing: border-box; display: flex; width: 100%; padding: 20px; top: 0px; background: rgba(var(--background), calc(.7 * var(--percent))); backdrop-filter: blur(calc(4px * var(--percent))); z-index: 2; transition: background .2s, backdrop-filter .2s, box-shadow .2s`,
     ".dSelectedTitle": `font-size: 28px; font-weight: 600; text-align: left`,
     ".dBannerHolder": `display: none; box-sizing: border-box; width: 100%; height: fit-content; transition: .4s`,
-    ".dBanner": `display: flex; gap: 8px; width: 100%; height: fit-content; padding: 6px; margin: 8px; box-shadow: var(--darkShadow); border-radius: 4px 4px 12px 12px; transition: .4s`,
-    ".dBannerIcon": `width: 50px; height: 50px`,
-    ".dBannerContent": `display: flex; flex-direction: column; flex: 1; text-align: left`,
+    ".dBanner": `display: flex; flex-wrap: wrap; gap: 8px; width: 100%; height: fit-content; padding: 6px; margin: 8px; box-shadow: var(--darkShadow); border-radius: 4px 4px 12px 12px; justify-content: center; transition: .4s`,
+    ".dBannerIcon": `height: 50px; object-fit: contain`, // width: 50px;
+    ".dBannerContent": `display: flex; flex-direction: column; flex: 1 1 300px; text-align: left`,
     ".dBannerTitle": `margin-top: 4px; font-size: 18px; font-weight: 700; color: var(--theme)`,
     ".dBannerText": `margin-top: 4px; font-size: 14px`,
     ".dBannerButtons": `display: flex; gap: 8px; height: fit-content; min-height: 50px; padding: 0 8px 0 0; align-items: center`,
     ".dBannerButtons button": `position: relative; --borderWidth: 3px; --borderRadius: 14px`,
     ".dBannerButtons button svg, .dBannerButtons button img": `position: absolute; width: calc(100% - 10px); height: calc(100% - 10px); left: 5px; top: 5px`,
     ".dBannerClose": `width: 22px; height: 22px; margin: 3px`,
-    ".dBannerAction": `--themeColor: var(--theme); padding: 0 10px; font-size: 16px; font-weight: 600; color: var(--theme); height: 28px; margin: 3px`,
+    ".dBannerAction": `--themeColor: var(--theme); padding: 0 10px; font-size: 16px; font-weight: 600; color: var(--theme); min-height: 28px; margin: 3px`,
 
     ".dFolderInfo": `--folderFill: var(--themeColor); display: flex; width: 100%; justify-content: center; align-items: center`,
     ".dFolderColorButton": `position: relative; width: 40px; height: 40px; flex-shrink: 0`,
@@ -1264,16 +1266,14 @@ export class Page extends PageFrame {
         banner.style.transform = "translateY(calc(-100% - 16px)";
         bannerHolder.style.height = "0px";
       });
-      //setSVG(bannerCloseButton, "../images/tooltips/close.svg");
       let bannerActionButton = banner.querySelector(".dBannerAction");
       bannerActionButton.addEventListener("click", async () => {
         bannerActionButton.setAttribute("disabled", "");
         //await loadScript("./modules/dropdowns/account.js");
         //await dropdown.open(bannerFeedbackButton, "dropdowns/account/report");
-        setPage("pages/app/lesson", { params: { type: "breakout" } });
+        setPage("pages/webinars");
         bannerActionButton.removeAttribute("disabled");
       });
-      bannerActionButton.textContent = "Try It!";
     }
 
     // Sidebar action buttons:

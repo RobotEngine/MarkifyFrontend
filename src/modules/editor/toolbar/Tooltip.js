@@ -172,7 +172,7 @@ export class Tooltip {
       return;
     }
     let removeTooltip = this.tooltipText;
-    this.tooltipElement = null;
+    //this.tooltipElement = null;
     this.tooltipText = null;
     (async () => {
       removeTooltip.style.transform = "scale(0)";

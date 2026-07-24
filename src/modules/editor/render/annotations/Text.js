@@ -2,13 +2,26 @@ import { BaseAnnotation } from "../BaseAnnotation";
 
 import { objectEqual } from "@/crucial";
 
+import { Tool as EditTool } from "../../toolbar/actions/text/Edit";
+import { Tool as ColorTool } from "../../toolbar/actions/Color";
+import { Tool as OpacityTool } from "../../toolbar/actions/Opacity";
+import { Tool as FontTool } from "../../toolbar/actions/text/Font";
+import { Tool as FontSizeTool } from "../../toolbar/actions/text/FontSize";
+import { Tool as FormatTool } from "../../toolbar/actions/text/Format";
+import { Tool as ListTool } from "../../toolbar/actions/text/List";
+import { Tool as LinkTool } from "../../toolbar/actions/text/Link";
+import { Tool as AlignTool } from "../../toolbar/actions/text/Align";
+import { Tool as FormulaTool } from "../../toolbar/actions/text/Formula";
+import { Tool as UnlockTool } from "../../toolbar/actions/Unlock";
+import { Tool as DeleteTool } from "../../toolbar/actions/Delete";
+
 export class Annotation extends BaseAnnotation {
   SHOW_ONLY_WIDTH_HANDLES = true;
   AUTO_TEXT_FIT = true;
   AUTO_SET_HEIGHT = true;
   REMOVE_IF_NO_TEXT = true;
 
-  ACTION_BAR_TOOLS = ["text/edit", "color", "opacity", "text/font", "text/fontsize", "text/format", "text/list", "text/link", "text/align", "text/formula", "unlock", "delete"];
+  ACTION_BAR_TOOLS = [EditTool, ColorTool, OpacityTool, FontTool, FontSizeTool, FormatTool, ListTool, LinkTool, AlignTool, FormulaTool, UnlockTool, DeleteTool];
 
   DEFAULT_FONT_SIZE = 18;
 

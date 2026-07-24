@@ -249,7 +249,7 @@ export class Save {
       annoID = existingAnnotation.pointer;
       existingAnnotation = this.editor.annotations[annoID];
     }*/
-    let annotation = existingAnnotation ?? { render: {} };
+    let annotation = existingAnnotation ?? { render: save };
 
     if (existingAnnotation == null) {
       annotation = this.editor.addAnnotation(annotation.render, annoID);
@@ -275,6 +275,11 @@ export class Save {
     } else {
       annotation.render = save;
     }
+
+    if (annotation.workers != null) {
+      this.editor.pushWorkerEvent(annotation, "onAnnotationUpdate", { annotation, save });
+    }
+    
     if (options.timeout != false) {
       this.enableTimeout(annotation); // Start timer to revert if update isn't server-confirmed
     }

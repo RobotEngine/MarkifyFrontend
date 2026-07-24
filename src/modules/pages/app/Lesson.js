@@ -24,7 +24,7 @@ export class Page extends PageFrame {
   
   html = `<div class="lPageHolder"></div>`;
   css = {
-    ".lPageHolder": `position: fixed; display: flex; box-sizing: border-box; width: 100vw; width: 100dvw; height: 100vh; height: 100dvh; padding: 8px; left: 0px; top: 0px; contain: strict; justify-content: center; touch-action: none`,
+    ".lPageHolder": `position: fixed; box-sizing: border-box; display: flex; width: 100vw; width: 100dvw; height: 100vh; height: 100dvh; padding: 8px; left: 0px; top: 0px; contain: strict; justify-content: center; touch-action: none`,
     ".lPageHolder[resize]": `user-select: none`,
     ".lPageHolder[resize]:after": `content: ""; position: absolute; top: 0px; left: 0px; right: 0px; bottom: 0px; z-index: 998; background: transparent; cursor: col-resize; pointer-events: auto !important`,
     ".lPageHolder[maximize]": `padding: 0px !important`,

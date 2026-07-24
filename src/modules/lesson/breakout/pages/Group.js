@@ -88,7 +88,7 @@ export class Page {
     ".brgContentHolder": `position: relative; width: 100%; height: 100%; background: var(--pageColor); contain: strict; overflow: scroll; z-index: 1; transition: .5s`,
     
     ".brgTopHolder": `position: relative; width: 100%; height: 50px; margin-bottom: 8px; visibility: visible`,
-    ".brgTop": `position: absolute; display: flex; box-sizing: border-box; width: 100%; gap: 8px; padding-bottom: 8px; left: 0px; top: 0px; justify-content: space-between; overflow-x: auto; overflow-y: hidden; scrollbar-width: none`,
+    ".brgTop": `position: absolute; box-sizing: border-box; display: flex; width: 100%; gap: 8px; padding-bottom: 8px; left: 0px; top: 0px; justify-content: space-between; overflow-x: auto; overflow-y: hidden; scrollbar-width: none`,
     ".brgTopHolder[scroll] .brgTop": `gap: 0px !important; padding: 0 6px !important; padding-bottom: 0px !important; background: var(--pageColor); box-shadow: var(--lightShadow); pointer-events: all`,
     ".brgTop::-webkit-scrollbar": `display: none`,
     ".brgTopSection[scroll]": `display: none`,
@@ -96,7 +96,7 @@ export class Page {
     ".brgTopScroll": `position: absolute; display: flex; width: 36px; height: 36px; top: 50%; transform: translateY(-50%); background: rgba(var(--hoverRGB), .75); opacity: 0; backdrop-filter: blur(2px); border-radius: 18px; justify-content: center; align-items: center; z-index: 200`,
     ".brgTopScroll svg": `width: 22px`,
     ".brgTopScroll:active": `transform: translateY(-50%) scale(.85) !important`,
-    ".brgTopSection": `display: flex; box-sizing: border-box; height: 50px; padding: 6px; flex-shrink: 0; align-items: center; background: var(--pageColor); box-shadow: var(--lightShadow); pointer-events: all`,
+    ".brgTopSection": `box-sizing: border-box; display: flex; height: 50px; padding: 6px; flex-shrink: 0; align-items: center; background: var(--pageColor); box-shadow: var(--lightShadow); pointer-events: all`,
     ".brgTopHolder[scroll] .brgTopSection": `padding: 6px 0px !important; box-shadow: unset !important`,
     ".brgTopSection[left]": `border-bottom-right-radius: 12px`,
     ".brgTopSection[right]": `border-bottom-left-radius: 12px`,

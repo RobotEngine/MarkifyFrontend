@@ -308,15 +308,22 @@ export class Render {
     if (typeof moduleLoad == "function") {
       moduleLoad = await moduleLoad();
     }
+    if (moduleLoad == null) {
+      return;
+    }
+    return moduleLoad.Annotation;
+  }
+  async createModule(type) {
+    let moduleLoad = await this.loadModule(type);
     if (moduleLoad != null) {
-      return await this.editor.newModule(moduleLoad.Annotation);
+      return await this.editor.newModule(moduleLoad);
     }
   }
   async getModule(annotation, type) {
     if ((annotation ?? {}).component != null) {
       return annotation.component;
     }
-    return await this.loadModule(type);
+    return await this.createModule(type);
   }
 
   async create(annotation, long) {
@@ -400,7 +407,7 @@ export class Render {
     if (annotation.component == null) {
       if (annotation.loadComponent == null) {
         annotation.loadComponent = new Promise(async (resolve) => {
-          annotation.component = await this.loadModule(render.f);
+          annotation.component = await this.createModule(render.f);
           resolve(annotation.component);
           delete annotation.loadComponent;
         });

@@ -145,13 +145,17 @@ export const tools = {
   "pan": { id: "pan", type: "tool", module: "selection/pan" }
 };
 
-export const mappedToolTypes = {
-  draw: ["pen"],
-  markup: ["markup"],
+export const mappedToolTypes = { //["highlighter", "understrike"]
+  markup: ["draw", "markup", "understrike"],
   shape: ["shape"],
   text: ["text"],
   sticky: ["sticky"],
   page: ["page"],
   media: ["media", "embed"],
   widget: ["widget"]
+};
+
+export const mappedToolPreferences = {
+  draw: "pen",
+  markup: "highlighter"
 };

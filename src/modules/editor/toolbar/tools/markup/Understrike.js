@@ -5,6 +5,7 @@ import { round } from "../../../math";
 import highlighterCursor from "../../../icons/cursors/highlighter.svg?raw";
 
 export class Tool extends Draw {
+  FUNCTION = "understrike";
   FORCE_LINE = true;
   HORIZONTAL_CHECK = true;
   REALTIME_TOOL = 1;

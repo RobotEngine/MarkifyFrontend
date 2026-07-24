@@ -2,11 +2,17 @@ import { BaseAnnotation } from "../BaseAnnotation";
 
 import { cleanString } from "@/crucial";
 
+import { Tool as ColorTool } from "../../toolbar/actions/Color";
+import { Tool as ThicknessTool } from "../../toolbar/actions/Thickness";
+import { Tool as OpacityTool } from "../../toolbar/actions/Opacity";
+import { Tool as UnlockTool } from "../../toolbar/actions/Unlock";
+import { Tool as DeleteTool } from "../../toolbar/actions/Delete";
+
 export class Annotation extends BaseAnnotation {
   CAN_ERASE = true;
   CAN_BE_SNAPPED_TO = false;
 
-  ACTION_BAR_TOOLS = ["color", "thickness", "opacity", "unlock", "delete"];
+  ACTION_BAR_TOOLS = [ColorTool, ThicknessTool, OpacityTool, UnlockTool, DeleteTool];
 
   SELECTION_FUNCTION(selection) {
     if (["bottomright", "topleft", "topright", "bottomleft"].includes(selection.handle) == true) {

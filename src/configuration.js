@@ -20,5 +20,5 @@
 */ /* */ /* */ /* */ /* */ /* */ /* */ /* */ /* */ /* */ /* */ /* */ /* */ /* */ /* */ /* */ /* */ /* */ /* */ /* */ /* */ /* */ /* */ /* */ /* */ /* */
 
 export const configuration = "public"; // "public" ; "testing" ; "prodTesting"
-export const version = "1.7.22"; // Big Update . Small Feature Release . Bug Fix
+export const version = "1.7.23"; // Big Update . Small Feature Release . Bug Fix
 export const domain = "markifyapp.com";

@@ -1,6 +1,6 @@
 import { changeGlobalImports, sleep, copyObject, isValidURL } from "@/crucial";
 
-import { toolbars, mappedToolTypes } from "./toolbar/tools";
+import { toolbars, mappedToolTypes, mappedToolPreferences } from "./toolbar/tools";
 
 import { hexToRGBString } from "./utils/hex-to-rgb-string";
 
@@ -285,11 +285,11 @@ export class Module {
     let moduleLoad;
     if (typeof path == "string") {
       moduleLoad = toolModules[toolModulePath + path + ".js"];
+      if (typeof moduleLoad == "function") {
+        moduleLoad = await moduleLoad();
+      }
     } else {
       moduleLoad = await path;
-    }
-    if (typeof moduleLoad == "function") {
-      moduleLoad = await moduleLoad();
     }
     if (moduleLoad == null) {
       return;
@@ -421,7 +421,7 @@ export class Module {
     let tool = this.getPreferenceTool().f;
     let result;
     if (tool != null) {
-      let mappedTool = (mappedToolTypes[tool] ?? [tool])[0];
+      let mappedTool = mappedToolPreferences[tool] ?? (mappedToolTypes[tool] ?? [])[0] ?? tool;
       result = this.editor.preferences.state.tools[mappedTool];
     }
     if (returnMissing == true) {
@@ -752,6 +752,8 @@ export class Module {
     if (handle != null) {
       offsetX = 0;
       offsetY = 0;
+      maxZIndex = this.editor.maxLayer;
+      minZIndex = this.editor.minLayer;
       if (this.selection.rotation == 0) {
         switch (handle) {
           case "duplicateleft":
@@ -819,8 +821,8 @@ export class Module {
       if (bottomRightY > maxTop || maxTop == null) {
         maxTop = bottomRightY;
       }
-      maxZIndex = Math.max(maxZIndex ?? render.l ?? this.editor.utils.maxLayer, render.l ?? maxZIndex ?? this.editor.utils.maxLayer);
-      minZIndex = Math.min(minZIndex ?? render.l ?? this.editor.utils.minLayer, render.l ?? minZIndex ?? this.editor.utils.minLayer);
+      maxZIndex = Math.max(maxZIndex ?? render.l ?? this.editor.maxLayer, render.l ?? maxZIndex ?? this.editor.maxLayer);
+      minZIndex = Math.min(minZIndex ?? render.l ?? this.editor.minLayer, render.l ?? minZIndex ?? this.editor.minLayer);
       let newID = this.editor.render.generateID();
       parentIDs[annoID] = newID;
       saveAnnoData.push({ ...copyObject(render), _id: newID, pending: true });
@@ -844,8 +846,8 @@ export class Module {
       if (selectingParent == false) {
         continue;
       }
-      maxZIndex = Math.max(maxZIndex ?? render.l ?? this.editor.utils.maxLayer, render.l ?? maxZIndex ?? this.editor.utils.maxLayer);
-      minZIndex = Math.min(minZIndex ?? render.l ?? this.editor.utils.minLayer, render.l ?? minZIndex ?? this.editor.utils.minLayer);
+      maxZIndex = Math.max(maxZIndex ?? render.l ?? this.editor.maxLayer, render.l ?? maxZIndex ?? this.editor.maxLayer);
+      minZIndex = Math.min(minZIndex ?? render.l ?? this.editor.minLayer, render.l ?? minZIndex ?? this.editor.minLayer);
       let newID = this.editor.render.generateID();
       parentIDs[render._id] = newID;
       saveAnnoData.push({ ...copyObject(render), _id: newID, pending: true });
@@ -875,7 +877,7 @@ export class Module {
         }
       }
       if (newAnno.l != null) {
-        newAnno.l = maxZIndex + ((newAnno.l ?? this.editor.utils.maxLayer) - minZIndex);
+        newAnno.l = maxZIndex + ((newAnno.l ?? this.editor.maxLayer) - minZIndex);
       }
       delete newAnno.m;
       let setLock = [];

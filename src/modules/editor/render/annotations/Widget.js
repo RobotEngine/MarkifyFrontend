@@ -2,18 +2,21 @@ import { changeGlobalImports, setFrame, sleep } from "@/crucial";
 
 import { BaseAnnotation } from "../BaseAnnotation";
 
-const widgets = changeGlobalImports(import.meta.glob("../widgets/*/Widget.js"));
+import { Tool as UnlockTool } from "../../toolbar/actions/Unlock";
+import { Tool as DeleteTool } from "../../toolbar/actions/Delete";
+
+const widgets = changeGlobalImports(import.meta.glob("../widgets/*/index.js"));
 const widgetsPath = "../widgets/";
 
 export const loadWidgetModule = async (type) => {
-  let moduleLoad = widgets[widgetsPath + type + "/widget.js"];
+  let moduleLoad = widgets[widgetsPath + type + "/index.js"];
   if (moduleLoad == null) {
     return;
   }
   if (typeof moduleLoad == "function") {
     moduleLoad = await moduleLoad();
   }
-  return moduleLoad.Widget;
+  return moduleLoad;
 }
 
 export class Annotation extends BaseAnnotation {
@@ -21,7 +24,7 @@ export class Annotation extends BaseAnnotation {
   MIN_WIDTH = 200;
   MIN_HEIGHT = 200;
 
-  ACTION_BAR_TOOLS = ["unlock", "delete"];
+  ACTION_BAR_TOOLS = [UnlockTool, DeleteTool];
 
   CAN_SELECT = false; // Prevent selection while widget loading
 
@@ -61,7 +64,7 @@ export class Annotation extends BaseAnnotation {
       this.cache.widget = this.properties.d;
 
       let loadWidget = async () => {
-        let widgetTemplate = await loadWidgetModule(this.properties.d);
+        let widgetTemplate = ((await loadWidgetModule(this.properties.d)) ?? {}).Widget;
         
         if (widgetTemplate != null && this.element != null) {
           this.widgetModule = await setFrame(widgetTemplate, this.element.querySelector(".eWidgetContent"), {
@@ -103,6 +106,13 @@ export class Annotation extends BaseAnnotation {
 
     if (this.widgetModule != null && this.widgetModule.render != null) {
       this.widgetModule.render();
+    }
+  }
+
+  static async createWorker({ setup, editor, annotation }) {
+    let widgetWorker = ((await loadWidgetModule(annotation.render.d)) ?? {}).Worker;
+    if (widgetWorker != null) {
+      setup(widgetWorker.NAME, widgetWorker);
     }
   }
 }

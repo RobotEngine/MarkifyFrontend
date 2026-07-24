@@ -6,13 +6,26 @@ import { textColorBackground } from "../../utils/text-color-background";
 
 import { EMOJIS } from "../../imports";
 
+import { Tool as EditTool } from "../../toolbar/actions/text/Edit";
+import { Tool as ColorTool } from "../../toolbar/actions/Color";
+import { Tool as FontTool } from "../../toolbar/actions/text/Font";
+import { Tool as FontSizeTool } from "../../toolbar/actions/text/FontSize";
+import { Tool as FormatTool } from "../../toolbar/actions/text/Format";
+import { Tool as ListTool } from "../../toolbar/actions/text/List";
+import { Tool as LinkTool } from "../../toolbar/actions/text/Link";
+import { Tool as AlignTool } from "../../toolbar/actions/text/Align";
+import { Tool as FormulaTool } from "../../toolbar/actions/text/Formula";
+import { Tool as UnlockTool } from "../../toolbar/actions/Unlock";
+import { Tool as ReactionsTool } from "../../toolbar/actions/Reactions";
+import { Tool as DeleteTool } from "../../toolbar/actions/Delete";
+
 import reactionIcon from "../../icons/actions/reaction.svg?raw";
 
 export class Annotation extends BaseAnnotation {
   ALLOW_SELECT_OVERFLOW = true;
   ALLOW_RICHTEXT_COLOR = false;
 
-  ACTION_BAR_TOOLS = ["text/edit", "color", "text/font", "text/fontsize", "text/format", "text/list", "text/link", "text/align", "text/formula", "unlock", "reactions", "delete"];
+  ACTION_BAR_TOOLS = [EditTool, ColorTool, FontTool, FontSizeTool, FormatTool, ListTool, LinkTool, AlignTool, FormulaTool, UnlockTool, ReactionsTool, DeleteTool];
 
   DEFAULT_FONT_SIZE = 16;
 

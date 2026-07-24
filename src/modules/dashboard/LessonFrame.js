@@ -29,7 +29,7 @@ export class LessonFrame {
     'html[theme="dark"] .dTileThumbnail img': `filter: brightness(50%)`,
     ".dTile:hover .dTileThumbnail img": `filter: brightness(100%)`,
     
-    ".dTileInfoHolder": `display: flex; box-sizing: border-box; width: 100%; padding: 12px; align-items: flex-end; z-index: 2`,
+    ".dTileInfoHolder": `box-sizing: border-box; display: flex; width: 100%; padding: 12px; align-items: flex-end; z-index: 2`,
     ".dTileInfo": `width: 100%; margin-right: 6px`,
     ".dTileTitle": `box-sizing: border-box; width: 100%; font-size: 18px; font-weight: 600; text-align: left`,
     ".dTileTitle[contenteditable]": `padding: 2px 4px; margin-bottom: 4px; max-height: 100px; outline: solid 2px var(--themeColor); outline-offset: 0; border-radius: 4px; overflow: auto; cursor: text`,

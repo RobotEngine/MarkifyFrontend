@@ -84,7 +84,7 @@ export class Frame {
     ".aManageSetting[enabled]": `--themeColor: var(--secondary)`,
     ".aManageSetting:not([enabled])": `--themeColor: var(--gray)`,
     ".aManageSetting div[label]": `flex: 1; margin-right: 8px; white-space: nowrap; text-overflow: ellipsis; overflow: hidden`,
-    ".aManageSetting div[setting]": `position: relative; display: flex; box-sizing: border-box; height: 32px; padding: 4px 10px; background: var(--secondary); border-radius: 16px; justify-content: center; align-items: center; color: #fff; font-weight: 700; transition: .2s`,
+    ".aManageSetting div[setting]": `position: relative; box-sizing: border-box; display: flex; height: 32px; padding: 4px 10px; background: var(--secondary); border-radius: 16px; justify-content: center; align-items: center; color: #fff; font-weight: 700; transition: .2s`,
     ".aManageSetting div[toggle]": `position: relative; box-sizing: border-box; width: 50px; height: 32px; padding: 4px; background: var(--themeColor); border-radius: 16px; transition: .2s`,
     ".aManageSetting div[toggle] div": `position: absolute; width: 24px; height: 24px; background: var(--pageColor); border-radius: 12px; transition: .2s`,
     ".aManageSetting[enabled] div[toggle] div": `right: 4px`,

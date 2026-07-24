@@ -128,11 +128,16 @@ export const tools = {
 };
 
 export const mappedToolTypes = {
-  draw: ["pen"],
-  markup: ["markup"],
+  draw: ["draw"],
+  markup: ["markup", "understrike"],
   shape: ["shape"],
   text: ["text"],
   sticky: ["sticky"],
   page: ["page"],
   media: ["media", "embed"]
+};
+
+export const mappedToolPreferences = {
+  draw: "pen",
+  markup: "highlighter"
 };

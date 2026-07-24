@@ -10,7 +10,7 @@ export const Dropdown = class {
     ".dropdown": `--floatMargin: 8px; position: sticky; box-sizing: border-box; max-width: calc(100% - (var(--floatMargin) * 2)); max-height: calc(100% - (var(--floatMargin) * 2)); right: 0px; bottom: 0px; margin: var(--floatMargin); opacity: 0; box-shadow: var(--darkShadow); border-radius: 12px; transform: scale(.25); transform-origin: 0px 0px; pointer-events: all; contain: size layout style; will-change: width, height, left, top, transform-origin; outline: none !important`,
     ".dropdown .loading": `pointer-events: none`,
     ".dropdownOverflow": `position: relative; width: 100%; height: 100%; overflow: hidden; background: var(--pageColor); border-radius: inherit; z-index: 0`,
-    ".dropdownContent": `position: absolute; box-sizing: border-box; width: max-content; max-width: var(--dropdownWidth); height: max-content; padding: 6px; overflow: auto`, //background: var(--pageColor)
+    ".dropdownContent": `position: absolute; box-sizing: border-box; width: max-content; max-width: var(--dropdownWidth); height: max-content; max-height: var(--maxHeight); padding: 6px; overflow: auto`, //background: var(--pageColor)
     ".dropdownFrame": `position: relative`,
     ".dropdownHeader": `position: relative; display: flex; gap: 6px; padding: 6px 6px 0 6px; justify-content: space-between; transition: .4s; z-index: 2`,
     ".dropdownHeader button": `position: relative; width: 24px; height: 24px; margin: 3px; background: var(--pageColor); --borderWidth: 3px; --borderRadius: 14px`,
@@ -56,9 +56,9 @@ export const Dropdown = class {
         this.cache.maxContentHeight = maxContentHeight;
         this.cache.maxHeight = this.maxHeight;
         if (this.maxHeight == null) {
-          this.content.style.maxHeight = "calc(" + maxContentHeight + "px - (var(--floatMargin) * 2))";
+          this.content.style.setProperty("--maxHeight", "calc(" + maxContentHeight + "px - (var(--floatMargin) * 2))");
         } else {
-          this.content.style.maxHeight = "min(" + maxContentHeight + "px - (var(--floatMargin) * 2), " + this.maxHeight + "px)";
+          this.content.style.setProperty("--maxHeight", "min(" + maxContentHeight + "px - (var(--floatMargin) * 2), " + this.maxHeight + "px)");
         }
       }
 
@@ -351,6 +351,9 @@ export const Dropdown = class {
       return;
     }
     remove.closing = true;
+    if ((remove.module ?? {}).onClose != null) {
+      remove.module.onClose();
+    }
     if (remove.origin != null) {
       remove.origin.removeAttribute("activated");
       if (elementInViewport(remove.origin) == true) {

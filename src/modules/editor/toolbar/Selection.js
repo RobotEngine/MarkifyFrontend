@@ -2,6 +2,9 @@ import { account, mouseDown, sleep, sendRequest, copyObject, getObject, cleanStr
 
 import { rotatedBounds, rotatePoint, rotatePointOrigin, round, pointInRotatedBounds } from "../math";
 
+import { Tool as CollaboratorTool } from "./tools/Collaborator";
+import { Tool as MoreTool } from "./actions/More";
+
 import topLeftSelectHandle from "../icons/selection/topleft.svg?raw";
 import topRightSelectHandle from "../icons/selection/topright.svg?raw";
 import bottomLeftSelectHandle from "../icons/selection/bottomleft.svg?raw";
@@ -560,18 +563,20 @@ export class Selection {
         }
 
         if (actionToolbarLoaded == false) {
-          let annoModule = (await this.editor.render.getModule(annotation, render.f)) ?? {};
-          if (annoModule.ACTION_BAR_TOOLS == null) {
+          let annoModule = (await this.editor.render.getModule(annotation, render.f));
+          if (annoModule == null) {
             continue;
           }
+          let actionBarToolModules = await Promise.all(
+            (annoModule.ACTION_BAR_TOOLS ?? []).map((item) => {
+              return Promise.resolve(item);
+            })
+          );
           if (combineTools == null) {
-            combineTools = [...annoModule.ACTION_BAR_TOOLS];
-          }
-          for (let c = 0; c < combineTools.length; c++) {
-            if (annoModule.ACTION_BAR_TOOLS.includes(combineTools[c]) == false) {
-              combineTools.splice(c, 1);
-              c--;
-            }
+            combineTools = [...actionBarToolModules];
+          } else {
+            let testSet = new Set(combineTools);
+            combineTools = actionBarToolModules.filter((module) => { return testSet.has(module); });
           }
         }
       }
@@ -579,32 +584,44 @@ export class Selection {
       if (selections.length > 0) {
         if (actionToolbarLoaded == false) {
           actionButtonHolder.setAttribute("loaded", "");
-          combineTools = combineTools ?? [];
-          combineTools.unshift("collaborator");
-          combineTools.push("more");
+          if (combineTools == null) {
+            combineTools = [];
+          }
+          combineTools.unshift(CollaboratorTool);
+          combineTools.push(MoreTool);
           
           actionButtonHolder.innerHTML = "";
           for (let i = 0; i < combineTools.length; i++) {
-            let action = combineTools[i];
-            let actionModule = await this.toolbar.loadModule(action);
+            let actionModule = await this.editor.newModule(combineTools[i]);
             if (actionModule == null) {
               continue;
             }
             if (actionModule.ADD_TOOLBAR_TOOLS != null) {
-              for (let a = 0; a < actionModule.ADD_TOOLBAR_TOOLS.length; a++) {
-                let addAction = actionModule.ADD_TOOLBAR_TOOLS[a];
-                if (combineTools.includes(addAction) == false) {
+              let actionBarToolModules = await Promise.all(
+                (actionModule.ADD_TOOLBAR_TOOLS ?? []).map((item) => {
+                  return Promise.resolve(item);
+                })
+              );
+              let testSet = new Set(combineTools);
+              for (let a = 0; a < actionBarToolModules.length; a++) {
+                let addAction = actionBarToolModules[a];
+                if (testSet.has(addAction) == false) {
                   combineTools.splice(i + a + 1, 0, addAction);
                 }
               }
             }
-            actionButtonHolder.insertAdjacentHTML("beforeend", `<button class="eTool" new><div></div></button>`);
-            let newAction = actionButtonHolder.querySelector("[new]");
-            newAction.removeAttribute("new");
-            newAction.setAttribute("action", action);
-            newAction.setAttribute("module", action);
+            let actionButton = document.createElement("button");
+            actionButton.className = "eTool";
+            actionButton.setAttribute("action", "");
+            actionButton.setAttribute("index", i);
+            if (actionModule.ID != null) {
+              actionButton.setAttribute("module", actionModule.ID);
+            }
+            actionButton.innerHTML = `<div></div>`;
+            actionButtonHolder.appendChild(actionButton);
           }
 
+          this.combineTools = combineTools;
           this.actionBarButtonCount = 0;
         }
         
@@ -614,11 +631,14 @@ export class Selection {
           if (newAction == null) {
             continue;
           }
-          let toolModule = newAction.getAttribute("module");
-          if (toolModule == null) {
+          let toolModuleTemplate = this.combineTools[parseInt(newAction.getAttribute("index"))];
+          if (toolModuleTemplate == null) {
             continue;
           }
-          let actionModule = (await this.toolbar.loadModule(toolModule)) ?? {};
+          let actionModule = await this.editor.newModule(toolModuleTemplate) ?? {};
+          if (actionModule == null) {
+            continue;
+          }
           if (this.actionBar == null) {
             return;
           }
@@ -936,8 +956,19 @@ export class Selection {
       return;
     }
     this.actionFrameButton = actionButton;
-    
-    let newActionModule = (await this.toolbar.loadModule(actionButton.getAttribute("module"))) ?? {};
+
+    if (this.combineTools == null) {
+      return;
+    }
+
+    let toolModuleTemplate = this.combineTools[parseInt(actionButton.getAttribute("index"))];
+    if (toolModuleTemplate == null) {
+      return;
+    }
+    let newActionModule = await this.editor.newModule(toolModuleTemplate) ?? {};
+    if (newActionModule == null) {
+      return;
+    }
     newActionModule.editor = this.editor;
     newActionModule.toolbar = this.toolbar;
     newActionModule.isActionBar = true;
@@ -2630,9 +2661,11 @@ export class Selection {
         embedFrame.style.width = embedWidth + "px";
         embedFrame.style.height = ((render.s[1] - 24 - embedAnno.querySelector("div[details]").offsetHeight) * (1 / scale)) + "px";
         embedFrame.style.transform = "scale(" + scale + ")";
+        embedFrame.addEventListener("load", () => {
+          embedFrame.style.opacity = 1;
+        });
         embedFrame.src = render.embed.url;
-        embedHolder.querySelector("img[thumbnail]").style.display = "none";
-        embedHolder.querySelector("div[activate]").style.display = "none";
+        embedHolder.querySelector("div[activate]").setAttribute("hidden", "");
       }
       return true;
     }

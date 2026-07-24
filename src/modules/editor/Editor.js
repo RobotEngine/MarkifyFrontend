@@ -49,7 +49,7 @@ export class Editor {
     ".eAnnotation[anno]": `transition: all .25s, z-index 0s`,
     ".eAnnotation[tooleditor]:after": `content: ""; position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; z-index: 999; pointer-events: all`,
     //".eAnnotation:not([anno])": `display: none !important`,
-    ".eAnnotationHolder": `position: absolute; z-index: 10; contain: size style`, // layout will-change: contents
+    ".eAnnotationHolder": `position: absolute; z-index: 10; contain: size style; pointer-events: none`, // layout will-change: contents
     //".eAnnotationHolder[notransition] > .eAnnotation": `transition: unset !important`,
     ".eAnnotation > svg": `position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; pointer-events: none; overflow: visible`,
     ".eAnnotation > svg > *": `pointer-events: visiblepainted`,
@@ -133,6 +133,7 @@ export class Editor {
   };
 
   annotations = {};
+  workers = {};
   reactions = {};
   sources = {};
   sourceRenders = {};
@@ -350,7 +351,59 @@ export class Editor {
 
     let annotation = this.annotations[annoID];
 
-    // Process worker...
+    (async () => {
+      let templateAnnotation = await this.render.loadModule(render.f);
+      if (templateAnnotation != null && templateAnnotation.createWorker != null) {
+        templateAnnotation.createWorker({
+          setup: async (id, worker) => {
+            if (annotation == null || worker == null) {
+              return;
+            }
+            let annotationWorkers = annotation.workers;
+            if (annotationWorkers == null) {
+              annotation.workers = [];
+              annotationWorkers = annotation.workers;
+            }
+            if (id != null) {
+              let globalWorker = this.workers[id];
+              if (globalWorker == null) {
+                this.workers[id] = { count: 0 };
+                globalWorker = this.workers[id];
+                globalWorker.loadingPromise = new Promise(async (resolve) => {
+                  globalWorker.worker = await this.newModule(worker);
+                  globalWorker.worker.id = this.render.generateID();
+                  globalWorker.worker.editor = this;
+                  if (globalWorker.worker.start != null) {
+                    globalWorker.worker.start();
+                  }
+                  delete globalWorker.loadingPromise;
+                  resolve();
+                });
+              }
+              if (globalWorker.loadingPromise != null) {
+                await globalWorker.loadingPromise;
+              }
+              globalWorker.count++;
+              annotationWorkers.push(["global", id]);
+              if ((globalWorker.worker ?? {}).onAnnotationAdd != null) {
+                globalWorker.worker.onAnnotationAdd(annotation);
+              }
+            } else {
+              let localWorker = await this.newModule(worker);
+              localWorker.id = this.render.generateID();
+              localWorker.editor = this;
+              localWorker.annotation = annotation;
+              annotationWorkers.push(["local", localWorker]);
+              if (localWorker.start != null) {
+                localWorker.start();
+              }
+            }
+          },
+          editor: this,
+          annotation
+        });
+      }
+    })();
 
     return annotation;
   }
@@ -366,9 +419,54 @@ export class Editor {
     
     await this.utils.setAnnotationChunks({ ...annotation, render: { ...render, remove: true } });
 
-    // Process remove worker...
+    let workers = annotation.workers ?? [];
+    for (let i = 0; i < workers.length; i++) {
+      let [type, worker] = workers[i];
+      if (type == "global") {
+        let globalWorker = this.workers[worker];
+        if (globalWorker != null) {
+          globalWorker.count--;
+          if (globalWorker.worker.onAnnotationRemove != null) {
+            globalWorker.worker.onAnnotationRemove(annotation);
+          }
+          if (globalWorker.count < 1) {
+            if (globalWorker.worker.remove != null) {
+              globalWorker.worker.remove();
+            }
+            delete this.workers[worker];
+          }
+        }
+      } else {
+        if (worker.remove != null) {
+          worker.remove();
+        }
+      }
+    }
     
     delete this.annotations[annoID];
+  }
+  async pushWorkerEvent(annotation, event, data) {
+    if (annotation == null) {
+      return;
+    }
+
+    let workers = annotation.workers ?? [];
+    for (let i = 0; i < workers.length; i++) {
+      let [type, worker] = workers[i];
+      let callWorker;
+      if (type == "global") {
+        callWorker = (this.workers[worker] ?? {}).worker;
+      } else {
+        callWorker = worker;
+      }
+      if (callWorker == null) {
+        continue;
+      }
+      let callback = callWorker[event];
+      if (callback != null) {
+        await callback.call(callWorker, annotation, data);
+      }
+    }
   }
 
   scrollTo(left, top, animate) {

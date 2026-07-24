@@ -22,7 +22,7 @@ export class Frame {
     ".brttTemplateTileThumbnail": `position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; object-fit: cover; border-radius: 12px; opacity: 0; pointer-events: none`,
     'html[theme="dark"] .brttTemplateTileThumbnail': `filter: brightness(50%)`,
     ".brttTemplateTile:hover .brttTemplateTileThumbnail": `filter: brightness(100%)`,
-    ".brttTemplateTileInfoHolder": `position: absolute; display: flex; box-sizing: border-box; width: 100%; padding: 10px; left: 0px; bottom: 0px; align-items: flex-end; background: var(--pageColor); box-shadow: var(--shadow)`,
+    ".brttTemplateTileInfoHolder": `position: absolute; box-sizing: border-box; display: flex; width: 100%; padding: 10px; left: 0px; bottom: 0px; align-items: flex-end; background: var(--pageColor); box-shadow: var(--shadow)`,
     ".brttTemplateTileInfo": `width: 100%`,
     ".brttTemplateTileTitle": `box-sizing: border-box; width: 100%; font-size: 18px; font-weight: 600; text-align: left`,
     ".brttTemplateTileLastOpened": `width: 100%; color: var(--theme); margin-top: 2px; font-size: 14px; font-weight: 600; text-align: left`,

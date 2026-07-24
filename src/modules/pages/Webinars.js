@@ -246,7 +246,7 @@ export class Page extends PageFrame {
     ".wEventsContent": `box-sizing: border-box; display: flex; flex-direction: column; flex: 1 1 350px; min-width: min(300px, 100%); padding: 6px; align-items: center`,
     ".wEventsHeader": `width: 100%; color: var(--theme); font-size: 24px; font-weight: 700`,
     ".wEventsHolder": `display: flex; flex-direction: column; gap: 16px; width: 100%; align-items: center`,
-    ".wEvent": `--hoverSize: 0px; --shadowOpacity: 0; position: relative; display: flex; flex-direction: column; width: 100%; padding: 6px; border-radius: calc(12px + var(--hoverSize)); text-decoration: none; outline-offset: 6px`,
+    ".wEvent": `--hoverSize: 0px; --shadowOpacity: 0; position: relative; box-sizing: border-box; display: flex; flex-direction: column; width: 100%; padding: 6px; border-radius: calc(12px + var(--hoverSize)); text-decoration: none; outline-offset: 6px`,
     ".wEvent:hover, .wEvent:focus-within": `--hoverSize: 6px; --shadowOpacity: .5`,
     ".wEvent:before": `content: ""; position: absolute; width: calc(100% + (var(--hoverSize) * 2)); height: calc(100% + (var(--hoverSize) * 2)); left: 50%; top: 50%; transform: translate(-50%, -50%); background: var(--pageColor); box-shadow: 0px 0px 8px 0px rgba(var(--themeRGB), var(--shadowOpacity)); border-radius: calc(18px + var(--hoverSize)); z-index: 1; transition: .2s`,
     ".wEventHeader": `display: flex; flex-wrap: wrap; z-index: 2`,

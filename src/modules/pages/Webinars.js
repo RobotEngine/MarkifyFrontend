@@ -3,9 +3,9 @@ import { setPage, checkForAuth, PageFrame, userID, account, getParam, modifyPara
 import { modal as modalModule } from "@modules/utility/Modal";
 
 import logoIcon from "@assets/logo.svg?raw";
-import boardBadgeIcon from "@assets/badges/boardBlur.svg?raw";
-import breakoutBadgeIcon from "@assets/badges/breakoutBlur.svg?raw";
-import boardBreakoutBadgeIcon from "@assets/badges/boardBreakoutBlur.svg?raw";
+import boardBadgeIcon from "@assets/badges/boardblur.svg?raw";
+import breakoutBadgeIcon from "@assets/badges/breakoutblur.svg?raw";
+import boardBreakoutBadgeIcon from "@assets/badges/boardbreakoutblur.svg?raw";
 
 import splashBannerImg from "@assets/webinars/summerseries/wavesbeach.png?no-inline";
 import summerseriesImg from "@assets/webinars/summerseries/logo.png?no-inline";

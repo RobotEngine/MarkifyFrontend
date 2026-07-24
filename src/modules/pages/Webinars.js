@@ -90,7 +90,7 @@ export class Page extends PageFrame {
           <div class="wInfoHeader">Meet the <b>Presenters</b></div>
           <div class="wDivider"></div>
           <div class="wInfoPresenterHolder">
-            <a class="wInfoPresenter" href="https://www.linkedin.com/in/beckett-anthony" target="_blank" style="--themeColor: var(--purpleRGB); --rotate: -12deg">
+            <a class="wInfoPresenter" href="https://www.linkedin.com/in/beckett-anthony" target="_blank" style="--themeColor: var(--purpleRGB); --rotate: -16deg">
               <div class="wInfoPresenterCursor">
                 <img src="${presenterA}" style="--transform: translate(-2px, 8px) scale(1.2)" />
               </div>
@@ -99,7 +99,7 @@ export class Page extends PageFrame {
                 <div role>Founder</div>
               </div>
             </a>
-            <a class="wInfoPresenter" href="https://www.linkedin.com/in/jeffrey-stark-phd-36743684" target="_blank" style="--themeColor: var(--greenRGB); --rotate: 18deg">
+            <a class="wInfoPresenter" href="https://www.linkedin.com/in/jeffrey-stark-phd-36743684" target="_blank" style="--themeColor: var(--greenRGB); --rotate: 16deg">
               <div class="wInfoPresenterCursor">
                 <img src="${presenterB}" style="--transform: translate(-4px, -4px) scale(1.1)" />
               </div>

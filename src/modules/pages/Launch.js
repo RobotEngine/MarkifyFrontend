@@ -22,7 +22,7 @@ export class Page extends PageFrame {
         <div class="lHeaderBannerPlaceholder"></div>
         <div class="lHeaderBannerContent">
           <div class="lHeaderBannerTitle">Live Webinars: <i><b>The Markify Summer Series</b></i></div>
-          <div class="lHeaderBannerText">For the first time ever, we're hosting FREE webinars on how to best use Markify! Learn how to connect whole-class instruction and small-group breakouts in just 30 minute sessions.</div>
+          <div class="lHeaderBannerText">For the first time ever, we're hosting FREE webinars on how to best use Markify! Learn how to connect whole-class instruction and small-group breakouts in 30 minute sessions.</div>
           <div class="lHeaderBannerButtons">
             <button class="lHeaderBannerAction buttonAnim border" openpage="webinars">Reserve Your Spot</button>
           </div>

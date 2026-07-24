@@ -56,7 +56,7 @@ class EmbedModal {
 
 export class Page extends PageFrame {
   title = "Summer PD";
-  theme = "light";
+  
   html = `<div class="wPageHolder">
     <div class="wPage">
       <div class="wInterface customScroll">

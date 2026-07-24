@@ -1,5 +1,6 @@
-import { setPage, checkForAuth, PageFrame, userID, account, getParam, modifyParams } from "@/crucial";
+import { setPage, checkForAuth, promptLogin, PageFrame, userID, account, getParam, modifyParams } from "@/crucial";
 
+import { dropdown as dropdownModule } from "@modules/utility/Dropdown";
 import { modal as modalModule } from "@modules/utility/Modal";
 
 import logoIcon from "@assets/logo.svg?raw";
@@ -68,6 +69,9 @@ export class Page extends PageFrame {
             </div>
             <div class="wTopSection" right>
               <a class="wOpen" openpage="app/dashboard" href="/app/dashboard">Open Markify</a>
+              <div class="wTopDivider"></div>
+              <button class="wAccount"><img src="../images/profiles/default.svg" accountimage /><div accountuser></div></button>
+              <button class="wLogin">Login</button>
             </div>
           </div>
         </div>
@@ -212,6 +216,10 @@ export class Page extends PageFrame {
     ".wTopLogo:hover": `background: var(--hover)`,
     ".wTopLogo svg": `height: 100%; transition: .2s`,
     ".wOpen": `box-sizing: border-box; height: 32px; padding: 6px 10px; margin: 0 4px; background: var(--theme); border-radius: 16px; color: #fff; font-size: 16px; font-weight: 600; text-decoration: none`,
+    ".wTopDivider": `width: 4px; height: 32px; margin: 0 4px; background: var(--lightGray); border-radius: 2px`,
+    ".wAccount": `padding: 0; width: 32px; height: 32px; margin: 0 4px; border-radius: 16px; overflow: hidden`,
+    ".wAccount img": `width: 100%; height: 100%; object-fit: cover`,
+    ".wLogin": `height: 32px; display: none; padding: 6px 10px; margin: 0 4px; background: var(--secondary); border-radius: 16px; color: #fff; font-size: 16px; font-weight: 600`,
 
     ".wContentHolder": `position: relative; box-sizing: border-box; display: flex; flex-wrap: wrap; gap: 24px; width: 100%; height: 100%; padding: 66px 16px 16px; overflow-x: none; overflow-y: scroll; z-index: 1; transition: .5s`,
     ".wDivider": `box-sizing: border-box; width: 80%; margin: 8px 0 16px 0; height: 4px; background-image: linear-gradient(90deg, transparent, var(--hover) 25%, var(--hover) 75%, transparent); border-radius: 2px`,
@@ -260,6 +268,23 @@ export class Page extends PageFrame {
   }
 
   js(page) {
+    // Account setup:
+    let accountButton = page.querySelector(".wAccount");
+    let loginButton = page.querySelector(".wLogin");
+    if (userID != null) {
+      accountButton.querySelector("div").textContent = account.user;
+      if (account.image != null) {
+       accountButton.querySelector("img").src = account.image;
+      }
+      accountButton.addEventListener("click", () => {
+        dropdownModule.open(accountButton, import("@modules/dropdowns/Account"), { parent: this });
+      });
+    } else {
+      accountButton.remove();
+      loginButton.style.display = "block";
+      loginButton.addEventListener("click", () => { promptLogin(); });
+    }
+
     let eventsHolder = page.querySelector(".wEventsHolder");
     eventsHolder.addEventListener("click", (event) => {
       let eventTile = event.target.closest(".wEvent");

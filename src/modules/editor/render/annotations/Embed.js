@@ -25,7 +25,7 @@ export class Annotation extends BaseAnnotation {
     ".eAnnotation[embed] div[content] div[activate] button": `width: 80px; height: 80px; max-width: 80%; max-height: 80%; background: rgba(var(--themeRGB), .3); backdrop-filter: blur(8px); border-radius: 50%; transition: .2s`,
     ".eAnnotation[embed] div[content] div[activate] button:hover": `transform: scale(1.1)`,
     ".eAnnotation[embed] div[content] div[activate] button:active": `transform: scale(1.05)`,
-    ".eAnnotation[embed] div[content] div[activate] button svg": `--theme: #fff; width: 100%; height: 100%; margin-left: 4px`,
+    ".eAnnotation[embed] div[content] div[activate] button svg": `--theme: #fff; display: block; width: 100%; height: 100%; margin-left: 4px`,
     ".eAnnotation[embed] div[details]": `margin-top: 8px`,
     ".eAnnotation[embed] div[details] div[input]": `display: none; align-items: center; pointer-events: all`,
     ".eAnnotation[embed] div[details] div[input][visible]": `display: flex !important`,

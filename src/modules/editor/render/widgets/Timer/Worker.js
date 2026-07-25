@@ -3,6 +3,8 @@ import { BaseWorker } from "../../BaseWorker";
 export class Worker extends BaseWorker {
   static NAME = "widget/timer";
 
+  timers = {};
+
   start() {
 
   }
@@ -11,11 +13,23 @@ export class Worker extends BaseWorker {
 
   }
 
-  onAnnotationUpdate(annotation, event) {
+  onAnnotationRender(annotation) {
+    
+  }
+
+  onAnnotationHide(annotation) {
 
   }
 
-  onAnnotationRemove(annotation) {
+  onAnnotationAdd(annotation) {
     
+  }
+
+  onAnnotationUpdate(annotation, event) {
+    
+  }
+
+  onAnnotationRemove(annotation) {
+
   }
 }

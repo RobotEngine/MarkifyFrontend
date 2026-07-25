@@ -307,7 +307,7 @@ export class Page extends PageFrame {
     ".footerBadges": `display: flex; flex-wrap: wrap; width: 100%; justify-content: space-around`,
     ".footerBadges img": `max-width: 100%; max-height: 100px; margin: 16px`,
     ".footerStatement": `width: 100%; margin-top: 16px`,
-    ".lFooterFooter": `position: relative; box-sizing: border-box; display: flex; flex-wrap: wrap; width: calc(100% - 24px); max-width: 700px; padding: 12px; margin-top: 24px; background: #000; border-radius: 24px; justify-content: center; align-items: center; overflow: hidden`,
+    ".lFooterFooter": `position: relative; box-sizing: border-box; display: flex; flex-wrap: wrap; width: calc(100% - 24px); max-width: 700px; padding: 12px; margin: 24px 0; background: #000; border-radius: 24px; justify-content: center; align-items: center; overflow: hidden`,
     ".lFooterCompany": `display: flex; flex-direction: column; max-width: 100%; flex: 1; align-items: center; justify-content: center`,
     ".lFooterLogo": `height: 70px`,
     ".lFooterCopyright": `color: var(--secondary); text-decoration: none`,

@@ -573,6 +573,10 @@ export class Render {
         }
         redrawChildrenFunction(annotation.renderedChildren);
       }
+
+      if (annotation.workers != null) {
+        this.editor.pushWorkerEvent(annotation, "onAnnotationRender");
+      }
     } else {
       if (long != true) {
         await this.hide(annotation);
@@ -598,6 +602,9 @@ export class Render {
       this.editor.cleanupSelections();
     }
     this.editor.removeSelection(render._id);
+    if (annotation.workers != null) {
+      this.editor.pushWorkerEvent(annotation, "onAnnotationHide");
+    }
   }
   remove(annotation) {
     if (annotation == null) {

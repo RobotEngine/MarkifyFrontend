@@ -385,8 +385,12 @@ export class Editor {
               }
               globalWorker.count++;
               annotationWorkers.push(["global", id]);
-              if ((globalWorker.worker ?? {}).onAnnotationAdd != null) {
+              let globalWorkerObject = globalWorker.worker ?? {};
+              if (globalWorkerObject.onAnnotationAdd != null) {
                 globalWorker.worker.onAnnotationAdd(annotation);
+              }
+              if (globalWorkerObject.onAnnotationRender != null && annotation.component != null) {
+                globalWorker.worker.onAnnotationRender(annotation);
               }
             } else {
               let localWorker = await this.newModule(worker);
@@ -396,6 +400,9 @@ export class Editor {
               annotationWorkers.push(["local", localWorker]);
               if (localWorker.start != null) {
                 localWorker.start();
+              }
+              if (localWorker.onRender != null && annotation.component != null) {
+                globalWorker.worker.onRender();
               }
             }
           },

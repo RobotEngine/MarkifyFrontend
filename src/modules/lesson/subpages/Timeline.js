@@ -584,13 +584,17 @@ export class Frame {
         this.storedAnnotationStates[annotation._id] = { ...(original ?? {}), ...annotation };
 
         let checkChunks = this.editor.utils.chunksFromAnnotation(annotation);
-        if (this.editor.annotations[annotation._id] == null) {
-          this.editor.addAnnotation({ ...this.storedAnnotationStates[annotation._id], _id: annotation._id });
+        let editorAnnotation = this.editor.annotations[annotation._id];
+        if (editorAnnotation != null) {
+          editorAnnotation.render = this.storedAnnotationStates[annotation._id];
+          if (editorAnnotation.workers != null) {
+            this.editor.pushWorkerEvent(editorAnnotation, "onAnnotationUpdate", { annotation: editorAnnotation, save: annotation });
+          }
         } else {
-          this.editor.annotations[annotation._id].render = this.storedAnnotationStates[annotation._id];
+          editorAnnotation = this.editor.addAnnotation({ render: { ...this.storedAnnotationStates[annotation._id], _id: annotation._id } });
         }
         updatedAnnotations[annotation._id] = {
-          annotation: this.editor.annotations[annotation._id],
+          annotation: editorAnnotation,
           checkChunks: checkChunks
         };
 
@@ -1066,7 +1070,7 @@ export class Frame {
         let render = annotation.render;
         if (render != null) {
           if (render.remove != true && render.pending != true) {
-            this.editor.addAnnotation(copyObject(render));
+            this.editor.addAnnotation({ render: copyObject(render) });
             this.presentAnnotations[annoID] = { hidden: render.hidden == true };
           }
         }

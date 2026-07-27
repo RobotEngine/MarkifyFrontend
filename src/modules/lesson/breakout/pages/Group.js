@@ -65,17 +65,24 @@ export class Page {
     </div>
     <div class="brgBottomHolder">
       <div class="brgBottom">
-        <div class="brgBottomSection" observebottomsection left>
-          <div class="brgObserveIcon">${observeIcon}</div>
-          <div class="brgObserveText">Observing</div>
-          <div class="brgObserveCursor" observecursor></div>
-          <button class="brgObserveExit buttonAnim border" observeexit>${closeIcon}</button>
+        <div class="brgBottomSide" left>
+          <div class="brgBottomSection brgOpenBoard" title="Open Markify Board" hidden>
+            <button>${boardLogoIcon}</button>
+          </div>
+          <div class="brgBottomSection eWidgetDrawer" hidden></div>
+          <div class="brgBottomSection eObserveContainer" hidden>
+            <div class="brgObserveIcon">${observeIcon}</div>
+            <div class="brgObserveText">Observing</div>
+            <div class="brgObserveCursor" observecursor></div>
+            <button class="brgObserveExit buttonAnim border" observeexit>${closeIcon}</button>
+          </div>
         </div>
-        <div class="brgBottomSectionSpacer"></div>
-        <div class="brgBottomSection" right>
-          <button class="brgPageNav" down>${increasePageIcon}</button>
-          <div class="brgCurrentPage border" contenteditable></div>
-          <button class="brgPageNav" up>${decreasePageIcon}</button>
+        <div class="brgBottomSide" right>
+          <div class="brgBottomSection brgCurrentPageHolder" hidden>
+            <button class="brgPageNav" down>${increasePageIcon}</button>
+            <div class="brgCurrentPage border" contenteditable></div>
+            <button class="brgPageNav" up>${decreasePageIcon}</button>
+          </div>
         </div>
       </div>
     </div>
@@ -144,11 +151,15 @@ export class Page {
     ".brgBottomHolder": `position: relative; width: 100%; height: 50px; margin-bottom: 8px; visibility: visible`,
     ".brgBottom": `position: absolute; display: flex; width: 100%; gap: 8px; padding-top: 8px; left: 0px; top: 0px; justify-content: space-between; overflow-x: auto; overflow-y: hidden; scrollbar-width: none`,
     ".brgBottom::-webkit-scrollbar": `display: none`,
-    ".brgBottomSection": `display: none; box-sizing: border-box; height: 50px; padding: 6px; flex-shrink: 0; align-items: center; background: var(--pageColor); box-shadow: var(--lightShadow); border-radius: 12px 12px 0 0; pointer-events: all`,
-    ".brgBottomSection[hidden]": `display: none`,
-    ".brgBottomSection:first-child": `border-top-left-radius: 0`,
-    ".brgBottomSection:last-child": `border-top-right-radius: 0`,
-    ".brgBottomSectionSpacer": `flex: 1`,
+    ".brgBottomSide": `display: flex; flex-shrink: 0; gap: 8px`,
+    ".brgBottomSide[left]": `flex-direction: row`,
+    ".brgBottomSide[right]": `flex-direction: row-reverse`,
+    ".brgBottomSection": `display: flex; box-sizing: border-box; height: 50px; padding: 6px; flex-shrink: 0; align-items: center; background: var(--pageColor); box-shadow: var(--lightShadow); pointer-events: all`,
+    ".brgBottomSection[hidden]": `display: none !important`,
+    ".brgBottomSide[left] .brgBottomSection": `border-top-right-radius: 12px`,
+    ".brgBottomSide[left] .brgBottomSection:not([hidden]) ~ .brgBottomSection:not([hidden])": `border-top-left-radius: 12px`,
+    ".brgBottomSide[right] .brgBottomSection": `border-top-left-radius: 12px`,
+    ".brgBottomSide[right] .brgBottomSection:not([hidden]) ~ .brgBottomSection:not([hidden])": `border-top-right-radius: 12px`,
     ".brgObserveIcon": `width: 34px; height: 34px; margin: 2px`,
     ".brgObserveIcon svg": `width: 100%; height: 100%`,
     ".brgObserveText": `margin: 0 6px`,
@@ -159,11 +170,11 @@ export class Page {
     ".brgPageNav svg": `width: 100%; height: 100%`,
     ".brgCurrentPage": `min-width: 8px; max-height: 24px; padding: 4px 0; margin: 0 6px; font-size: 20px; outline: unset`,
     ".brgCurrentPage:focus": `padding: 4px 12px; --borderWidth: 3px; --borderColor: var(--secondary); --borderRadius: 12px`,
-    ".brgBottomSection[board]": `display: flex; box-shadow: var(--boardLightShadow)`,
-    ".brgBottomSection[board] button": `display: flex; width: 38px; height: 38px; padding: 0; border-radius: 6px; justify-content: center; align-items: center`,
-    ".brgBottomSection[board] button:hover": `background: var(--boardHover)`,
-    ".brgBottomSection[board] button svg": `width: 32px; height: 32px; transition: .2s`,
-    ".brgBottomSection[board] button:hover svg": `transform: scale(.9)`
+    ".brgOpenBoard": `display: flex; box-shadow: var(--boardLightShadow)`,
+    ".brgOpenBoard button": `display: flex; width: 38px; height: 38px; padding: 0; border-radius: 6px; justify-content: center; align-items: center`,
+    ".brgOpenBoard button:hover": `background: var(--boardHover)`,
+    ".brgOpenBoard button svg": `width: 32px; height: 32px; transition: .2s`,
+    ".brgOpenBoard button:hover svg": `transform: scale(.9)`
   };
 
   members = {};
@@ -300,29 +311,9 @@ export class Page {
     }
 
     if (showBoardButton == true) {
-      if (this.boardButton == null) {
-        this.bottom.insertAdjacentHTML("afterbegin", `<div class="brgBottomSection" board title="Open Markify Board" new><button class="brgBreakoutOpen">${boardLogoIcon}</button></div>`);
-        this.boardButton = this.bottom.querySelector(".brgBottomSection[new]");
-        this.boardButton.removeAttribute("new");
-        let button = this.boardButton.querySelector("button");
-        button.addEventListener("click", async () => {
-          this.boardButton.remove();
-          this.boardButton = null;
-          
-          if (this.boardOpen == false) {
-            await this.parent.parent.addPage("board", "board", { insertBefore: this.parent.pageHolder, percent: .5 });
-          }
-          if (this.boardVisible == false) {
-            this.parent.parent.activePageID = "board";
-            this.parent.parent.pushToPipelines(null, "page_switch", { pageID: "board" });
-          }
-        });
-      }
+      this.openBoardHolder.removeAttribute("hidden");
     } else {
-      if (this.boardButton != null) {
-        this.boardButton.remove();
-        this.boardButton = null;
-      }
+      this.openBoardHolder.setAttribute("hidden", "");
     }
   }
 
@@ -451,7 +442,10 @@ export class Page {
     this.selectButton = this.viewerToolbar.querySelector('.eTool[tool="select"]');
     this.panButton = this.viewerToolbar.querySelector('.eTool[tool="pan"]');
 
-    this.currentPageHolder = this.bottom.querySelector(".brgBottomSection[right]");
+    this.openBoardHolder = this.bottom.querySelector(".brgOpenBoard");
+    this.openBoard = this.openBoardHolder.querySelector("button");
+
+    this.currentPageHolder = this.bottom.querySelector(".brgCurrentPageHolder");
     this.pageTextBox = this.currentPageHolder.querySelector(".brgCurrentPage");
     this.increasePageButton = this.currentPageHolder.querySelector(".brgPageNav[down]");
     this.decreasePageButton = this.currentPageHolder.querySelector(".brgPageNav[up]");
@@ -761,10 +755,10 @@ export class Page {
     // Page changer events:
     this.pipeline.subscribe("pageTextUpdate", "page_change", (event) => {
       if (this.editor.currentPage > 0) {
-        this.currentPageHolder.style.display = "flex";
+        this.currentPageHolder.removeAttribute("hidden");
         modifyParams("page", event.pageId);
       } else {
-        this.currentPageHolder.style.display = "none";
+        this.currentPageHolder.setAttribute("hidden", "");
         modifyParams("page");
         return;
       }
@@ -829,6 +823,17 @@ export class Page {
     });
 
     // Splitscreen update events:
+    this.openBoard.addEventListener("click", async () => {
+      this.openBoardHolder.setAttribute("hidden", "");
+
+      if (this.boardOpen == false) {
+        await this.parent.parent.addPage("board", "board", { insertBefore: this.parent.pageHolder, percent: .5 });
+      }
+      if (this.boardVisible == false) {
+        this.parent.parent.activePageID = "board";
+        this.parent.parent.pushToPipelines(null, "page_switch", { pageID: "board" });
+      }
+    });
     this.pipeline.subscribe("pageAdd", "page_add", () => { this.updateSplitScreenButton(); });
     this.pipeline.subscribe("pageRemove", "page_remove", () => { this.updateSplitScreenButton(); });
     this.pipeline.subscribe("pageSwitch", "page_switch", () => { this.updateSplitScreenButton(); });

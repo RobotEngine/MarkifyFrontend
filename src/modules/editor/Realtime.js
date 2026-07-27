@@ -294,7 +294,7 @@ export class Module {
   }
 
   setObserveFrame(member) {
-    let observeHolder = this.editor.page.querySelector("div[observebottomsection]");
+    let observeHolder = this.editor.page.querySelector(".eObserveContainer");
     let observeCursor = observeHolder.querySelector("div[observecursor]");
     if (observeCursor == null) {
       return;
@@ -302,7 +302,7 @@ export class Module {
     observeCursor.textContent = member.name;
     observeCursor.style.color = textColorBackground(member.color);
     observeCursor.style.background = member.color;
-    observeHolder.style.display = "flex";
+    observeHolder.removeAttribute("hidden");
     //this.editor.page.style.setProperty("--lightShadow", "0px 0px 8px 0px " + hexToRGBString(member.color, .3));
     this.editor.page.style.boxShadow = "0px 0px 8px 0px " + hexToRGBString(member.color, "var(--shadowOpacity)");
   }
@@ -329,9 +329,9 @@ export class Module {
     
     clearTimeout(this.editor.realtime.observeTimeout);
 
-    let observeHolder = this.editor.page.querySelector("div[observebottomsection]");
+    let observeHolder = this.editor.page.querySelector(".eObserveContainer");
     if (observeHolder != null) {
-      observeHolder.style.removeProperty("display");
+      observeHolder.setAttribute("hidden", "");
     }
     this.editor.page.style.removeProperty("box-shadow");
 
@@ -608,7 +608,7 @@ export class Module {
     this.editor.pipeline.subscribe("realtimePubishPageClose", "page_close", this.closeShortSub);
 
     // Handle observe elements and events:
-    let observeHolderExit = this.editor.page.querySelector("div[observebottomsection] button[observeexit]");
+    let observeHolderExit = this.editor.page.querySelector(".eObserveContainer button[observeexit]");
     if (observeHolderExit != null) {
       observeHolderExit.addEventListener("click", () => {
         this.exitObserve();

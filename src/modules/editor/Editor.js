@@ -78,7 +78,9 @@ export class Editor {
     ".customScroll[viewer] .eReaction[add]": "display: none !important",
     ".eReaction div[imgholder]": `display: flex; width: 20px; height: 20px; justify-content: center; align-items: center`,
     ".eReaction img": `width: 32px; height: 32px; transform: scale(0.65); border-radius: 7px; filter: drop-shadow(0px 0px 8px var(--pageColor))`,
-    ".eReaction div[count]": `margin: 0 5px 0 6px; font-size: 16px; font-weight: 700`
+    ".eReaction div[count]": `margin: 0 5px 0 6px; font-size: 16px; font-weight: 700`,
+
+    ".eWidgetDrawerButton": `display: flex; height: 32px; padding: 6px 10px; margin: 0 4px; justify-content: center; align-items: center; background: var(--hover); border-radius: 16px; font-size: 16px; font-weight: 600`
   };
 
   async register(template) {
@@ -341,15 +343,16 @@ export class Editor {
     this.frame.style.setProperty("--interfacePadding", this.scrollOffset + "px");
   }
 
-  addAnnotation(render, annoID) {
+  addAnnotation(annotation, annoID) {
+    let render = annotation.render ?? {};
     annoID = render._id ?? annoID;
     if (annoID == null) {
       return;
     }
 
-    this.annotations[annoID] = { render, chunks: [] };
+    this.annotations[annoID] = { chunks: [], ...annotation, render };
 
-    let annotation = this.annotations[annoID];
+    annotation = this.annotations[annoID];
 
     (async () => {
       let templateAnnotation = await this.render.loadModule(render.f);
@@ -869,7 +872,7 @@ export class Editor {
         for (let f = 0; f < fields.length; f++) {
           let field = fields[f];
           if (objectEqual(render[field], rootAnno.old[field]) == true) {
-            render[field] = rootAnno[field];
+            render[field] = rootAnno.new[field];
             delete rootAnnotationChanges[render.from];
             changedAnnotations.push(anno);
           }
@@ -886,9 +889,10 @@ export class Editor {
       addAnno.from = "root";
       let existingAnno = this.annotations[addAnno._id];
       if (existingAnno == null) { // || existingAnno.render.sync < addAnno.sync
-        existingAnno = this.addAnnotation({ _id: addAnno._id });
+        existingAnno = this.addAnnotation({ render: addAnno });
+      } else {
+        existingAnno.render = addAnno;
       }
-      existingAnno.render = addAnno;
       changedAnnotations.push(existingAnno);
     }
 
@@ -925,7 +929,7 @@ export class Editor {
         let addAnno = body.annotations[i];
         let existingAnno = this.annotations[addAnno._id];
         if (existingAnno == null || existingAnno.render.sync < addAnno.sync) {
-          existingAnno = this.addAnnotation(addAnno);
+          existingAnno = this.addAnnotation({ render: addAnno });
         }
         addedAnnotations.push(existingAnno);
       }
@@ -1009,6 +1013,9 @@ export class Editor {
     this.contentHolder = this.contentHolder ?? frame.parentElement;
     this.page = this.page ?? this.contentHolder.closest(".content");
     this.pageFrame = this.page.closest(".lPage");
+    
+    this.widgetDrawer = this.page.querySelector(".eWidgetDrawer");
+
     this.content = this.contentHolder.querySelector(".eContent");
     this.realtimeHolder = this.content.querySelector(".eRealtime");
     this.editorContent = this.content.querySelector(".eEditorContent");
@@ -1141,11 +1148,11 @@ export class Editor {
       //let redrawAction = false;
       for (let i = 0; i < data.length; i++) {
         let anno = data[i];
-        /*let pendingAnno;
-        if (anno.pending != null) {
-          pendingAnno = this.annotations[anno.pending];
-        }*/
-        let existingAnno = this.annotations[anno._id]; // ?? pendingAnno;
+        let replaceAnno;
+        if (anno._replace != null) {
+          replaceAnno = this.annotations[anno._replace];
+        }
+        let existingAnno = this.annotations[anno._id] ?? replaceAnno;
         if (existingAnno != null) {
           if (existingAnno.serverSync > anno.sync) {
             continue; // Discard event as it's old
@@ -1153,58 +1160,57 @@ export class Editor {
           existingAnno.serverSync = anno.sync;
           existingAnno.revert = anno;
 
-          if (existingAnno.render != null) {
-            delete existingAnno.render.pending;
-          }
-
-          /*if (pendingAnno != null) {
-            let selectBox = this.content.querySelector('.eSelect[anno="' + anno.pending + '"]');
+          if (replaceAnno != null) {
+            // Update selections to the new ID:
+            let selectBox = this.content.querySelector('.eSelect[anno="' + anno._replace + '"]');
             if (selectBox != null) {
               selectBox.setAttribute("anno", anno._id);
             }
-            let allSelections = this.realtimeHolder.querySelectorAll('.eCollabSelect[anno="' + anno.pending + '"]');
+            let allSelections = this.realtimeHolder.querySelectorAll('.eCollabSelect[anno="' + anno._replace + '"]');
             for (let i = 0; i < allSelections.length; i++) {
               allSelections[i].setAttribute("anno", anno._id);
             }
 
+            // Update history to the new ID:
             for (let i = 0; i < this.history.history.length; i++) {
               let event = this.history.history[i];
               for (let c = 0; c < event.changes.length; c++) {
                 let change = event.changes[c];
-                if (change._id == anno.pending) {
+                if (change._id == anno._replace) {
                   change._id = anno._id;
                 }
-                if (change.parent == anno.pending) {
+                if (change.parent == anno._replace) {
                   change.parent = anno._id;
                 }
               }
               for (let c = 0; c < event.redo.length; c++) {
                 let change = event.redo[c];
-                if (change._id == anno.pending) {
+                if (change._id == anno._replace) {
                   change._id = anno._id;
                 }
-                if (change.parent == anno.pending) {
+                if (change.parent == anno._replace) {
                   change.parent = anno._id;
                 }
               }
             }
 
+            // Complete move to the new annotation stored with the new ID:
             if (existingAnno.render != null) {
               existingAnno.render._id = anno._id;
             } else {
               existingAnno.render = anno;
             }
             this.annotations[anno._id] = existingAnno;
-            this.annotations[anno.pending] = { pointer: anno._id };
+            delete this.annotations[anno._replace];
             existingAnno = this.annotations[anno._id];
-            existingAnno.pending = anno.pending;
 
-            if (this.selecting[anno.pending] != null) {
-              this.selecting[anno._id] = this.selecting[anno.pending];
-              delete this.selecting[anno.pending];
+            // Update any selections to use the new ID:
+            if (this.selecting[anno._replace] != null) {
+              this.selecting[anno._id] = this.selecting[anno._replace];
+              delete this.selecting[anno._replace];
   
-              if (this.toolbar != null && this.toolbar.selection.annotationRects[anno.pending] != null) {
-                this.toolbar.selection.annotationRects[anno._id] = this.toolbar.selection.annotationRects[anno.pending];
+              if (this.toolbar != null && this.toolbar.selection.annotationRects[anno._replace] != null) {
+                this.toolbar.selection.annotationRects[anno._id] = this.toolbar.selection.annotationRects[anno._replace];
               }
             }
 
@@ -1219,12 +1225,12 @@ export class Editor {
               let chunk = this.chunkAnnotations[existingAnno.chunks[i]];
               if (chunk != null) {
                 chunk[anno._id] = "";
-                delete this.chunkAnnotations[existingAnno.chunks[i]][anno.pending];
+                delete this.chunkAnnotations[existingAnno.chunks[i]][anno._replace];
               }
             }
 
             await this.render.setMarginSize();
-          }*/
+          }
           
           // CHECKS IF SERVER IS AFTER LAST SHORT EDIT SYNC
           if (existingAnno.render.sync > anno.sync) {
@@ -1342,7 +1348,7 @@ export class Editor {
           if (anno.save == true && (anno.render.remove != true || anno.render.pending != true)) {
             let render = copyObject(anno.render);
             delete anno.expire;
-            this.addAnnotation(render);
+            this.addAnnotation({ render });
             this.save.pendingSaves[render._id] = { ...this.save.pendingSaves[render._id], ...render };
           }
         }

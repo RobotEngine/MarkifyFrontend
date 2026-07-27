@@ -56,12 +56,18 @@ export class Page {
     </div>
     <div class="brtBottomHolder">
       <div class="brtBottom">
-      <div class="brtBottomSection" board title="Open Markify Board" new><button class="brtBoardOpen">${boardLogoIcon}</button></div>
-        <div class="brtBottomSectionSpacer"></div>
-        <div class="brtBottomSection" right>
-          <button class="brtPageNav" down>${increasePageIcon}</button>
-          <div class="brtCurrentPage border" contenteditable></div>
-          <button class="brtPageNav" up>${decreasePageIcon}</button>
+        <div class="brtBottomSide" left>
+          <div class="brtBottomSection brtOpenBoard" title="Open Markify Board" hidden>
+            <button>${boardLogoIcon}</button>
+          </div>
+          <div class="brtBottomSection eWidgetDrawer" hidden></div>
+        </div>
+        <div class="brtBottomSide" right>
+          <div class="brtBottomSection brtCurrentPageHolder" hidden>
+            <button class="brtPageNav" down>${increasePageIcon}</button>
+            <div class="brtCurrentPage border" contenteditable></div>
+            <button class="brtPageNav" up>${decreasePageIcon}</button>
+          </div>
         </div>
       </div>
     </div>
@@ -121,20 +127,24 @@ export class Page {
     ".brtBottomHolder": `position: relative; width: 100%; height: 50px; margin-bottom: 8px; visibility: visible`,
     ".brtBottom": `position: absolute; display: flex; width: 100%; gap: 8px; padding-top: 8px; left: 0px; top: 0px; justify-content: space-between; overflow-x: auto; scrollbar-width: none`,
     ".brtBottom::-webkit-scrollbar": `display: none`,
-    ".brtBottomSection": `display: none; box-sizing: border-box; height: 50px; padding: 6px; flex-shrink: 0; align-items: center; background: var(--pageColor); box-shadow: var(--lightShadow); border-radius: 12px 12px 0 0; pointer-events: all`,
-    ".brtBottomSection[hidden]": `display: none`,
-    ".brtBottomSection:first-child": `border-top-left-radius: 0`,
-    ".brtBottomSection:last-child": `border-top-right-radius: 0`,
-    ".brtBottomSectionSpacer": `flex: 1`,
+    ".brtBottomSide": `display: flex; flex-shrink: 0; gap: 8px`,
+    ".brtBottomSide[left]": `flex-direction: row`,
+    ".brtBottomSide[right]": `flex-direction: row-reverse`,
+    ".brtBottomSection": `display: flex; box-sizing: border-box; height: 50px; padding: 6px; flex-shrink: 0; align-items: center; background: var(--pageColor); box-shadow: var(--lightShadow); pointer-events: all`,
+    ".brtBottomSection[hidden]": `display: none !important`,
+    ".brtBottomSide[left] .brtBottomSection": `border-top-right-radius: 12px`,
+    ".brtBottomSide[left] .brtBottomSection:not([hidden]) ~ .brtBottomSection:not([hidden])": `border-top-left-radius: 12px`,
+    ".brtBottomSide[right] .brtBottomSection": `border-top-left-radius: 12px`,
+    ".brtBottomSide[right] .brtBottomSection:not([hidden]) ~ .brtBottomSection:not([hidden])": `border-top-right-radius: 12px`,
     ".brtPageNav": `display: flex; width: 32px; height: 32px; padding: 6px; margin: 0 4px; justify-content: center; align-items: center; background: var(--lightGray); border-radius: 16px`,
     ".brtPageNav svg": `width: 100%; height: 100%`,
     ".brtCurrentPage": `min-width: 8px; max-height: 24px; padding: 4px 0; margin: 0 6px; font-size: 20px; outline: unset`,
     ".brtCurrentPage:focus": `padding: 4px 12px; --borderWidth: 3px; --borderColor: var(--secondary); --borderRadius: 12px`,
-    ".brtBottomSection[board]": `box-shadow: var(--boardLightShadow)`,
-    ".brtBottomSection[board] button": `display: flex; width: 38px; height: 38px; padding: 0; border-radius: 6px; justify-content: center; align-items: center`,
-    ".brtBottomSection[board] button:hover": `background: var(--boardHover)`,
-    ".brtBottomSection[board] button svg": `width: 32px; height: 32px; transition: .2s`,
-    ".brtBottomSection[board] button:hover svg": `transform: scale(.9)`
+    ".brtOpenBoard": `box-shadow: var(--boardLightShadow)`,
+    ".brtOpenBoard button": `display: flex; width: 38px; height: 38px; padding: 0; border-radius: 6px; justify-content: center; align-items: center`,
+    ".brtOpenBoard button:hover": `background: var(--boardHover)`,
+    ".brtOpenBoard button svg": `width: 32px; height: 32px; transition: .2s`,
+    ".brtOpenBoard button:hover svg": `transform: scale(.9)`
   };
 
   async close(skipThumbnail) {
@@ -233,9 +243,9 @@ export class Page {
     }
 
     if (showBoardButton == true) {
-      this.openBoardHolder.style.display = "flex";
+      this.openBoardHolder.removeAttribute("hidden");
     } else {
-      this.openBoardHolder.style.removeProperty("display");
+      this.openBoardHolder.setAttribute("hidden", "");
     }
   }
 
@@ -283,10 +293,10 @@ export class Page {
     this.toolbarHolder = this.page.querySelector(".brtToolbarHolder");
     this.editorToolbar = this.toolbarHolder.querySelector(".brtToolbar");
 
-    this.openBoardHolder = this.bottom.querySelector(".brtBottomSection[board]");
+    this.openBoardHolder = this.bottom.querySelector(".brtOpenBoard");
     this.openBoard = this.openBoardHolder.querySelector("button");
 
-    this.currentPageHolder = this.bottom.querySelector(".brtBottomSection[right]");
+    this.currentPageHolder = this.bottom.querySelector(".brtCurrentPageHolder");
     this.pageTextBox = this.currentPageHolder.querySelector(".brtCurrentPage");
     this.increasePageButton = this.currentPageHolder.querySelector(".brtPageNav[down]");
     this.decreasePageButton = this.currentPageHolder.querySelector(".brtPageNav[up]");
@@ -498,10 +508,10 @@ export class Page {
     // Page changer events:
     this.pipeline.subscribe("pageTextUpdate", "page_change", (event) => {
       if (this.editor.currentPage > 0) {
-        this.currentPageHolder.style.display = "flex";
+        this.currentPageHolder.removeAttribute("hidden");
         modifyParams("page", event.pageId);
       } else {
-        this.currentPageHolder.style.display = "none";
+        this.currentPageHolder.setAttribute("hidden", "");
         modifyParams("page");
         return;
       }
@@ -567,7 +577,7 @@ export class Page {
 
     // Splitscreen update events:
     this.openBoard.addEventListener("click", async () => {
-      this.openBoardHolder.style.removeProperty("display");
+      this.openBoardHolder.setAttribute("hidden", "");
 
       if (this.boardOpen == false) {
         await this.parent.parent.addPage("board", "board", { insertBefore: this.parent.pageHolder, percent: .5 });

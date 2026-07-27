@@ -252,7 +252,7 @@ export class Save {
     let annotation = existingAnnotation ?? { render: save };
 
     if (existingAnnotation == null) {
-      annotation = this.editor.addAnnotation(annotation.render, annoID);
+      annotation = this.editor.addAnnotation({ render: annotation.render }, annoID);
     }
 
     if (annotation.revert == null && options.timeout != false) {
@@ -332,6 +332,7 @@ export class Save {
       data._id = annotation.pointer;
       annotation = this.editor.annotations[data._id] ?? {};
     }*/
+
     let annoID = data._id;
 
     let merged = { ...(annotation.render ?? {}), ...data };

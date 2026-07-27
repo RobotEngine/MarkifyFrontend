@@ -73,17 +73,24 @@ export class Page {
       </div>
       <div class="eBottomHolder">
         <div class="eBottom">
-          <div class="eBottomSection" observebottomsection left>
-            <div class="eObserveIcon">${observeIcon}</div>
-            <div class="eObserveText">Observing</div>
-            <div class="eObserveCursor" observecursor></div>
-            <button class="eObserveExit buttonAnim border" observeexit>${closeIcon}</button>
+          <div class="eBottomSide" left>
+            <div class="eBottomSection eWidgetDrawer" hidden></div>
+            <div class="eBottomSection eObserveContainer" hidden>
+              <div class="eObserveIcon">${observeIcon}</div>
+              <div class="eObserveText">Observing</div>
+              <div class="eObserveCursor" observecursor></div>
+              <button class="eObserveExit buttonAnim border" observeexit>${closeIcon}</button>
+            </div>
           </div>
-          <div class="eBottomSectionSpacer"></div>
-          <div class="eBottomSection" right>
-            <button class="ePageNav" down>${increasePageIcon}</button>
-            <div class="eCurrentPage border" contenteditable></div>
-            <button class="ePageNav" up>${decreasePageIcon}</button>
+          <div class="eBottomSide" right>
+            <div class="eBottomSection eOpenBreakout" title="Open Markify Breakout" hidden>
+              <button>${breakoutLogoIcon}</button>
+            </div>
+            <div class="eBottomSection eCurrentPageHolder" hidden>
+              <button class="ePageNav" down>${increasePageIcon}</button>
+              <div class="eCurrentPage border" contenteditable></div>
+              <button class="ePageNav" up>${decreasePageIcon}</button>
+            </div>
           </div>
         </div>
       </div>
@@ -159,11 +166,15 @@ export class Page {
     ".eBottomHolder": `position: relative; width: 100%; height: 50px; margin-bottom: 8px; visibility: visible`,
     ".eBottom": `position: absolute; display: flex; width: 100%; gap: 8px; padding-top: 8px; left: 0px; top: 0px; justify-content: space-between; overflow-x: auto; overflow-y: hidden; scrollbar-width: none`,
     ".eBottom::-webkit-scrollbar": `display: none`,
-    ".eBottomSection": `display: none; box-sizing: border-box; height: 50px; padding: 6px; flex-shrink: 0; align-items: center; background: var(--pageColor); box-shadow: var(--lightShadow); border-radius: 12px 12px 0 0; pointer-events: all`,
-    ".eBottomSection[hidden]": `display: none`,
-    ".eBottomSection:first-child": `border-top-left-radius: 0`,
-    ".eBottomSection:last-child": `border-top-right-radius: 0`,
-    ".eBottomSectionSpacer": `flex: 1`,
+    ".eBottomSide": `display: flex; flex-shrink: 0; gap: 8px`,
+    ".eBottomSide[left]": `flex-direction: row`,
+    ".eBottomSide[right]": `flex-direction: row-reverse`,
+    ".eBottomSection": `display: flex; box-sizing: border-box; height: 50px; padding: 6px; flex-shrink: 0; align-items: center; background: var(--pageColor); box-shadow: var(--lightShadow); pointer-events: all`,
+    ".eBottomSection[hidden]": `display: none !important`,
+    ".eBottomSide[left] .eBottomSection": `border-top-right-radius: 12px`,
+    ".eBottomSide[left] .eBottomSection:not([hidden]) ~ .eBottomSection:not([hidden])": `border-top-left-radius: 12px`,
+    ".eBottomSide[right] .eBottomSection": `border-top-left-radius: 12px`,
+    ".eBottomSide[right] .eBottomSection:not([hidden]) ~ .eBottomSection:not([hidden])": `border-top-right-radius: 12px`,
     ".eObserveIcon": `width: 34px; height: 34px; margin: 2px`,
     ".eObserveIcon svg": `width: 100%; height: 100%`,
     ".eObserveText": `margin: 0 6px`,
@@ -174,11 +185,11 @@ export class Page {
     ".ePageNav svg": `width: 100%; height: 100%`,
     ".eCurrentPage": `min-width: 8px; max-height: 24px; padding: 4px 0; margin: 0 6px; font-size: 20px; outline: unset`,
     ".eCurrentPage:focus": `padding: 4px 12px; --borderWidth: 3px; --borderColor: var(--secondary); --borderRadius: 12px`,
-    ".eBottomSection[breakout]": `display: flex; box-shadow: var(--breakoutLightShadow)`,
-    ".eBottomSection[breakout] button": `display: flex; width: 38px; height: 38px; padding: 0; border-radius: 6px; justify-content: center; align-items: center`,
-    ".eBottomSection[breakout] button:hover": `background: var(--breakoutHover)`,
-    ".eBottomSection[breakout] button svg": `width: 32px; height: 32px; transition: .2s`,
-    ".eBottomSection[breakout] button:hover svg": `transform: scale(.9)`
+    ".eOpenBreakout": `box-shadow: var(--breakoutLightShadow)`,
+    ".eOpenBreakout button": `display: flex; width: 38px; height: 38px; padding: 0; border-radius: 6px; justify-content: center; align-items: center`,
+    ".eOpenBreakout button:hover": `background: var(--breakoutHover)`,
+    ".eOpenBreakout button svg": `width: 32px; height: 32px; transition: .2s`,
+    ".eOpenBreakout button:hover svg": `transform: scale(.9)`
   };
 
   updateActivePage() {
@@ -352,28 +363,9 @@ export class Page {
     }
 
     if (showBreakoutButton == true) {
-      if (this.breakoutButton == null) {
-        this.bottom.insertAdjacentHTML("beforeend", `<div class="eBottomSection" breakout title="Open Markify Breakout" new><button class="eBreakoutOpen">${breakoutLogoIcon}</button></div>`);
-        this.breakoutButton = this.bottom.querySelector(".eBottomSection[new]");
-        this.breakoutButton.removeAttribute("new");
-        this.breakoutButton.querySelector("button").addEventListener("click", async () => {
-          this.breakoutButton.remove();
-          this.breakoutButton = null;
-          
-          if (this.breakoutOpen == false) {
-            await this.parent.addPage("breakout", "breakout", { percent: .5 });
-          }
-          if (this.breakoutVisible == false) {
-            this.parent.activePageID = "breakout";
-            this.parent.pushToPipelines(null, "page_switch", { pageID: "breakout" });
-          }
-        });
-      }
+      this.openBreakoutHolder.removeAttribute("hidden");
     } else {
-      if (this.breakoutButton != null) {
-        this.breakoutButton.remove();
-        this.breakoutButton = null;
-      }
+      this.openBreakoutHolder.setAttribute("hidden", "");
     }
   }
 
@@ -463,10 +455,13 @@ export class Page {
     this.editorToolbar = this.toolbarHolder.querySelector('.eToolbar[type="editor"]');
     this.viewerToolbar = this.toolbarHolder.querySelector('.eToolbar[type="viewer"]');
 
-    this.currentPageHolder = this.bottom.querySelector(".eBottomSection[right]");
+    this.currentPageHolder = this.bottom.querySelector(".eCurrentPageHolder");
     this.pageTextBox = this.currentPageHolder.querySelector(".eCurrentPage");
     this.increasePageButton = this.currentPageHolder.querySelector(".ePageNav[down]");
     this.decreasePageButton = this.currentPageHolder.querySelector(".ePageNav[up]");
+
+    this.openBreakoutHolder = this.bottom.querySelector(".eOpenBreakout");
+    this.openBreakout = this.openBreakoutHolder.querySelector("button");
 
     // Create editor:
     this.editor = await this.setFrame(Editor, this.contentHolder, {
@@ -816,10 +811,10 @@ export class Page {
     // Page changer events:
     this.pipeline.subscribe("pageTextUpdate", "page_change", (event) => {
       if (this.editor.currentPage > 0) {
-        this.currentPageHolder.style.display = "flex";
+        this.currentPageHolder.removeAttribute("hidden");
         modifyParams("page", event.pageId);
       } else {
-        this.currentPageHolder.style.display = "none";
+        this.currentPageHolder.setAttribute("hidden", "");
         modifyParams("page");
         return;
       }
@@ -884,6 +879,17 @@ export class Page {
     });
 
     // Splitscreen update events:
+    this.openBreakout.addEventListener("click", async () => {
+      this.openBreakoutHolder.setAttribute("hidden", "");
+      
+      if (this.breakoutOpen == false) {
+        await this.parent.addPage("breakout", "breakout", { percent: .5 });
+      }
+      if (this.breakoutVisible == false) {
+        this.parent.activePageID = "breakout";
+        this.parent.pushToPipelines(null, "page_switch", { pageID: "breakout" });
+      }
+    });
     this.pipeline.subscribe("pageAdd", "page_add", () => { this.updateSplitScreenButton(); });
     this.pipeline.subscribe("pageRemove", "page_remove", () => { this.updateSplitScreenButton(); });
     this.pipeline.subscribe("pageSwitch", "page_switch", () => { this.updateSplitScreenButton(); });

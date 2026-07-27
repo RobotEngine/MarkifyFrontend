@@ -81,118 +81,15 @@ export class Widget {
       100% { transform: scale(1); box-shadow: var(--darkShadow) }
     `,
     ".eWidgetTimer[ended]": `animation: widgetTimerEndPulse .6s cubic-bezier(.2, .8, .2, 1) 3`,
-    ".eWidgetTimer[ended] .eWidgetTimerInput": `color: var(--error) !important`,
-    ".eWidgetTimer[ended] .eWidgetTimerColon": `color: var(--error) !important`
+    ".eWidgetTimer[ended] .eWidgetTimerInput": `color: var(--red) !important`,
+    ".eWidgetTimer[ended] .eWidgetTimerColon": `color: var(--red) !important`
   };
 
   DEFAULT_DURATION = 5 * 60 * 1000;
-  animationFrame = null;
   circumference = 2 * Math.PI * 142;
-
-  lastTickSecond = -1;
-  hasEnded = false;
-
-  prepareAudio() {
-    if (this.audioCtx == null) {
-      this.audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    }
-
-    if (this.audioCtx.state == "suspended") {
-      this.audioCtx.resume();
-    }
-  }
-
-  playTickSound() {
-    if (this.audioCtx == null || this.audioCtx.state != "running") {
-      return;
-    }
-
-    let osc = this.audioCtx.createOscillator();
-    let gain = this.audioCtx.createGain();
-
-    osc.type = "sine";
-    osc.frequency.setValueAtTime(800, this.audioCtx.currentTime);
-    osc.frequency.exponentialRampToValueAtTime(100, this.audioCtx.currentTime + .05);
-
-    gain.gain.setValueAtTime(.3, this.audioCtx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(.001, this.audioCtx.currentTime + .05);
-
-    osc.connect(gain);
-    gain.connect(this.audioCtx.destination);
-
-    osc.start();
-    osc.stop(this.audioCtx.currentTime + .06);
-  }
-
-  playAlarmSound() {
-    if (this.audioCtx == null || this.audioCtx.state != "running") {
-      return;
-    }
-
-    let now = this.audioCtx.currentTime;
-
-    let playDigitalPluck = (freq, time, isLast) => {
-      let osc = this.audioCtx.createOscillator();
-      let gain = this.audioCtx.createGain();
-      osc.type = "sine";
-      osc.frequency.setValueAtTime(freq, time);
-
-      let attackOsc = this.audioCtx.createOscillator();
-      let attackGain = this.audioCtx.createGain();
-      attackOsc.type = "triangle";
-      attackOsc.frequency.setValueAtTime(freq * 2, time);
-
-      let duration = isLast ? 2.5 : .4;
-
-      gain.gain.setValueAtTime(0, time);
-      gain.gain.linearRampToValueAtTime(.25, time + .02);
-      gain.gain.exponentialRampToValueAtTime(.001, time + duration);
-
-      attackGain.gain.setValueAtTime(0, time);
-      attackGain.gain.linearRampToValueAtTime(.08, time + .01);
-      attackGain.gain.exponentialRampToValueAtTime(.001, time + .1);
-
-      osc.connect(gain);
-      gain.connect(this.audioCtx.destination);
-
-      attackOsc.connect(attackGain);
-      attackGain.connect(this.audioCtx.destination);
-
-      osc.start(time);
-      osc.stop(time + duration + .1);
-
-      attackOsc.start(time);
-      attackOsc.stop(time + .2);
-
-      if (isLast) {
-        let bassOsc = this.audioCtx.createOscillator();
-        let bassGain = this.audioCtx.createGain();
-
-        bassOsc.type = "sine";
-        bassOsc.frequency.setValueAtTime(146.83, time);
-
-        bassGain.gain.setValueAtTime(0, time);
-        bassGain.gain.linearRampToValueAtTime(.4, time + .05);
-        bassGain.gain.exponentialRampToValueAtTime(.001, time + duration);
-
-        bassOsc.connect(bassGain);
-        bassGain.connect(this.audioCtx.destination);
-
-        bassOsc.start(time);
-        bassOsc.stop(time + duration + .1);
-      }
-    };
-
-    playDigitalPluck(293.66, now, false);         
-    playDigitalPluck(440.00, now + .15, false);  
-    playDigitalPluck(659.25, now + .30, false);  
-    playDigitalPluck(739.99, now + .50, true);   
-  }
 
   clearEndState() {
     this.container.removeAttribute("ended");
-    this.hasEnded = false;
-    this.lastTickSecond = -1;
   }
 
   updateInteractivity() {
@@ -326,7 +223,6 @@ export class Widget {
     });
 
     this.btnPlay.addEventListener("click", () => {
-      this.prepareAudio();
       let isPlaying = this.parent.properties.started != null;
 
       if (isPlaying == true) {
@@ -387,8 +283,8 @@ export class Widget {
         this.networkStartSaved = started;
         
         // Find out how long ago the server thinks it started, then translate that to local time
-        let ageMs = getEpoch() - started; 
-        this.localStartPerf = performance.now() - ageMs; 
+        let ageMs = getEpoch() - started;
+        this.localStartPerf = performance.now() - ageMs;
       }
 
       // Calculate elapsed purely using the smooth, drift-free local performance timer
@@ -400,23 +296,12 @@ export class Widget {
       this.localStartPerf = null;
     }
 
-    if (remainingMs > 0 && this.hasEnded == true) {
-      this.clearEndState();
-    }
-
     let totalSeconds = Math.round(remainingMs / 1000);
 
-    if (started != null) {
-      if (totalSeconds < 6 && totalSeconds > 0) {
-        if (totalSeconds != this.lastTickSecond) {
-          this.playTickSound();
-          this.lastTickSecond = totalSeconds;
-        }
-      } else if (remainingMs <= 0 && this.hasEnded != true) {
-        this.hasEnded = true;
-        this.playAlarmSound();
-        this.container.setAttribute("ended", "");
-      }
+    if (remainingMs > 0) {
+      this.clearEndState();
+    } else {
+      this.container.setAttribute("ended", "");
     }
 
     if (document.activeElement != this.minsInput && document.activeElement != this.secsInput) {
@@ -430,7 +315,9 @@ export class Widget {
     }
 
     let totalAssumedDuration = this.parent.properties.originalDuration ?? duration;
-    if (totalAssumedDuration < remainingMs) totalAssumedDuration = remainingMs;
+    if (totalAssumedDuration < remainingMs) {
+      totalAssumedDuration = remainingMs;
+    }
 
     let progressRatio = totalAssumedDuration > 0 ? (remainingMs / totalAssumedDuration) : 0;
     let dashOffset = this.circumference * (1 - progressRatio);
@@ -443,17 +330,9 @@ export class Widget {
       this.iconPlay.style.display = "block";
       this.iconPause.style.display = "none";
     }
-
-    if (started != null && remainingMs > 0) {
-      this.animationFrame = requestAnimationFrame(() => { this.updateUI(); });
-    }
   }
 
   render() {
-    if (this.animationFrame != null) {
-      cancelAnimationFrame(this.animationFrame);
-    }
-
     this.updateUI();
     this.updateInteractivity();
   }

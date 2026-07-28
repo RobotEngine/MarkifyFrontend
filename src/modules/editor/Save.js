@@ -73,7 +73,7 @@ export class Save {
           continue;
         }
 
-        if (annotation.revert._id != null) { // Must not be a new annotation:
+        if (annotation.revert.pending != true) { // Must not be a new annotation:
           delete annotation.retry;
           await this.apply(annotation.revert, { overwrite: true, timeout: false });
           delete annotation.revert;

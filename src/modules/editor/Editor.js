@@ -44,7 +44,7 @@ export class Editor {
     ".eAnnotations[pointereventsdisabled] *": `pointer-events: none !important`,
     ".eBackground": `position: absolute; left: 0px; top: 0px; opacity: .075; transform-origin: left top; background-position: center; z-index: 1; pointer-events: none; contain: strict`,
 
-    ".eAnnotation": `position: absolute; display: block; left: 0px; top: 0px; z-index: calc(var(--startZIndex) + var(--zIndex)); contain: size layout`,
+    ".eAnnotation": `position: absolute; display: block; left: 0px; top: 0px; z-index: calc(var(--startZIndex) + var(--zIndex)); --borderRadius: 0; border-radius: var(--borderRadius); contain: size layout`,
     ".eAnnotation[hidden]": `display: none !important`,
     ".eAnnotation[anno]": `transition: all .25s, z-index 0s`,
     ".eAnnotation[tooleditor]:after": `content: ""; position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; z-index: 999; pointer-events: all`,
@@ -238,7 +238,7 @@ export class Editor {
       }
       this.toolbar.selection.action = "save";
       //await this.forceShort();
-      return await this.toolbar.selection.endAction({ sentKeys: keys, redrawActionBar: true, ...options });
+      return await this.toolbar.selection.endAction({ sentKeys: keys, ...options });
     }
   }
 

@@ -20,25 +20,25 @@ export class Frame {
   html = `<div class="eToolWidgetContainer customScroll" closetooltip>
     <div class="eToolWidgetSection">
       <button class="eToolWidgetTile" widget="poll">
-        <div class="eToolWidgetTilePreview"></div>
+        <div class="eToolWidgetTilePreview eWidget"></div>
         <div class="eToolWidgetTileInfo">
           <div class="eToolWidgetTileTitle">Poll</div>
         </div>
       </button>
       <button class="eToolWidgetTile" widget="alignment">
-        <div class="eToolWidgetTilePreview"></div>
+        <div class="eToolWidgetTilePreview eWidget"></div>
         <div class="eToolWidgetTileInfo">
           <div class="eToolWidgetTileTitle">Alignment</div>
         </div>
       </button>
       <button class="eToolWidgetTile" widget="timer">
-        <div class="eToolWidgetTilePreview"></div>
+        <div class="eToolWidgetTilePreview eWidget"></div>
         <div class="eToolWidgetTileInfo">
           <div class="eToolWidgetTileTitle">Timer</div>
         </div>
       </button>
       <button class="eToolWidgetTile" widget="spinner">
-        <div class="eToolWidgetTilePreview"></div>
+        <div class="eToolWidgetTilePreview eWidget"></div>
         <div class="eToolWidgetTileInfo">
           <div class="eToolWidgetTileTitle">Spinner</div>
         </div>
@@ -49,6 +49,7 @@ export class Frame {
     ".eToolWidgetContainer": `box-sizing: border-box; width: min(460px, var(--maxWidth)); max-height: var(--maxHeight); padding: 12px; overflow: auto`,
     ".eToolWidgetSection": `position: relative; display: grid; width: 100%; grid-gap: 12px; grid-template-columns: repeat(auto-fill, minmax(min(200px, 100%), 1fr))`,
     ".eToolWidgetTile": `position: relative; display: flex; flex-direction: column; padding: 4px; --hoverSize: 0px; --shadowOpacity: 0; aspect-ratio: 4/3; border-radius: calc(8px + var(--hoverSize)); text-decoration: none; outline-offset: 4px`,
+    ".eToolWidgetTile:not([loaded])": `opacity: .5; pointer-events: none`,
     ".eToolWidgetTile:hover, .eToolWidgetTile:focus-within": `--hoverSize: 4px; --shadowOpacity: .5`,
     ".eToolWidgetTile:before": `content: ""; position: absolute; width: calc(100% + (var(--hoverSize) * 2)); height: calc(100% + (var(--hoverSize) * 2)); left: 50%; top: 50%; transform: translate(-50%, -50%); background: var(--pageColor); box-shadow: 0px 0px 8px 0px rgba(var(--themeRGB), var(--shadowOpacity)); border-radius: calc(12px + var(--hoverSize)); z-index: 1; transition: .2s`,
     ".eToolWidgetTilePreview": `--previewScale: 1; position: relative; box-sizing: border-box; display: flex; gap: 6px; flex: 1; width: 100%; z-index: 2; background: var(--hover); border-radius: 8px; overflow: hidden; justify-content: center; align-items: center`,
@@ -80,7 +81,7 @@ export class Frame {
     this.tiles = frame.querySelectorAll(".eToolWidgetTile[widget]");
 
     frame.addEventListener("click", (event) => {
-      let button = event.target.closest(".eToolWidgetTile");
+      let button = event.target.closest(".eToolWidgetTile[loaded]");
       if (button == null) {
         return;
       }
@@ -115,16 +116,17 @@ export class Frame {
           },
           showLoading: false
         });
+        if (widgetModule.renderPreview != null) {
+          await widgetModule.renderPreview();
+        }
         let widgetWidth = widgetModule.WIDTH ?? 300;
         tile.setAttribute("width", widgetWidth);
         tilePreview.style.setProperty("--previewWidth", widgetWidth + "px");
         let widgetHeight = widgetModule.HEIGHT ?? 300;
         tile.setAttribute("height", widgetHeight);
         tilePreview.style.setProperty("--previewHeight", widgetHeight + "px");
-        if (widgetModule.renderPreview != null) {
-          widgetModule.renderPreview();
-        }
         this.updatePreview(tile);
+        tile.setAttribute("loaded", "");
       })();
     }
 

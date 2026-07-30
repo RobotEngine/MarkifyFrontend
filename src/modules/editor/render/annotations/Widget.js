@@ -27,8 +27,11 @@ export class Annotation extends BaseAnnotation {
   ACTION_BAR_TOOLS = [UnlockTool, DeleteTool];
 
   CAN_SELECT = false; // Prevent selection while widget loading
+  async SELECTION_FUNCTION(selection) {
+    if (this.loadWidget != null) {
+      await this.loadWidget;
+    }
 
-  SELECTION_FUNCTION(selection) {
     if (["bottomright", "topleft", "topright", "bottomleft"].includes(selection.handle) == true) {
       return { resizePreserveAspect: true };
     }
@@ -63,7 +66,7 @@ export class Annotation extends BaseAnnotation {
     if (this.cache.widget != this.properties.d) {
       this.cache.widget = this.properties.d;
 
-      let loadWidget = async () => {
+      this.loadWidget = (async () => {
         let widgetTemplate = ((await loadWidgetModule(this.properties.d)) ?? {}).Widget;
         
         if (widgetTemplate != null && this.element != null) {
@@ -90,11 +93,9 @@ export class Annotation extends BaseAnnotation {
         }
 
         this.CAN_SELECT = true;
-      }
-      if (this.editor.exporting != true) {
-        loadWidget();
-      } else {
-        this.editor.exportPromises.push(new Promise(async (resolve) => { resolve(await loadWidget()); }));
+      })();
+      if (this.editor.exporting == true) {
+        this.editor.exportPromises.push(new Promise(async (resolve) => { resolve(await this.loadWidget); }));
       }
     }
 

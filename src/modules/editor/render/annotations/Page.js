@@ -39,7 +39,7 @@ export class Annotation extends BaseAnnotation {
   }
 
   css = {
-    ".eAnnotation[page]": `display: flex; flex-direction: column; background: white; border-radius: 12px; --borderWidth: 4px; box-shadow: 0px 0px 8px rgba(0, 0, 0, .2)`,
+    ".eAnnotation[page]": `display: flex; flex-direction: column; background: white; --borderRadius: 12px; --borderWidth: 4px; box-shadow: 0px 0px 8px rgba(0, 0, 0, .2)`,
     ".eAnnotation[page] > svg[background]": `position: absolute;left: 0; top: 0; border-radius: inherit; overflow: hidden; z-index: 0`,
     ".eAnnotation[page] > div[background]": `position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; background: var(--themeColor); opacity: .1; border-radius: inherit; z-index: 1; pointer-events: all`,
     ".eAnnotation[page] > div[border]": `position: absolute; box-sizing: border-box; width: 100%; height: 100%; left: 0px; top: 0px; border: solid var(--borderWidth) var(--themeColor); border-radius: inherit; z-index: 4; pointer-events: none`,

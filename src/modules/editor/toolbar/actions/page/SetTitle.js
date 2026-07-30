@@ -3,6 +3,8 @@ import { cleanString, clipBoardRead } from "@/crucial";
 import setTitleIcon from "../../../icons/toolbar/settitle.svg?raw";
 
 export class Tool {
+  ID = "page/settitle";
+  
   setActionButton(button) {
     if (button != null) {
       button.innerHTML = setTitleIcon;

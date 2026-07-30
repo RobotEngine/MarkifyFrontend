@@ -63,7 +63,7 @@ export class Selection {
           annotation.removeAttribute("selected");
           annoData.component.setAnimate(true);
           //annotation.style.removeProperty("overflow");
-          annotation.style.removeProperty("border-radius");
+          annotation.style.removeProperty("--borderRadius");
           if (annoData.component.quill != null && annoData.component.quill.isEnabled() == true) {
             annoData.component.quill.disable();
             if (annoData.component.REMOVE_IF_NO_TEXT == true && annoData.component.quill.getText().trim().length < 1 && annoData.component.quill.getContents().ops.length < 2) {
@@ -196,6 +196,19 @@ export class Selection {
         delete this.editor.selecting[annoID];
         break;
       }
+      if (annoModule.SELECTION_FUNCTION != null) {
+        let update = await annoModule.SELECTION_FUNCTION(this, merged) ?? {};
+        setResizePreserveAspect = update.resizePreserveAspect ?? setResizePreserveAspect;
+        setMultiSelectPreserveAspect = update.multiSelectPreserveAspect ?? setMultiSelectPreserveAspect;
+        setSnapping = update.snapping ?? setSnapping;
+        setShowHandles = update.showHandles ?? setShowHandles;
+        setShowDuplicateHandles = update.showDuplicateHandles ?? setShowDuplicateHandles;
+        setShowOnlyWidthHandles = update.showOnlyWidthHandles ?? setShowOnlyWidthHandles;
+        setShowRotationHandle = update.showRotationHandle ?? setShowRotationHandle;
+      }
+      if (annoModule.CAN_SELECT == false) {
+        break;
+      }
       if (annoModule.DISABLE_SNAPPING != true) {
         setSnapping = true;
       }
@@ -211,16 +224,6 @@ export class Selection {
       if (annoModule.RESIZE_PRESERVE_ASPECT == true) {
         setResizePreserveAspect = true;
       }
-      if (annoModule.SELECTION_FUNCTION != null) {
-        let update = annoModule.SELECTION_FUNCTION(this, merged) ?? {};
-        setResizePreserveAspect = update.resizePreserveAspect ?? setResizePreserveAspect;
-        setMultiSelectPreserveAspect = update.multiSelectPreserveAspect ?? setMultiSelectPreserveAspect;
-        setSnapping = update.snapping ?? setSnapping;
-        setShowHandles = update.showHandles ?? setShowHandles;
-        setShowDuplicateHandles = update.showDuplicateHandles ?? setShowDuplicateHandles;
-        setShowOnlyWidthHandles = update.showOnlyWidthHandles ?? setShowOnlyWidthHandles;
-        setShowRotationHandle = update.showRotationHandle ?? setShowRotationHandle;
-      }
       
       let annotation;
       if (annoData.component != null) {
@@ -232,7 +235,7 @@ export class Selection {
       }
       if (annotation != null) {
         annotation.setAttribute("selected", "");
-        annotation.style.borderRadius = (4 / this.editor.zoom) + "px";
+        annotation.style.setProperty("--borderRadius", (4 / this.editor.zoom) + "px");
 
         if (annoData.component.quill != null && selections.length > 1 && annoData.component.quill.isEnabled() == true) {
           annoData.component.quill.disable();
@@ -2305,11 +2308,12 @@ export class Selection {
           let renderedText = original.component.getElement().querySelector("div[edit]");
           if (renderedText != null) {
             if (annoModule.AUTO_TEXT_FIT == true && original.render.textfit == true && select.textfit != false) {
-              select.s[0] = renderedText.offsetWidth + 6;
+              select.s[0] = renderedText.offsetWidth;
               select.textfit = false;
             }
             if (annoModule.AUTO_SET_HEIGHT == true ) {
-              select.s[1] = renderedText.offsetHeight + 6; //Math.max(select.s[1], renderedAnno.offsetHeight + 6);
+              console.log(renderedText.offsetHeight);
+              select.s[1] = renderedText.offsetHeight; //Math.max(select.s[1], renderedAnno.offsetHeight);
             }
           }
         }

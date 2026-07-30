@@ -62,21 +62,29 @@ export class Placement {
       this.annotation.render.l = (topAnnotation.l ?? topAnnotation.sync ?? minLayer) + 1;
     }
     await this.editor.render.create(this.annotation);
-    if (this.annotation.render.textfit == true) {
-      let element = this.annotation.component.getElement();
-      let textElem = element.querySelector("div[text]");
-      if (textElem != null) {
+
+    let annoModule = this.annotation.component ?? {};
+    if (annoModule.AUTO_TEXT_FIT == true || annoModule.AUTO_SET_HEIGHT == true) {
+      let element = annoModule.getElement();
+      let renderedText = element.querySelector("div[edit]");
+      if (renderedText != null) {
         if (this.annotation.render.remove == true) {
           element.style.opacity = 0;
           element.removeAttribute("hidden");
         }
-        this.annotation.render.s = [148, textElem.offsetHeight]; //textElem.offsetWidth
+        if (annoModule.AUTO_TEXT_FIT == true && this.annotation.render.textfit == true) {
+          this.annotation.render.s[0] = renderedText.offsetWidth;
+        }
+        if (annoModule.AUTO_SET_HEIGHT == true ) {
+          this.annotation.render.s[1] = renderedText.offsetHeight;
+        }
         if (this.annotation.render.remove == true) {
           delete this.annotation.render.remove;
           await this.clickMove();
         }
       }
     }
+
     this.editor.selecting["cursor"] = this.annotation.render;
   }
   scroll() {

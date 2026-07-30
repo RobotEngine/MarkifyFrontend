@@ -484,10 +484,10 @@ export class Module {
         if (renderedText != null) {
           merged.s = [(original.render.s ?? [])[0], (original.render.s ?? [])[1]];
           if (annoModule.AUTO_TEXT_FIT == true && original.render.textfit == true && selecting.textfit != false) {
-            merged.s[0] = renderedText.offsetWidth + 6;
+            merged.s[0] = renderedText.offsetWidth;
           }
           if (annoModule.AUTO_SET_HEIGHT == true ) {
-            merged.s[1] = renderedText.offsetHeight + 6; //Math.max(select.s[1], renderedAnno.offsetHeight + 6);
+            merged.s[1] = renderedText.offsetHeight; //Math.max(select.s[1], renderedAnno.offsetHeight);
           }
         }
       }

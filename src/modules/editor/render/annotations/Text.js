@@ -26,8 +26,8 @@ export class Annotation extends BaseAnnotation {
   DEFAULT_FONT_SIZE = 18;
 
   css = {
-    ".eAnnotation[text] div[text]": `box-sizing: unset !important; padding: 4px 6px; margin: 3px; color: var(--themeColor); font-size: 18px; font-weight: 500; pointer-events: all; outline: none`,
-    ".eAnnotation[text] div[text][placeborder]": `width: max-content; margin: 0px; border: solid 3px var(--themeColor); border-radius: 8px`
+    ".eAnnotation[text] div[text]": `box-sizing: unset !important; padding: 8px 10px; color: var(--themeColor); font-size: 18px; font-weight: 500; pointer-events: all; outline: none`,
+    ".eAnnotation[text] div[text][placeborder]:after": `content: ""; position: absolute; box-sizing: border-box; width: 100%; height: 100%; left: 50%; top: 50%; transform: translate(-50%, -50%); border: solid 3px var(--themeColor); border-radius: 8px`
   };
 
   async render() {

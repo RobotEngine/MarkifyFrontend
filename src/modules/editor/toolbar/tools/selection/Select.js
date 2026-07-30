@@ -27,7 +27,7 @@ export class Tool {
       if (render == null) {
         return;
       }
-      if (annotation.querySelector("div[edit]") != null && annotation.querySelector("div[edit]").closest(".eAnnotation") == annotation && annotation.querySelector('div[contenteditable="true"]') != null) {
+      if (annotation.querySelector("div[edit]") != null && annotation.querySelector("div[edit]").closest(".eAnnotation") == annotation && target.closest('div[contenteditable="true"]') != null) {
         return;
       }
       if (this.editor.selecting[annoID] != null) {

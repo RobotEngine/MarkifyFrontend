@@ -24,8 +24,18 @@ export class Tool {
     if (Array.isArray(size) == true) {
       size = size[0];
     }
-    size = size ?? ((component.DEFAULT_FONT_SIZE ?? 14) + "px");
-    this.button.querySelector(".eSubToolFontSize").textContent = size.substring(0, size.length - 2);
+    if (typeof size == "string") {
+      if (size.length > 2) {
+        size = parseFloat(size.substring(0, size.length - 2));
+      } else {
+        size = null;
+      }
+    }
+    if (Number.isNaN(size) == true) {
+      size = null;
+    }
+    size = size ?? component.DEFAULT_FONT_SIZE ?? 14;
+    this.button.querySelector(".eSubToolFontSize").textContent = size;
   }
 
   TOOLTIP = "Font Size";
@@ -92,10 +102,17 @@ export class Tool {
       if (Array.isArray(selectedS) == true) {
         selectedS = selectedS[0];
       }
-      selectedS = selectedS ?? component.DEFAULT_FONT_SIZE ?? 14;
       if (typeof selectedS == "string") {
-        selectedS = parseFloat(selectedS.substring(0, selectedS.length - 2));
+        if (selectedS.length > 2) {
+          selectedS = parseFloat(selectedS.substring(0, selectedS.length - 2)) ?? component.DEFAULT_FONT_SIZE ?? 14;
+        } else {
+          selectedS = null;
+        }
       }
+      if (Number.isNaN(selectedS) == true) {
+        selectedS = null;
+      }
+      selectedS = selectedS ?? component.DEFAULT_FONT_SIZE ?? 14;
 
       smallButton.removeAttribute("selected");
       mediumButton.removeAttribute("selected");

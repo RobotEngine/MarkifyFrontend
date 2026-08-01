@@ -85,8 +85,9 @@ export class Page extends PageFrame {
           <div class="wInfoHeader">Learn the <i>Waves</i> of <b>Markify</b></div>
           <div class="wDivider"></div>
           <div class="wInfoText">Join one (or more) of our 30-minute live summer sessions to master whole-class collaboration, streamline small-group breakouts, or even combine both into one seamless lesson.</div>
-          <div class="wInfoText" breakout>In three of our sessions, we will introduce our new tool: <b>Markify Breakout</b></div>
-          <div class="wInfoText">Can't make any sessions? Recordings will be posted on YouTube afterword!</div>
+          <div class="wInfoText" breakout>In three sessions, we're showcasing our newest tool: <b>Markify Breakout</b></div>
+          <div class="wInfoText">Attendees will receive a completion certificate. <i>Please check with your district to see if you qualify for PD credit.</i></div>
+          <div class="wInfoText">Can't make a live session? Register anyway and we'll send you the full recording afterward!</div>
           <div class="wInfoHeader">Meet the <b>Presenters</b></div>
           <div class="wDivider"></div>
           <div class="wInfoPresenterHolder">

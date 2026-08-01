@@ -71,7 +71,7 @@ export class Frame {
     ".aManageTitle": `display: flex; gap: 8px; align-items: center`,
     ".aManageTitle div[title]": `color: var(--secondary)`,
     ".aManageTitle div[divider]": `flex: 1; height: 4px; background: var(--hover); border-radius: 2px`,
-    ".aManageCard": `display: flex; flex-wrap: wrap; padding: 12px; margin: 8px 0; gap: 8px; background: var(--pageColor); border-radius: 12px; box-shadow: var(--darkShadow); justify-content: center; align-items: center; text-align: center`,
+    ".aManageCard": `display: flex; flex-wrap: wrap; padding: 12px; margin: 8px 0; gap: 8px; background: var(--pageColor); border-radius: 72px 12px 12px 72px; box-shadow: var(--darkShadow); justify-content: center; align-items: center; text-align: center`,
     ".aImageHolder": `width: 120px; height: 120px; display: flex; align-items: center; justify-content: center`,
     ".aImageHolder img": `border-radius: 80px; max-width: 100%; aspect-ratio: 1; box-sizing: border-box; border: 6px solid var(--pageColor); box-shadow: var(--darkShadow); object-fit: cover`,
     ".aManageInfoHolder": `display: flex; flex-direction: column; flex-wrap: wrap; min-height: 120px; flex: 1 1 180px; align-items: center`,

@@ -2312,7 +2312,6 @@ export class Selection {
               select.textfit = false;
             }
             if (annoModule.AUTO_SET_HEIGHT == true ) {
-              console.log(renderedText.offsetHeight);
               select.s[1] = renderedText.offsetHeight; //Math.max(select.s[1], renderedAnno.offsetHeight);
             }
           }

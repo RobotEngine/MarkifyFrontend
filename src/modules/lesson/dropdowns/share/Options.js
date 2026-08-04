@@ -1,14 +1,15 @@
 import { sendRequest } from "@/crucial";
 
-import drawIcon from "@modules/editor/icons/toolbar/draw.svg?raw";
+//import drawIcon from "@modules/editor/icons/toolbar/draw.svg?raw";
 import markupIcon from "@modules/editor/icons/toolbar/markup.svg?raw";
-import eraseIcon from "@modules/editor/icons/toolbar/erase.svg?raw";
+//import eraseIcon from "@modules/editor/icons/toolbar/erase.svg?raw";
 import textIcon from "@modules/editor/icons/toolbar/text.svg?raw";
 import shapeIcon from "@modules/editor/icons/toolbar/shape.svg?raw";
 import stickyIcon from "@modules/editor/icons/toolbar/sticky.svg?raw";
 import commentIcon from "@modules/editor/icons/toolbar/comment.svg?raw";
 import pageIcon from "@modules/editor/icons/toolbar/page.svg?raw";
 import mediaIcon from "@modules/editor/icons/toolbar/media.svg?raw";
+import widgetIcon from "@modules/editor/icons/toolbar/widget.svg?raw";
 
 export class Frame {
   html = `
@@ -36,31 +37,20 @@ export class Frame {
       </div>
       <div class="eShareToolToggle">
         <div class="eShareToolToggleBar">
-          <button class="eShareToolToggleBarTool" tool="draw"><div style="--toolColor: #de84ff; --toolColorOpacity: rgba(222, 132, 255, 1); --toolOpacity: 1">${drawIcon}</div></button>
-          <button class="eShareToolToggleBarTool" tool="markup" style="--toolColor: #ffc24b; --toolColorOpacity: rgba(255, 194, 75, 0.5); --toolOpacity: 0.5"><div>${markupIcon}</div></button>
-          <button class="eShareToolToggleBarTool" tool="erase"><div>${eraseIcon}</div></button>
+          <button class="eShareToolToggleBarTool" tool="markup"><div style="--toolColor: #de84ff; --toolColorOpacity: rgba(222, 132, 255, 1); --toolOpacity: 1">${markupIcon}</div></button>
           <button class="eShareToolToggleBarTool" tool="text" style="--toolColor: #0084FF; --toolColorOpacity: rgba(0, 132, 255, 1); --toolOpacity: 1"><div>${textIcon}</div></button>
           <button class="eShareToolToggleBarTool" tool="shape" style="--toolColor: #fb4c6c; --toolColorOpacity: rgba(251, 76, 108, 1); --toolOpacity: 1"><div>${shapeIcon}</div></button>
           <button class="eShareToolToggleBarTool" tool="sticky" style="--toolColor: #fadca0; --toolColorOpacity: rgba(250, 220, 160, 1); --toolOpacity: 1"><div>${stickyIcon}</div></button>
           <button class="eShareToolToggleBarTool" tool="comment"><div>${commentIcon}</div></button>
           <button class="eShareToolToggleBarTool" tool="page"><div>${pageIcon}</div></button>
           <button class="eShareToolToggleBarTool" tool="media"><div>${mediaIcon}</div></button>
+          <button class="eShareToolToggleBarTool" tool="widget"><div>${widgetIcon}</div></button>
         </div>
         <div class="eShareToolToggleInfo">
-          <div class="eShareToolToggleRow">
-            <div title>Draw</div>
-            <div line></div>
-            <button class="eShareActionOption border" option="draw"><div class="eOptionToggle"><div></div></div></button>
-          </div>
           <div class="eShareToolToggleRow">
             <div title>Markup</div>
             <div line></div>
             <button class="eShareActionOption border" option="markup"><div class="eOptionToggle"><div></div></div></button>
-          </div>
-          <div class="eShareToolToggleRow">
-            <div title>Erase</div>
-            <div line></div>
-            <button class="eShareActionOption border" option="erase"><div class="eOptionToggle"><div></div></div></button>
           </div>
           <div class="eShareToolToggleRow">
             <div title>Text Box</div>
@@ -91,6 +81,11 @@ export class Frame {
             <div title>Media</div>
             <div line></div>
             <button class="eShareActionOption border" option="media"><div class="eOptionToggle"><div></div></div></button>
+          </div>
+          <div class="eShareToolToggleRow">
+            <div title>Widgets</div>
+            <div line></div>
+            <button class="eShareActionOption border" option="widget"><div class="eOptionToggle"><div></div></div></button>
           </div>
         </div>
       </div>

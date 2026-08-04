@@ -583,7 +583,7 @@ export class Render {
       }
     } else {
       if (long != true) {
-        await this.remove(annotation);
+        await this.hide(annotation);
       } else {
         await this.editor.removeAnnotation({ ...annotation, render: { ...render, remove: true } });
       }
@@ -599,20 +599,17 @@ export class Render {
     annotation.component.properties = render;
     annotation.component.annotation = annotation;
     annotation.component.hide();
-    if (annotation.component.embedFrame != null) {
-      annotation.component.embedFrame.remove();
-    }
     if (this.editor.selecting[render._id] != null) {
       this.editor.cleanupSelections();
     }
     this.editor.removeSelection(render._id);
-    if (annotation.workers != null) {
-      this.editor.pushWorkerEvent(annotation, "onAnnotationDestroy");
-    }
   }
   remove(annotation) {
     if (annotation == null) {
       return;
+    }
+    if (annotation.workers != null) {
+      this.editor.pushWorkerEvent(annotation, "onAnnotationDestroy");
     }
     if (annotation.component != null) {
       this.hide(annotation);

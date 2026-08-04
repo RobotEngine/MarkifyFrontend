@@ -698,7 +698,7 @@ export class Utility {
       await this.editor.render.create(annotation);
       //}
     } else {
-      this.editor.render.remove(annotation);
+      await this.editor.render.remove(annotation);
     }
   }
   annotationInViewport(render = {}, rect) {

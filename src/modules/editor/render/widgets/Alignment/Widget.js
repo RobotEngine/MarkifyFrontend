@@ -105,12 +105,15 @@ export class Widget {
   }
 
   updateInteractivity() {
-    if (this.editor.utils.canMemberModify(this.parent.properties) == false || this.editor.utils.isLocked(this.parent.properties) == true) {
-      this.title.style.pointerEvents = "none";
-      this.labelHolder.style.pointerEvents = "none";
-    } else {
-      this.title.style.removeProperty("pointer-events");
-      this.labelHolder.style.removeProperty("pointer-events");
+    let disabled = this.editor.utils.canMemberModify(this.parent.properties) == false || this.editor.utils.isLocked(this.parent.properties) == true;
+    let quillKeys = Object.keys(this.quills);
+    for (let i = 0; i < quillKeys.length; i++) {
+      let { quill } = this.quills[quillKeys[i]];
+      if (disabled) {
+        quill.disable();
+      } else {
+        quill.enable();
+      }
     }
   }
 

@@ -647,7 +647,7 @@ export class Frame {
         }
       }
 
-      let allowRender = annotation.render.remove == true;
+      /*let allowRender = annotation.render.remove == true;
       for (let i = 0; i < annotation.chunks.length; i++) {
         if (this.editor.visibleChunks.includes(annotation.chunks[i]) == true) {
           allowRender = true;
@@ -655,10 +655,10 @@ export class Frame {
         }
       }
       if (allowRender == true) {
-        annotation.component = (await this.editor.render.create(annotation)).component;
+        await this.editor.render.create(annotation);
       } else {
         await this.editor.render.remove(annotation);
-      }
+      }*/
 
       let annoRect = this.editor.utils.getRect(annotation.render);
 

@@ -168,4 +168,11 @@ export class Annotation extends BaseAnnotation {
     this.setTransform();
     this.setAnimate();
   }
+
+  hide() {
+    if (this.embedFrame != null) {
+      this.embedFrame.remove();
+    }
+    super.hide();
+  }
 }

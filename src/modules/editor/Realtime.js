@@ -835,6 +835,9 @@ export class Module {
               let thisCallId = ++member.selection_cursor_preview_version;
 
               let annoPreview = (await this.editor.render.create(member.selection_cursor_preview)).component;
+              if (annoPreview == null) {
+                return;
+              }
 
               if (member.selection_cursor_preview_version != thisCallId) {
                 return;

@@ -1,7 +1,7 @@
 import { sendRequest } from "@/crucial";
 
-//import drawIcon from "@modules/editor/icons/toolbar/draw.svg?raw";
-import markupIcon from "@modules/editor/icons/toolbar/markup.svg?raw";
+import markupIcon from "@modules/editor/icons/toolbar/draw.svg?raw";
+//import markupIcon from "@modules/editor/icons/toolbar/markup.svg?raw";
 //import eraseIcon from "@modules/editor/icons/toolbar/erase.svg?raw";
 import textIcon from "@modules/editor/icons/toolbar/text.svg?raw";
 import shapeIcon from "@modules/editor/icons/toolbar/shape.svg?raw";

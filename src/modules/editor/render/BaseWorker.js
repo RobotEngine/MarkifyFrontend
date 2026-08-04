@@ -2,6 +2,9 @@
 /*
 start() {}
 destroy() {}
+onAnnotationRender(annotation) {}
+onAnnotationCreate(annotation) {}
+onAnnotationDestroy(annotation) {}
 onAnnotationAdd(annotation) {}
 onAnnotationUpdate(annotation, event) {}
 onAnnotationRemove(annotation) {}

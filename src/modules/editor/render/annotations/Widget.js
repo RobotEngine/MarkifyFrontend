@@ -113,7 +113,7 @@ export class Annotation extends BaseAnnotation {
   static async createWorker({ setup, editor, annotation }) {
     let widgetWorker = ((await loadWidgetModule(annotation.render.d)) ?? {}).Worker;
     if (widgetWorker != null) {
-      setup(widgetWorker.NAME, widgetWorker);
+      await setup(widgetWorker.NAME, widgetWorker);
     }
   }
 }

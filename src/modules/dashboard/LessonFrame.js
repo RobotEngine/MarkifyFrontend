@@ -172,7 +172,9 @@ export class LessonFrame {
 
     let title = tile.querySelector(".dTileTitle");
     let titleText = lesson.name ?? "Untitled Lesson";
-    title.textContent = titleText;
+    if (document.activeElement != title) {
+      title.textContent = titleText;
+    }
     title.title = titleText;
 
     let tool = lesson.tool ?? ["board"];

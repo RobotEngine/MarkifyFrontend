@@ -22,7 +22,7 @@ export class Frame {
       <button class="eToolWidgetTile" widget="poll">
         <div class="eToolWidgetTilePreview eWidget"></div>
         <div class="eToolWidgetTileInfo">
-          <div class="eToolWidgetTileTitle">Poll</div>
+          <div class="eToolWidgetTileTitle">Coming Soon...</div>
         </div>
       </button>
       <button class="eToolWidgetTile" widget="alignment">
@@ -54,7 +54,7 @@ export class Frame {
     ".eToolWidgetTile:before": `content: ""; position: absolute; width: calc(100% + (var(--hoverSize) * 2)); height: calc(100% + (var(--hoverSize) * 2)); left: 50%; top: 50%; transform: translate(-50%, -50%); background: var(--pageColor); box-shadow: 0px 0px 8px 0px rgba(var(--themeRGB), var(--shadowOpacity)); border-radius: calc(12px + var(--hoverSize)); z-index: 1; transition: .2s`,
     ".eToolWidgetTilePreview": `--previewScale: 1; position: relative; box-sizing: border-box; display: flex; gap: 6px; flex: 1; width: 100%; z-index: 2; background: var(--hover); border-radius: 8px; overflow: hidden; justify-content: center; align-items: center`,
     ".eToolWidgetTilePreview:after": `content: ""; position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; border-radius: inherit; box-shadow: inset 0px 0px 4px 0px rgba(var(--themeRGB), .5); pointer-events: all; z-index: 999`,
-    ".eToolWidgetTilePreview .content": `flex-shrink: 0; width: var(--previewWidth); height: var(--previewHeight); transform: scale(var(--previewScale)); transition: unset !important`,
+    ".eToolWidgetTilePreview .content": `flex-shrink: 0; width: var(--previewWidth) !important; height: var(--previewHeight) !important; transform: scale(var(--previewScale)); transition: unset !important`,
     ".eToolWidgetTileInfo": `box-sizing: border-box; display: flex; width: 100%; padding: 4px; margin-top: 4px; z-index: 2`,
     ".eToolWidgetTileTitle": `box-sizing: border-box; width: 100%; font-size: 16px; font-weight: 600; text-align: left`
   };

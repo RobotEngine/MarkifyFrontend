@@ -675,6 +675,13 @@ export class Page extends PageFrame {
               break;
             case "folderset":
               this.folder = body.folder;
+              break;
+            case "invite":
+              if (account.email != null && body.email == account.email) {
+                this.session = null;
+                window.previousLessonSession = null;
+                setPage("pages/app/lesson", { passParams: true });
+              }
           }
         }
         this.pushToPipelines(data.tool, data.task, body);

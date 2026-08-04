@@ -404,10 +404,12 @@ export class Render {
       yPos -= height + thickness;
     }
 
-    if (annotation.component == null) {
+    let newlyRender = annotation.component == null;
+    if (newlyRender == true) {
       if (annotation.loadComponent == null) {
         annotation.loadComponent = new Promise(async (resolve) => {
           annotation.component = await this.createModule(render.f);
+          annotation.component.editor = this.editor;
           resolve(annotation.component);
           delete annotation.loadComponent;
         });
@@ -425,7 +427,6 @@ export class Render {
       return {};
     }
 
-    annotation.component.editor = this.editor;
     annotation.component.annotation = annotation;
     annotation.component.properties = { ...render, p: [xPos, yPos], s: [width, height], parent: parent };
     annotation.component.holder = await this.addParentToQueue(annotation, holder); //holder ?? annotations;
@@ -575,11 +576,14 @@ export class Render {
       }
 
       if (annotation.workers != null) {
+        if (newlyRender == true) {
+          this.editor.pushWorkerEvent(annotation, "onAnnotationCreate");
+        }
         this.editor.pushWorkerEvent(annotation, "onAnnotationRender");
       }
     } else {
       if (long != true) {
-        await this.hide(annotation);
+        await this.remove(annotation);
       } else {
         await this.editor.removeAnnotation({ ...annotation, render: { ...render, remove: true } });
       }
@@ -603,7 +607,7 @@ export class Render {
     }
     this.editor.removeSelection(render._id);
     if (annotation.workers != null) {
-      this.editor.pushWorkerEvent(annotation, "onAnnotationHide");
+      this.editor.pushWorkerEvent(annotation, "onAnnotationDestroy");
     }
   }
   remove(annotation) {

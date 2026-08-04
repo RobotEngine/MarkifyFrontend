@@ -226,18 +226,12 @@ export class Worker extends BaseWorker {
     }
   }
 
-  start() {}
-
   destroy() {
     if (this.animationFrame != null) {
       cancelAnimationFrame(this.animationFrame);
     }
     this.activeTimers = {};
   }
-
-  onAnnotationRender(annotation) {}
-
-  onAnnotationHide(annotation) {}
 
   onAnnotationAdd(annotation) {
     this.handleTimer(annotation);
@@ -246,6 +240,4 @@ export class Worker extends BaseWorker {
   onAnnotationUpdate(annotation, event) {
     this.handleTimer(annotation);
   }
-
-  onAnnotationRemove(annotation) {}
 }

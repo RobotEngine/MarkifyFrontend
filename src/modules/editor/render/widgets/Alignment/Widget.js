@@ -1,4 +1,6 @@
-import { objectEqual, addS } from "@/crucial";
+import { objectEqual, getEpoch, sendRequest, addS } from "@/crucial";
+
+import { round } from "../../../math";
 
 export class Widget {
   WIDTH = 600;
@@ -54,8 +56,9 @@ export class Widget {
     ".eWidgetAlignmentBarScale div[middle]": `left: 50%; background: var(--yellow)`,
     ".eWidgetAlignmentBarScale div[end]": `left: 100%; background: var(--green)`,
     ".eWidgetAlignmentBarMarkerHolder": `position: absolute; width: 100%; height: 100%; left: 0; top: 0; z-index: 2`,
-    ".eWidgetAlignmentBarMarker": `--scale: 0; --themeColor: var(--theme); position: absolute; width: 32px; height: 32px; padding: 0; transform: translate(-50%, -50%) scale(var(--scale)) !important; background: var(--pageColor); border: solid 3px var(--themeColor); border-radius: 16px; overflow: hidden; transition: .4s`,
-    ".eWidgetAlignmentBarMarker img": `display: none; width: 100%; height: 100%; object-fit: cover`,
+    ".eWidgetAlignmentBarMarker": `--scale: 0; --themeColor: var(--theme); position: absolute; width: 28px; height: 28px; padding: 0; transform: translate(-50%, -50%) scale(var(--scale)) !important; background: var(--themeColor); border-radius: 16px; transition: .4s`,
+    ".eWidgetAlignmentBarMarker:before": `content: ""; position: absolute; width: 100%; height: 100%; left: 0; top: 0; box-shadow: 0 0 3px 0 var(--themeColor); opacity: .3; border-radius: inherit; z-index: 1`,
+    ".eWidgetAlignmentBarMarker img": `position: relative; display: none; width: 100%; height: 100%; object-fit: cover; border-radius: inherit; pointer-events: none; z-index: 2`,
     ".eWidgetAlignmentLabels": `box-sizing: border-box; display: flex; width: 100%`,
     ".eWidgetAlignmentLabel": `flex: 1; min-height: 18px; padding: 4px 8px; font-size: 14px !important; font-weight: 600 !important`,
     ".eWidgetAlignmentLabel[left]": `text-align: left !important`,
@@ -111,6 +114,32 @@ export class Widget {
     }
   }
 
+  updateMarker(render, marker) {
+    if (marker == null) {
+      return;
+    }
+    if (render.name != null) {
+      marker.title = render.name;
+    } else {
+      marker.removeAttribute("title");
+    }
+    if (render.color != null) {
+      marker.style.setProperty("--themeColor", render.color);
+    } else {
+      marker.style.removeProperty("--themeColor");
+    }
+    let image = marker.querySelector("img");
+    if (render.image == null) {
+      marker.style.border = "solid 3px var(--pageColor)";
+      image.style.removeProperty("display");
+    } else {
+      marker.style.border = "solid 3px var(--themeColor)";
+      if (image.getAttribute("src") != render.image) {
+        image.src = render.image;
+      }
+      image.style.display = "unset";
+    }
+  }
   addMarker(render, marker) {
     if (marker == null) {
       marker = this.markers[render._id];
@@ -124,21 +153,20 @@ export class Widget {
       marker.innerHTML = `<img src="../images/profiles/default.svg" />`;
       this.markerHolder.appendChild(marker);
     }
-    marker.style.left = (render.x * 100) + "%";
-    marker.style.top = (render.y * 100) + "%";
-    if (render.name != null) {
-      marker.title = render.name;
-    }
-    if (render.color != null) {
-      marker.style.setProperty("--themeColor", render.color);
-    }
-    let image = marker.querySelector("img");
-    if (render.image == null) {
-      image.style.removeProperty("display");
+    marker.style.left = render.x + "%";
+    marker.style.top = render.y + "%";
+
+    this.updateMarker(render, marker);
+
+    if (render.pending != true) {
+      if (render._id == this.editor.self.modify) {
+        this.currentMarker = render;
+      }
+      marker.removeAttribute("pending");
     } else {
-      image.src = render.image;
-      image.style.display = "unset";
+      marker.setAttribute("pending", "");
     }
+
     marker.style.setProperty("--scale", "1");
     return marker;
   }
@@ -148,12 +176,19 @@ export class Widget {
       delete this.markers[id];
     }
     if (marker != null) {
-      marker.remove();
+      marker.style.setProperty("opacity", 0, "important");
+      setTimeout(() => {
+        if (marker != null) {
+          marker.remove();
+        }
+      }, 400);
     }
   }
   removeAllMarkers() {
-    this.markers = {};
-    this.markerHolder.innerHTML = "";
+    let markerKeys = Object.keys(this.markers);
+    for (let i = 0; i < markerKeys.length; i++) {
+      this.removeMarker(markerKeys[i]);
+    }
   }
 
   updateVoterCount() {
@@ -170,9 +205,40 @@ export class Widget {
     let [mouseX, mouseY] = this.editor.utils.mousePosition(event);
     let barRect = this.bar.getBoundingClientRect();
     return [
-      (mouseX - barRect.left) / barRect.width,
-      (mouseY - barRect.top) / barRect.height
+      round(((mouseX - barRect.left) / barRect.width) * 100),
+      round(((mouseY - barRect.top) / barRect.height) * 100)
     ];
+  }
+
+  voteSync = {};
+  //voteSaved = false;
+  //voteSaving = false;
+  async saveVote(save) {
+    this.voteSync = save;
+    if (this.voteSaving == true) {
+      this.voteSaved = false;
+      return;
+    }
+    this.voteSaving = true;
+    this.voteSaved = true;
+
+    let [code] = await sendRequest("POST", "lessons/widgets/alignment/vote?widget=" + this.parent.properties._id, this.voteSync, { session: this.editor.session });
+    if (code != 200 && this.voteSaved != false) {
+      let marker = this.markers[this.editor.self.modify];
+      if (marker.hasAttribute("pending") == true) {
+        if (this.currentMarker == null) {
+          this.removeMarker(this.editor.self.modify);
+          this.updateVoterCount();
+        } else {
+          this.addMarker(this.currentMarker);
+        }
+      }
+    }
+
+    this.voteSaving = false;
+    if (this.voteSaved == false) {
+      this.saveVote(this.voteSync);
+    }
   }
 
   async js(frame) {
@@ -190,15 +256,17 @@ export class Widget {
       return;
     }
 
-    this.voteID = this.parent.properties._id + "_" + this.editor.self.modify;
-
     await this.setupQuill(this.title, "title", "Write a Title...");
     await this.setupQuill(this.leftLabel, "leftlabel");
     await this.setupQuill(this.centerlabel, "centerlabel");
     await this.setupQuill(this.rightLabel, "rightlabel");
 
     this.widget.addEventListener("pointermove", (event) => {
-      if (this.markers[this.voteID] != null) {
+      if (this.markers[this.editor.self.modify] != null) {
+        if (this.placingMarker != null) {
+          this.removeMarker(null, this.placingMarker);
+          this.placingMarker = null;
+        }
         return;
       }
       let [percentX, percentY] = this.localBarMousePositionPercentage(event);
@@ -210,31 +278,47 @@ export class Widget {
         image: this.editor.self.image
       }, this.placingMarker);
       this.placingMarker.setAttribute("disabled", "");
-      this.placingMarker.style.transition = "unset";
+      this.placingMarker.style.transition = "all 0s, opacity .4s";
     });
     this.widget.addEventListener("pointerleave", () => {
       this.removeMarker(null, this.placingMarker);
       this.placingMarker = null;
     });
     this.bar.addEventListener("click", (event) => {
-      let existingMarker = this.markers[this.voteID];
-      if (existingMarker != null && existingMarker.hasAttribute("disabled") == true) {
+      if (this.parent.properties.pending == true) {
         return;
       }
 
       let [percentX, percentY] = this.localBarMousePositionPercentage(event);
+      if (percentX < 0 || percentX > 100) {
+        return;
+      }
+      if (percentY < 0 || percentY > 100) {
+        return;
+      }
+      let save = { x: percentX, y: percentY };
+
       this.addMarker({
-        _id: this.voteID,
-        x: percentX,
-        y: percentY,
+        _id: this.editor.self.modify,
+        ...save,
         name: this.editor.self.name,
         color: this.editor.self.color,
-        image: this.editor.self.image
-      }).setAttribute("disabled", "");
+        image: this.editor.self.image,
+        pending: true
+      });
       this.updateVoterCount();
+
+      this.saveVote(save);
 
       this.removeMarker(null, this.placingMarker);
       this.placingMarker = null;
+    });
+
+    this.parent.subscribe("collaborator_update", async (collaborator) => {
+      let marker = this.markers[collaborator._id];
+      if (marker != null) {
+        this.updateMarker(await this.editor.utils.getCollaborator(collaborator._id), marker);
+      }
     });
 
     this.parent.subscribe("update", (data) => {

@@ -998,6 +998,35 @@ export class Frame {
     ]);
   }
 
+  refreshSelections() {
+    let annotationRect = this.editor.utils.localBoundingRect(this.editor.annotationHolder);
+    let allSelections = this.realtimeHolder.querySelectorAll(".timelineSelect");
+    for (let i = 0; i < allSelections.length; i++) {
+      let selection = allSelections[i];
+      let [annoID] = selection.getAttribute("merged").split("_");
+      let render = {};
+      if (this.editor.annotations[annoID] == null) {
+        selection.remove();
+        continue;
+      }
+      render = { ...((this.editor.annotations[annoID]).render ?? {}), ...(this.editor.selecting[annoID] ?? {}) };
+      if (render.f == null) {
+        continue;
+      }
+      let rect = this.editor.utils.getRect(render);
+      selection.setAttribute("notransition", "");
+      let rotate = rect.rotation;
+      if (rotate > 180) {
+        rotate = -(360 - rotate);
+      }
+      selection.style.width = ((rect.width * this.editor.zoom) - 3) + "px";
+      selection.style.height = ((rect.height * this.editor.zoom) - 3) + "px";
+      selection.style.transform = "translate(" + (annotationRect.left + (rect.x * this.editor.zoom) + this.editor.contentHolder.scrollLeft - 1.5) + "px," + (annotationRect.top + (rect.y * this.editor.zoom) + this.editor.contentHolder.scrollTop - 1.5) + "px) rotate(" + rotate + "deg)";
+      selection.offsetHeight;
+      selection.removeAttribute("notransition");
+    }
+  }
+
   async js(frame) {
     frame.style.position = "relative";
     frame.style.width = "100%";
@@ -1182,36 +1211,6 @@ export class Frame {
     this.sliderBar.addEventListener("mousedown", (event) => { this.enableSlider(event); });
     this.sliderBar.addEventListener("touchstart", (event) => { this.enableSlider(event); }, { passive: true });
 
-    // Handle selection box updates on zoom:
-    this.editor.pipeline.subscribe("timelineZoomUpdate", "zoom_change", () => {
-      let annotationRect = this.editor.utils.localBoundingRect(this.editor.annotationHolder);
-      let allSelections = this.realtimeHolder.querySelectorAll(".timelineSelect");
-      for (let i = 0; i < allSelections.length; i++) {
-        let selection = allSelections[i];
-        let [annoID] = selection.getAttribute("merged").split("_");
-        let render = {};
-        if (this.editor.annotations[annoID] == null) {
-          selection.remove();
-          continue;
-        }
-        render = { ...((this.editor.annotations[annoID]).render ?? {}), ...(this.editor.selecting[annoID] ?? {}) };
-        if (render.f == null) {
-          continue;
-        }
-        let rect = this.editor.utils.getRect(render);
-        selection.setAttribute("notransition", "");
-        let rotate = rect.rotation;
-        if (rotate > 180) {
-          rotate = -(360 - rotate);
-        }
-        selection.style.width = ((rect.width * this.editor.zoom) - 3) + "px";
-        selection.style.height = ((rect.height * this.editor.zoom) - 3) + "px";
-        selection.style.transform = "translate(" + (annotationRect.left + (rect.x * this.editor.zoom) + this.editor.contentHolder.scrollLeft - 1.5) + "px," + (annotationRect.top + (rect.y * this.editor.zoom) + this.editor.contentHolder.scrollTop - 1.5) + "px) rotate(" + rotate + "deg)";
-        selection.offsetHeight;
-        selection.removeAttribute("notransition");
-      }
-    });
-
     // Revert button:
     this.revertButton.addEventListener("click", async () => {
       frame.setAttribute("disabled", "");
@@ -1250,6 +1249,10 @@ export class Frame {
     this.filterButton.addEventListener("click", () => {
       this.editor.openDropdown(this.filterButton, FilterDropdown, { parent: this });
     });
+
+    // Refresh selection boxes:
+    this.editor.pipeline.subscribe("timelineBoundsChangeUpdate", "bounds_change", () => { this.refreshSelections(); });
+    this.editor.pipeline.subscribe("timelineZoomUpdate", "zoom_change", () => { this.refreshSelections(); });
 
     // Initialize timeline:
     this.loadEpoch = getEpoch();

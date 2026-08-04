@@ -390,10 +390,15 @@ export class Editor {
               annotationWorkers.push(["global", id]);
               let globalWorkerObject = globalWorker.worker ?? {};
               if (globalWorkerObject.onAnnotationAdd != null) {
-                globalWorker.worker.onAnnotationAdd(annotation);
+                globalWorkerObject.onAnnotationAdd(annotation);
               }
-              if (globalWorkerObject.onAnnotationRender != null && annotation.component != null) {
-                globalWorker.worker.onAnnotationRender(annotation);
+              if (annotation.component != null) {
+                if (globalWorkerObject.onAnnotationCreate != null) {
+                  globalWorkerObject.onAnnotationCreate(annotation);
+                }
+                if (globalWorkerObject.onAnnotationRender != null) {
+                  globalWorkerObject.onAnnotationRender(annotation);
+                }
               }
             } else {
               let localWorker = await this.newModule(worker);
@@ -404,8 +409,13 @@ export class Editor {
               if (localWorker.start != null) {
                 localWorker.start();
               }
-              if (localWorker.onRender != null && annotation.component != null) {
-                globalWorker.worker.onRender();
+              if (annotation.component != null) {
+                if (localWorker.onAnnotationCreate != null) {
+                  localWorker.onAnnotationCreate(annotation);
+                }
+                if (localWorker.onAnnotationRender != null) {
+                  localWorker.onAnnotationRender(annotation);
+                }
               }
             }
           },

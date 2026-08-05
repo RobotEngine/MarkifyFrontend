@@ -409,7 +409,6 @@ export class Render {
       if (annotation.loadComponent == null) {
         annotation.loadComponent = new Promise(async (resolve) => {
           annotation.component = await this.createModule(render.f);
-          annotation.component.editor = this.editor;
           resolve(annotation.component);
           delete annotation.loadComponent;
         });
@@ -427,6 +426,7 @@ export class Render {
       return {};
     }
 
+    annotation.component.editor = this.editor;
     annotation.component.annotation = annotation;
     annotation.component.properties = { ...render, p: [xPos, yPos], s: [width, height], parent: parent };
     annotation.component.holder = await this.addParentToQueue(annotation, holder); //holder ?? annotations;

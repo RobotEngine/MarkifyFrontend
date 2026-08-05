@@ -228,7 +228,7 @@ export class Page extends PageFrame {
     ".dBannerButtons": `display: flex; gap: 8px; height: fit-content; min-height: 50px; padding: 0 8px 0 0; align-items: center`,
     ".dBannerButtons button": `position: relative; --borderWidth: 3px; --borderRadius: 14px`,
     ".dBannerButtons button svg, .dBannerButtons button img": `position: absolute; width: calc(100% - 10px); height: calc(100% - 10px); left: 5px; top: 5px`,
-    ".dBannerClose": `width: 22px; height: 22px; margin: 3px`,
+    ".dBannerClose": `flex-shrink: 0; width: 22px; height: 22px; margin: 3px`,
     ".dBannerAction": `--themeColor: var(--theme); padding: 0 10px; font-size: 16px; font-weight: 600; color: var(--theme); min-height: 28px; margin: 3px`,
 
     ".dFolderInfo": `--folderFill: var(--themeColor); display: flex; width: 100%; justify-content: center; align-items: center`,

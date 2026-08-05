@@ -355,7 +355,7 @@ export class Page {
         showBreakoutButton = true;
       }
     } else {
-      if (this.parent.self.access > 3 && hasFeatureEnabled("breakout") == true) {
+      if (this.parent.self.access > 3) {
         if (this.breakoutOpen == false || this.breakoutVisible == false) {
           showBreakoutButton = true;
         }

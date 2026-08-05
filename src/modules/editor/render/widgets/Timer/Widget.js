@@ -251,11 +251,12 @@ export class Widget {
 
     this.btnReset.addEventListener("click", () => {
       this.clearEndState();
+      let duration = this.parent.properties.originalDuration ?? this.parent.properties.duration ?? this.DEFAULT_DURATION;
       this.editor.saveAnnotation({
         _id: this.parent.properties._id,
         started: null,
-        duration: this.DEFAULT_DURATION,
-        originalDuration: this.DEFAULT_DURATION
+        duration: duration,
+        originalDuration: duration
       }, { saveImmediately: true });
     });
 

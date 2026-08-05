@@ -153,6 +153,7 @@ export class Widget {
         this.markers[render._id] = marker;
       }
       marker.className = "eWidgetAlignmentBarMarker";
+      marker.setAttribute("collaborator", render._id);
       marker.innerHTML = `<img src="../images/profiles/default.svg" />`;
       this.markerHolder.appendChild(marker);
     }
@@ -291,6 +292,13 @@ export class Widget {
       if (this.parent.properties.pending == true) {
         return;
       }
+
+      /*let marker = event.target.closest(".eWidgetAlignmentBarMarker");
+      if (marker != null) {
+        if (marker.getAttribute("collaborator") == this.editor.self.modify) {
+          return this.saveVote({});
+        }
+      }*/
 
       let [percentX, percentY] = this.localBarMousePositionPercentage(event);
       if (percentX < 0 || percentX > 100) {

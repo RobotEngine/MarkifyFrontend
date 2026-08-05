@@ -116,7 +116,7 @@ export class Page extends PageFrame {
           <div class="wDivider"></div>
           <div class="wEventsHolder">
 
-            <a class="wEvent" event="evt-O3Mefd6onUQiZJn">
+            <a class="wEvent" event="evt-O3Mefd6onUQiZJn" style="display: none">
               <div class="wEventHeader">
                 <div class="wEventLogo"><img src="${boardBadgeIcon}" /></div>
                 <div class="WEventInfo">

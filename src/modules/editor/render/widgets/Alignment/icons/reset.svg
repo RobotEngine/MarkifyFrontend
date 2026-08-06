@@ -1,0 +1,23 @@
+<svg width="256" height="256" viewBox="0 0 256 256" fill="none" xmlns="http://www.w3.org/2000/svg">
+<mask id="mask0_5349_20" style="mask-type:alpha" maskUnits="userSpaceOnUse" x="0" y="0" width="256" height="256">
+<rect width="256" height="256" fill="#D9D9D9"/>
+</mask>
+<g mask="url(#mask0_5349_20)">
+<path d="M59.8818 125.183C59.8818 141.368 65.4936 157.051 75.761 169.562C86.0284 182.073 100.316 190.637 116.19 193.794C132.063 196.952 148.541 194.508 162.814 186.878" stroke="white" stroke-width="44" stroke-linecap="round"/>
+<path d="M59.8818 101.335L28 133.217" stroke="white" stroke-width="44" stroke-linecap="round"/>
+<path d="M59.8816 101.333L91.7651 133.217" stroke="white" stroke-width="44" stroke-linecap="round"/>
+<path d="M59.8818 101.333C59.8818 117.593 59.8818 124.007 59.8818 125.182" stroke="white" stroke-width="44" stroke-linecap="round"/>
+<path d="M196.118 129.95C196.118 113.765 190.506 98.0813 180.239 85.5705C169.972 73.0596 155.684 64.4959 139.81 61.3384C123.937 58.181 107.459 60.6252 93.1858 68.2545" stroke="white" stroke-width="44" stroke-linecap="round"/>
+<path d="M196.118 153.798L228 121.916" stroke="white" stroke-width="44" stroke-linecap="round"/>
+<path d="M196.118 153.8L164.235 121.916" stroke="white" stroke-width="44" stroke-linecap="round"/>
+<path d="M196.118 153.8C196.118 137.539 196.118 131.126 196.118 129.951" stroke="white" stroke-width="44" stroke-linecap="round"/>
+<path d="M59.8818 125.183C59.8818 141.368 65.4936 157.051 75.761 169.562C86.0284 182.073 100.316 190.637 116.19 193.794C132.063 196.952 148.541 194.508 162.814 186.878" stroke="#2F2F2F" stroke-width="22" stroke-linecap="round"/>
+<path d="M59.8818 101.335L28 133.217" stroke="#2F2F2F" stroke-width="22" stroke-linecap="round"/>
+<path d="M59.8816 101.333L91.7651 133.217" stroke="#2F2F2F" stroke-width="22" stroke-linecap="round"/>
+<path d="M59.8818 101.333C59.8818 117.593 59.8818 124.007 59.8818 125.182" stroke="#2F2F2F" stroke-width="22" stroke-linecap="round"/>
+<path d="M196.118 129.95C196.118 113.765 190.506 98.0813 180.239 85.5705C169.972 73.0596 155.684 64.4959 139.81 61.3384C123.937 58.181 107.459 60.6252 93.1858 68.2545" stroke="#2F2F2F" stroke-width="22" stroke-linecap="round"/>
+<path d="M196.118 153.798L228 121.916" stroke="#2F2F2F" stroke-width="22" stroke-linecap="round"/>
+<path d="M196.118 153.8L164.235 121.916" stroke="#2F2F2F" stroke-width="22" stroke-linecap="round"/>
+<path d="M196.118 153.8C196.118 137.539 196.118 131.126 196.118 129.951" stroke="#2F2F2F" stroke-width="22" stroke-linecap="round"/>
+</g>
+</svg>

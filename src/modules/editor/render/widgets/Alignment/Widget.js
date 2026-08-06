@@ -2,9 +2,15 @@ import { objectEqual, getEpoch, sendRequest, addS } from "@/crucial";
 
 import { round } from "../../../math";
 
+import { Tool as HideTool } from "./actions/Hide";
+import { Tool as AnonymousTool } from "./actions/Anonymous";
+import { Tool as ResetTool } from "./actions/Reset";
+
 export class Widget {
   WIDTH = 600;
   //HEIGHT = 214;
+
+  ACTION_BAR_TOOLS = [HideTool, AnonymousTool, ResetTool];
 
   OPTIONS = {
     SHOW_ONLY_WIDTH_HANDLES: true,
@@ -56,9 +62,16 @@ export class Widget {
     ".eWidgetAlignmentBarScale div[middle]": `left: 50%; background: var(--yellow)`,
     ".eWidgetAlignmentBarScale div[end]": `left: 100%; background: var(--green)`,
     ".eWidgetAlignmentBarMarkerHolder": `position: absolute; width: 100%; height: 100%; left: 0; top: 0; z-index: 2`,
-    ".eWidgetAlignmentBarMarker": `--scale: 0; --themeColor: var(--theme); position: absolute; width: 28px; height: 28px; padding: 0; transform: translate(-50%, -50%) scale(var(--scale)) !important; background: var(--themeColor); border-radius: 16px; transition: .4s`,
+    ".eWidgetAlignmentBarMarker": `--scale: 0; --themeColor: var(--theme); position: absolute; width: 28px; height: 28px; padding: 0; transform: translate(-50%, -50%) scale(var(--scale)) !important; background: var(--themeColor); border: solid 3px var(--pageColor); border-radius: 16px; z-index: calc((var(--zIndex) - var(--minZIndex)) / 1000); transition: .4s`,
     ".eWidgetAlignmentBarMarker:before": `content: ""; position: absolute; width: 100%; height: 100%; left: 0; top: 0; box-shadow: 0 0 3px 0 var(--themeColor); opacity: .3; border-radius: inherit; z-index: 1`,
     ".eWidgetAlignmentBarMarker img": `position: relative; display: none; width: 100%; height: 100%; object-fit: cover; border-radius: inherit; pointer-events: none; z-index: 2`,
+    ".eWidgetAlignmentBarMarker[hasimage]": `border: solid 3px var(--themeColor)`,
+    ".eWidgetAlignmentBarMarker[hasimage] img": `display: unset`,
+    ".eWidgetAlignmentBarMarkerHolder[hidemarkers] .eWidgetAlignmentBarMarker[collaborator]:not([self])": `pointer-events: none !important; opacity: 0 !important`,
+    ".eWidgetAlignmentBarMarkerHolder[anonymous] .eWidgetAlignmentBarMarker[collaborator]:not([self])": `--themeColor: var(--theme) !important; pointer-events: none !important`,
+    ".eWidgetAlignmentBarMarkerHolder[anonymous] .eWidgetAlignmentBarMarker[collaborator][hasimage]:not([self])": `border: solid 3px var(--pageColor) !important`,
+    ".eWidgetAlignmentBarMarkerHolder[anonymous] .eWidgetAlignmentBarMarker[collaborator][hasimage]:not([self]) img": `display: none !important`,
+    
     ".eWidgetAlignmentLabels": `box-sizing: border-box; display: flex; width: 100%`,
     ".eWidgetAlignmentLabel": `flex: 1; min-height: 18px; padding: 4px 8px; font-size: 14px !important; font-weight: 600 !important`,
     ".eWidgetAlignmentLabel[left]": `text-align: left !important`,
@@ -133,27 +146,40 @@ export class Widget {
     }
     let image = marker.querySelector("img");
     if (render.image == null) {
-      marker.style.border = "solid 3px var(--pageColor)";
-      image.style.removeProperty("display");
+      //marker.style.border = "solid 3px var(--pageColor)";
+      //image.style.removeProperty("display");
+      marker.removeAttribute("hasimage");
     } else {
-      marker.style.border = "solid 3px var(--themeColor)";
+      //marker.style.border = "solid 3px var(--themeColor)";
       if (image.getAttribute("src") != render.image) {
         image.src = render.image;
       }
-      image.style.display = "unset";
+      marker.setAttribute("hasimage", "");
+      //image.style.display = "unset";
+    }
+    if (render.updated != null) {
+      marker.style.setProperty("--zIndex", render.updated);
+      if (this.minZIndex < render.updated || this.minZIndex == null) {
+        this.minZIndex = render.updated;
+        this.markerHolder.style.setProperty("--minZIndex", render.updated);
+      }
     }
   }
   addMarker(render, marker) {
     if (marker == null) {
       marker = this.markers[render._id];
     }
-    if (marker == null) {
+    let newMarker = marker == null;
+    if (newMarker == true) {
       marker = document.createElement("button");
       if (render._id != null) {
         this.markers[render._id] = marker;
+        marker.setAttribute("collaborator", render._id);
+        if (render._id == this.editor.self.modify) {
+          marker.setAttribute("self", "");
+        }
       }
       marker.className = "eWidgetAlignmentBarMarker";
-      marker.setAttribute("collaborator", render._id);
       marker.innerHTML = `<img src="../images/profiles/default.svg" />`;
       this.markerHolder.appendChild(marker);
     }
@@ -163,15 +189,17 @@ export class Widget {
     this.updateMarker(render, marker);
 
     if (render.pending != true) {
-      if (render._id == this.editor.self.modify) {
-        this.currentMarker = render;
-      }
       marker.removeAttribute("pending");
     } else {
       marker.setAttribute("pending", "");
     }
 
-    marker.style.setProperty("--scale", "1");
+    if (newMarker == true) {
+      if (render._id != null) {
+        marker.offsetHeight;
+      }
+      marker.style.setProperty("--scale", "1");
+    }
     return marker;
   }
   removeMarker(id, marker) {
@@ -193,6 +221,7 @@ export class Widget {
     for (let i = 0; i < markerKeys.length; i++) {
       this.removeMarker(markerKeys[i]);
     }
+    this.updateVoterCount();
   }
 
   updateVoterCount() {
@@ -219,6 +248,24 @@ export class Widget {
   //voteSaving = false;
   async saveVote(save) {
     this.voteSync = save;
+
+    let method;
+    if (save != null) {
+      method = "POST";
+      let self = await this.editor.utils.getCollaborator(this.editor.self.modify);
+      this.addMarker({
+        _id: this.editor.self.modify,
+        ...save,
+        ...self,
+        updated: getEpoch(),
+        pending: true
+      });
+    } else {
+      method = "DELETE";
+      this.removeMarker(this.editor.self.modify);
+    }
+    this.updateVoterCount();
+    
     if (this.voteSaving == true) {
       this.voteSaved = false;
       return;
@@ -226,17 +273,14 @@ export class Widget {
     this.voteSaving = true;
     this.voteSaved = true;
 
-    let [code] = await sendRequest("POST", "lessons/widgets/alignment/vote?widget=" + this.parent.properties._id, this.voteSync, { session: this.editor.session });
+    let [code] = await sendRequest(method, "lessons/widgets/alignment/vote?widget=" + this.parent.properties._id, this.voteSync, { session: this.editor.session });
     if (code != 200 && this.voteSaved != false) {
-      let marker = this.markers[this.editor.self.modify];
-      if (marker.hasAttribute("pending") == true) {
-        if (this.currentMarker == null) {
-          this.removeMarker(this.editor.self.modify);
-          this.updateVoterCount();
-        } else {
-          this.addMarker(this.currentMarker);
-        }
+      if (this.selfMarker == null) {
+        this.removeMarker(this.editor.self.modify);
+      } else {
+        this.addMarker(this.selfMarker);
       }
+      this.updateVoterCount();
     }
 
     this.voteSaving = false;
@@ -265,7 +309,7 @@ export class Widget {
     await this.setupQuill(this.centerlabel, "centerlabel");
     await this.setupQuill(this.rightLabel, "rightlabel");
 
-    this.widget.addEventListener("pointermove", (event) => {
+    this.widget.addEventListener("pointermove", async (event) => {
       if (this.markers[this.editor.self.modify] != null) {
         if (this.placingMarker != null) {
           this.removeMarker(null, this.placingMarker);
@@ -274,12 +318,13 @@ export class Widget {
         return;
       }
       let [percentX, percentY] = this.localBarMousePositionPercentage(event);
+      let self = await this.editor.utils.getCollaborator(this.editor.self.modify);
       this.placingMarker = this.addMarker({
         x: percentX,
         y: percentY,
-        name: this.editor.self.name,
-        color: this.editor.self.color,
-        image: this.editor.self.image
+        ...self,
+        _id: null,
+        updated: getEpoch()
       }, this.placingMarker);
       this.placingMarker.setAttribute("disabled", "");
       this.placingMarker.style.transition = "all 0s, opacity .4s";
@@ -293,12 +338,12 @@ export class Widget {
         return;
       }
 
-      /*let marker = event.target.closest(".eWidgetAlignmentBarMarker");
+      let marker = event.target.closest(".eWidgetAlignmentBarMarker");
       if (marker != null) {
         if (marker.getAttribute("collaborator") == this.editor.self.modify) {
-          return this.saveVote({});
+          return this.saveVote();
         }
-      }*/
+      }
 
       let [percentX, percentY] = this.localBarMousePositionPercentage(event);
       if (percentX < 0 || percentX > 100) {
@@ -307,19 +352,8 @@ export class Widget {
       if (percentY < 0 || percentY > 100) {
         return;
       }
-      let save = { x: percentX, y: percentY };
 
-      this.addMarker({
-        _id: this.editor.self.modify,
-        ...save,
-        name: this.editor.self.name,
-        color: this.editor.self.color,
-        image: this.editor.self.image,
-        pending: true
-      });
-      this.updateVoterCount();
-
-      this.saveVote(save);
+      this.saveVote({ x: percentX, y: percentY });
 
       this.removeMarker(null, this.placingMarker);
       this.placingMarker = null;
@@ -350,6 +384,17 @@ export class Widget {
     this.setQuillContent("leftlabel", this.parent.properties.leftlabel ?? [ { insert: "No, not yet!" } ]);
     this.setQuillContent("centerlabel", this.parent.properties.centerlabel ?? [ { insert: "I'm getting it..." } ]);
     this.setQuillContent("rightlabel", this.parent.properties.rightlabel ?? [ { insert: "I've got it!" } ]);
+
+    if (this.parent.properties.hidden != true) {
+      this.markerHolder.removeAttribute("hidemarkers");
+    } else {
+      this.markerHolder.setAttribute("hidemarkers", "");
+    }
+    if (this.parent.properties.anonymous != true) {
+      this.markerHolder.removeAttribute("anonymous");
+    } else {
+      this.markerHolder.setAttribute("anonymous", "");
+    }
 
     this.updateInteractivity();
   }

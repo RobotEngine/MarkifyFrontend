@@ -76,7 +76,11 @@ export class Worker extends BaseWorker {
         let voteID = voteKeys[i];
         let vote = widget.votes[voteID];
         let collaborator = await this.editor.utils.getCollaborator(voteID);
-        widgetModule.addMarker({ _id: voteID, ...vote, ...collaborator });
+        let marker = { _id: voteID, ...vote, ...collaborator };
+        if (voteID == this.editor.self.modify) {
+          widgetModule.selfMarker = marker;
+        }
+        widgetModule.addMarker(marker);
       }
       widgetModule.updateVoterCount();
     }
@@ -88,13 +92,36 @@ export class Worker extends BaseWorker {
         return;
       }
       let widget = this.widgets[body.widget];
-      if (widget == null || widget.module == null || widget.votes == null) {
+      if (widget == null || widget.votes == null) {
         return;
       }
       if (body.vote != null) {
-        widget.votes[body.vote.collaborator] = body.vote;
-        let collaborator = await this.editor.utils.getCollaborator(body.vote.collaborator);
-        widget.module.addMarker({ _id: body.vote.collaborator, ...body.vote, ...collaborator });
+        if (body.vote.remove != true) {
+          widget.votes[body.vote.collaborator] = body.vote;
+          if (widget.module != null) {
+            let collaborator = await this.editor.utils.getCollaborator(body.vote.collaborator);
+            let marker = { _id: body.vote.collaborator, ...body.vote, ...collaborator };
+            if (body.vote.collaborator == this.editor.self.modify) {
+              widget.module.selfMarker = marker;
+            }
+            widget.module.addMarker(marker);
+            widget.module.updateVoterCount();
+          }
+        } else {
+          delete widget.votes[body.vote.collaborator];
+          if (widget.module != null) {
+            if (body.vote.collaborator == this.editor.self.modify) {
+              delete widget.module.selfMarker;
+            }
+            widget.module.removeMarker(body.vote.collaborator);
+            widget.module.updateVoterCount();
+          }
+        }
+      } else if (body.reset == true) {
+        widget.votes = [];
+        if (widget.module != null) {
+          widget.module.removeAllMarkers();
+        }
       }
     });
   }

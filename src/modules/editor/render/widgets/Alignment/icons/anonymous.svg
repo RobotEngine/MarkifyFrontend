@@ -1,0 +1,17 @@
+<svg viewBox="0 0 256 256" fill="none" xmlns="http://www.w3.org/2000/svg">
+<mask id="mask0_5346_2" style="mask-type:alpha" maskUnits="userSpaceOnUse" x="0" y="0" width="256" height="256">
+<rect width="256" height="256" fill="var(--gray)"/>
+</mask>
+<g mask="url(#mask0_5346_2)">
+<rect x="42" y="136" width="72" height="72" rx="36" stroke="var(--pageColor)" stroke-width="32"/>
+<rect x="142" y="136" width="72" height="72" rx="36" stroke="var(--pageColor)" stroke-width="32"/>
+<rect x="64" y="158" width="28" height="28" rx="14" stroke="var(--pageColor)" stroke-width="12"/>
+<rect x="164" y="158" width="28" height="28" rx="14" stroke="var(--pageColor)" stroke-width="12"/>
+<path d="M114 172H142" stroke="var(--pageColor)" stroke-width="44" stroke-linecap="round"/>
+<path d="M48 112H68.7792M208 112H187.221M68.7792 112L91.588 59.6198C95.7186 50.1341 105.08 44 115.426 44H140.574C150.92 44 160.281 50.1341 164.412 59.6198L187.221 112M68.7792 112H187.221" stroke="var(--pageColor)" stroke-width="44" stroke-linecap="round"/>
+<rect x="48" y="142" width="60" height="60" rx="30" stroke="var(--darkGray)" stroke-width="20"/>
+<rect x="148" y="142" width="60" height="60" rx="30" stroke="var(--darkGray)" stroke-width="20"/>
+<path d="M114 172H142" stroke="var(--darkGray)" stroke-width="20" stroke-linecap="round"/>
+<path d="M48 112H68.7792M208 112H187.221M68.7792 112L91.588 59.6198C95.7186 50.1341 105.08 44 115.426 44H140.574C150.92 44 160.281 50.1341 164.412 59.6198L187.221 112M68.7792 112H187.221" stroke="var(--darkGray)" stroke-width="20" stroke-linecap="round"/>
+</g>
+</svg>

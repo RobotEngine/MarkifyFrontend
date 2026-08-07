@@ -465,7 +465,7 @@ export class Page {
     if (this.groupHolder.scrollTop + this.layout.containerHeight + 500 > this.groupHolder.scrollHeight || this.groups.clientHeight < this.layout.containerHeight) {
       await this.loadGroups();
       if (this.loadingGroups != true && this.allGroupsLoaded != true) {
-        checkLoadGroups();
+        this.checkLoadGroups();
       }
     }
   }

@@ -632,6 +632,19 @@ export class Page extends PageFrame {
               }
               break;
             case "set":
+              let currentLessonTools = this.lesson.tool ?? [];
+
+              objectUpdate(body, this.lesson);
+
+              if (body.hasOwnProperty("name") == true) {
+                document.title = (this.lesson.name ?? "Untitled Lesson") + " | Markify";
+              }
+              if (body.settings != null) {
+                if (body.settings.forceLogin == false && this.self.email == null) {
+                  setFrame("pages/app/join", null, { passParams: true });
+                }
+              }
+
               if (body.hasOwnProperty("tool") == true) {
                 for (let i = 0; i < body.tool.length; i++) {
                   let tool = body.tool[i];
@@ -650,20 +663,9 @@ export class Page extends PageFrame {
                 let currentPagesKeys = Object.keys(this.pages);
                 for (let i = 0; i < currentPagesKeys.length; i++) {
                   let tool = currentPagesKeys[i];
-                  if (body.tool.includes(tool) == false && (this.lesson.tool ?? []).includes(tool) == true) {
+                  if (body.tool.includes(tool) == false && currentLessonTools.includes(tool) == true) {
                     await this.removePage(tool, tool);
                   }
-                }
-              }
-              
-              objectUpdate(body, this.lesson);
-
-              if (body.hasOwnProperty("name") == true) {
-                document.title = (this.lesson.name ?? "Untitled Lesson") + " | Markify";
-              }
-              if (body.settings != null) {
-                if (body.settings.forceLogin == false && this.self.email == null) {
-                  setFrame("pages/app/join", null, { passParams: true });
                 }
               }
               break;

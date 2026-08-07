@@ -298,7 +298,7 @@ export class Page {
         this.headerTitle.innerHTML = "<b>Nothing</b> to see here...";
         this.headerDesc.textContent = "The lesson owner has disabled the ability to see other teams.";
         this.headerReturnButton.style.display = "flex";
-        if (loadShowGroups == true) {
+        if (this.loadShowGroups == true) {
           this.removeAllGroups();
         }
       }
@@ -378,10 +378,13 @@ export class Page {
     this.loadingGroups = false;
   }
   async checkLoadGroups() {
+    if (this.loadShowGroups != true) {
+      return;
+    }
     if (this.groupHolder.scrollTop + this.layout.containerHeight + 500 > this.groupHolder.scrollHeight || this.groups.clientHeight < this.layout.containerHeight) {
       await this.loadGroups();
       if (this.loadingGroups != true && this.allGroupsLoaded != true) {
-        checkLoadGroups();
+        this.checkLoadGroups();
       }
     }
   }

@@ -53,7 +53,7 @@ export class Widget {
     ".eWidgetAlignmentTitle": `flex: 1 1 300px; min-height: 32px; padding: 4px 8px; margin: auto 0; font-size: 18px !important; font-weight: 600 !important; text-align: left !important; align-content: center`,
     ".eWidgetAlignmentVotesHolder": `display: flex; min-width: 100px; margin: 4px 4px 4px auto; justify-content: flex-end; align-items: center`,
     ".eWidgetAlignmentVotes": `width: fit-content; padding: 4px 8px; background: var(--pageColor); box-shadow: inset var(--lightShadow); color: var(--theme); border-radius: 14px; font-size: 13px; font-weight: 500`,
-    ".eWidgetAlignmentBar": `position: relative; box-sizing: border-box; width: 100%; height: 132px; padding: 8px; margin: 8px 0; box-shadow: inset var(--lightShadow); border-radius: 16px; overflow: hidden; cursor: pointer`,
+    ".eWidgetAlignmentBar": `position: relative; box-sizing: border-box; width: 100%; height: 132px; padding: 8px; margin: 8px 0; box-shadow: inset var(--lightShadow); border-radius: 16px; cursor: pointer`,
     ".eWidgetAlignmentBarGradientHolder": `--gradient: linear-gradient(90deg, var(--red), var(--yellow), var(--green)); position: relative; width: 100%; height: 100%; z-index: 1; pointer-events: none`,
     ".eWidgetAlignmentBarGradient": `position: absolute; width: 100%; height: 100%; left: 0; top: 0; background: var(--gradient); opacity: .2; border-radius: 8px; z-index: 1`,
     ".eWidgetAlignmentBarScale": `position: absolute; width: calc(100% - 82px); height: 8px; left: 50%; top: 50%; transform: translate(-50%, -50%); background: var(--gradient); border-radius: 4px; z-index: 2`,
@@ -61,7 +61,7 @@ export class Widget {
     ".eWidgetAlignmentBarScale div[start]": `left: 0; background: var(--red)`,
     ".eWidgetAlignmentBarScale div[middle]": `left: 50%; background: var(--yellow)`,
     ".eWidgetAlignmentBarScale div[end]": `left: 100%; background: var(--green)`,
-    ".eWidgetAlignmentBarMarkerHolder": `position: absolute; width: 100%; height: 100%; left: 0; top: 0; z-index: 2`,
+    ".eWidgetAlignmentBarMarkerHolder": `position: absolute; width: 100%; height: 100%; left: 0; top: 0; border-radius: inherit; overflow: hidden; z-index: 2`,
     ".eWidgetAlignmentBarMarker": `--scale: 0; --themeColor: var(--theme); position: absolute; width: 28px; height: 28px; padding: 0; transform: translate(-50%, -50%) scale(var(--scale)) !important; background: var(--themeColor); border: solid 3px var(--pageColor); border-radius: 16px; z-index: calc((var(--zIndex) - var(--minZIndex)) / 1000); transition: .4s`,
     ".eWidgetAlignmentBarMarker:before": `content: ""; position: absolute; width: 100%; height: 100%; left: 0; top: 0; box-shadow: 0 0 3px 0 var(--themeColor); opacity: .3; border-radius: inherit; z-index: 1`,
     ".eWidgetAlignmentBarMarker img": `position: relative; display: none; width: 100%; height: 100%; object-fit: cover; border-radius: inherit; pointer-events: none; z-index: 2`,
@@ -71,7 +71,7 @@ export class Widget {
     ".eWidgetAlignmentBarMarkerHolder[anonymous] .eWidgetAlignmentBarMarker[collaborator]:not([self])": `--themeColor: var(--theme) !important; pointer-events: none !important`,
     ".eWidgetAlignmentBarMarkerHolder[anonymous] .eWidgetAlignmentBarMarker[collaborator][hasimage]:not([self])": `border: solid 3px var(--pageColor) !important`,
     ".eWidgetAlignmentBarMarkerHolder[anonymous] .eWidgetAlignmentBarMarker[collaborator][hasimage]:not([self]) img": `display: none !important`,
-    
+    ".eWidgetAlignmentMarkerTooltip": `--scaleOpacity: 0; position: absolute; padding: 4px 8px; transform: translate(-50%, -50%) scale(var(--scaleOpacity)) !important; transform-origin: center bottom; background: var(--pageColor); box-shadow: var(--lightShadow); opacity: var(--scaleOpacity); border-radius: 14px; z-index: 3; font-size: 14px; font-weight: 600; color: var(--theme); white-space: nowrap; transition: .4s`,
     ".eWidgetAlignmentLabels": `box-sizing: border-box; display: flex; width: 100%`,
     ".eWidgetAlignmentLabel": `flex: 1; min-height: 18px; padding: 4px 8px; font-size: 14px !important; font-weight: 600 !important`,
     ".eWidgetAlignmentLabel[left]": `text-align: left !important`,
@@ -188,6 +188,10 @@ export class Widget {
 
     this.updateMarker(render, marker);
 
+    if (render._id == this.markerTooltipCollaborator) {
+      this.closeMarkerTooltip();
+    }
+
     if (render.pending != true) {
       marker.removeAttribute("pending");
     } else {
@@ -214,6 +218,9 @@ export class Widget {
           marker.remove();
         }
       }, 400);
+      if (id == this.markerTooltipCollaborator) {
+        this.closeMarkerTooltip();
+      }
     }
   }
   removeAllMarkers() {
@@ -222,6 +229,7 @@ export class Widget {
       this.removeMarker(markerKeys[i]);
     }
     this.updateVoterCount();
+    this.closeMarkerTooltip();
   }
 
   updateVoterCount() {
@@ -241,6 +249,58 @@ export class Widget {
       round(((mouseX - barRect.left) / barRect.width) * 100),
       round(((mouseY - barRect.top) / barRect.height) * 100)
     ];
+  }
+
+  async updateMarkerTooltip() {
+    if (this.markerTooltip == null || this.markerTooltipMarker == null) {
+      return this.removeMemberTooltip();
+    }
+    let collaborator = await this.editor.utils.getCollaborator(this.markerTooltipCollaborator);
+    if (collaborator == null) {
+      return this.removeMemberTooltip();
+    }
+    this.markerTooltip.textContent = collaborator.name;
+    let barRect = this.bar.getBoundingClientRect();
+    let markerRect = this.markerTooltipMarker.getBoundingClientRect();
+    this.markerTooltip.style.left = ((markerRect.left - barRect.left + (markerRect.width / 2)) / this.editor.zoom) + "px";
+    this.markerTooltip.style.top = (((markerRect.top - barRect.top) / this.editor.zoom) - 18) + "px";
+  }
+  async showMarkerTooltip(marker) {
+    if (marker == null) {
+      return this.removeMemberTooltip();
+    }
+    let collaboratorID = marker.getAttribute("collaborator");
+    if (collaboratorID == null) {
+      return this.removeMemberTooltip();
+    }
+    if (collaboratorID != this.markerTooltipCollaborator) {
+      this.closeMarkerTooltip();
+    }
+    this.markerTooltipCollaborator = collaboratorID;
+    this.markerTooltipMarker = marker;
+    if (this.markerTooltip == null) {
+      this.markerTooltip = document.createElement("div");
+      this.markerTooltip.className = "eWidgetAlignmentMarkerTooltip";
+      this.bar.appendChild(this.markerTooltip);
+    }
+    await this.updateMarkerTooltip();
+    this.markerTooltip.offsetHeight;
+    this.markerTooltip.style.setProperty("--scaleOpacity", 1);
+  }
+  closeMarkerTooltip() {
+    if (this.markerTooltip == null) {
+      return;
+    }
+    let removeTooltip = this.markerTooltip;
+    this.markerTooltip = null;
+    this.markerTooltipCollaborator = null;
+    this.markerTooltipMarker = null;
+    removeTooltip.style.setProperty("--scaleOpacity", 0);
+    setTimeout(() => {
+      if (removeTooltip != null) {
+        removeTooltip.remove();
+      }
+    }, 400);
   }
 
   voteSync = {};
@@ -310,6 +370,13 @@ export class Widget {
     await this.setupQuill(this.rightLabel, "rightlabel");
 
     this.widget.addEventListener("pointermove", async (event) => {
+      let marker = event.target.closest(".eWidgetAlignmentBarMarker");
+      if (marker != null) {
+        this.showMarkerTooltip(marker);
+      } else {
+        this.closeMarkerTooltip();
+      }
+
       if (this.markers[this.editor.self.modify] != null) {
         if (this.placingMarker != null) {
           this.removeMarker(null, this.placingMarker);
@@ -317,6 +384,7 @@ export class Widget {
         }
         return;
       }
+
       let [percentX, percentY] = this.localBarMousePositionPercentage(event);
       let self = await this.editor.utils.getCollaborator(this.editor.self.modify);
       this.placingMarker = this.addMarker({

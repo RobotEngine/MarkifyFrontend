@@ -298,7 +298,7 @@ export class Save {
       }
     }
 
-    let allowRender = false; //annotation.render.remove == true;
+    let allowRender = (options.timeout == false && annotation.render.remove == true);
     for (let i = 0; i < (annotation.chunks ?? []).length; i++) {
       if (this.editor.visibleChunks.includes(annotation.chunks[i]) == true) {
         allowRender = true;

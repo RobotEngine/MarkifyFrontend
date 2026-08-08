@@ -249,7 +249,7 @@ export class Save {
       annoID = existingAnnotation.pointer;
       existingAnnotation = this.editor.annotations[annoID];
     }*/
-    let annotation = existingAnnotation ?? { render: save };
+    let annotation = existingAnnotation ?? { render: { ...save, pending: true } };
 
     if (existingAnnotation == null) {
       annotation = this.editor.addAnnotation({ render: annotation.render }, annoID);

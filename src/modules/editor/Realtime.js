@@ -1063,6 +1063,9 @@ export class Module {
         if (member.lastObserveShort > time) {
           return;
         }
+        if (this.editor.toolbar != null) {
+          this.editor.toolbar.pushToolEvent("clickEnd", {});
+        }
         if (this.editor.realtime.observeLoading != null) {
           this.enableObserve(memberData);
         }

@@ -52,7 +52,7 @@ export class Widget {
     ".eWidgetAlignmentHeader": `box-sizing: border-box; display: flex; flex-wrap: wrap; gap: 8px; width: 100%; justify-content: center; align-items: flex-start`,
     ".eWidgetAlignmentTitle": `flex: 1 1 300px; min-height: 32px; padding: 4px 8px; margin: auto 0; font-size: 18px !important; font-weight: 600 !important; text-align: left !important; align-content: center`,
     ".eWidgetAlignmentVotesHolder": `display: flex; min-width: 100px; margin: 4px 4px 4px auto; justify-content: flex-end; align-items: center`,
-    ".eWidgetAlignmentVotes": `width: fit-content; padding: 4px 8px; background: var(--pageColor); box-shadow: inset var(--lightShadow); color: var(--theme); border-radius: 14px; font-size: 13px; font-weight: 500`,
+    ".eWidgetAlignmentVotes": `width: fit-content; padding: 4px 8px; background: var(--pageColor); box-shadow: inset var(--lightShadow); color: var(--theme); border-radius: 14px; font-size: 13px; font-weight: 500; transition: .4s`,
     ".eWidgetAlignmentBar": `position: relative; box-sizing: border-box; width: 100%; height: 132px; padding: 8px; margin: 8px 0; box-shadow: inset var(--lightShadow); border-radius: 16px; cursor: pointer`,
     ".eWidgetAlignmentBarGradientHolder": `--gradient: linear-gradient(90deg, var(--red), var(--yellow), var(--green)); position: relative; width: 100%; height: 100%; z-index: 1; pointer-events: none`,
     ".eWidgetAlignmentBarGradient": `position: absolute; width: 100%; height: 100%; left: 0; top: 0; background: var(--gradient); opacity: .2; border-radius: 8px; z-index: 1`,
@@ -131,7 +131,7 @@ export class Widget {
   }
 
   updateMarker(render, marker) {
-    if (marker == null) {
+    if (render == null || marker == null) {
       return;
     }
     if (render.name != null) {

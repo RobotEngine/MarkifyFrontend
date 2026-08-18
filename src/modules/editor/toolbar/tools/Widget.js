@@ -19,7 +19,7 @@ class WidgetTool extends Placement {
 export class Frame {
   html = `<div class="eToolWidgetContainer customScroll" closetooltip>
     <div class="eToolWidgetSection">
-      <button class="eToolWidgetTile" widget="poll">
+      <button class="eToolWidgetTile" widget="poll_">
         <div class="eToolWidgetTilePreview eWidget"></div>
         <div class="eToolWidgetTileInfo">
           <div class="eToolWidgetTileTitle">Coming Soon...</div>

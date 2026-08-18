@@ -2,6 +2,9 @@ import { mouseDown, stylusActive, sleep } from "@/crucial";
 
 import { round, distance, lowPassFilter, horizontalLine, simplifyPath, relativelyStraight } from "../math";
 
+import { Tool as EraserTool } from "./tools/markup/Eraser";
+import { Tool as DragTool } from "./tools/selection/Drag";
+
 export class Draw {
   FUNCTION = "draw";
   USER_SELECT = "none";
@@ -198,10 +201,10 @@ export class Draw {
     if (skipCheck != true) {
       if (this.stylusButtonA(event) == true) {
         newPassthroughType = "eraser";
-        newPassthrough = "eraser";
+        newPassthrough = EraserTool;
       } else if (this.stylusButtonB(event) == true) {
         newPassthroughType = "drag";
-        newPassthrough = "drag";
+        newPassthrough = DragTool;
       } else if (this.passthroughType != null) {
         if ((this.passthroughModule ?? {}).disable != null) {
           await this.passthroughModule.disable();

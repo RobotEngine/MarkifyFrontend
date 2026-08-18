@@ -109,6 +109,7 @@ export class Tool {
           let [pointX, pointY] = rotatePoint(pRelativeX, pRelativeY, rect.rotation);
           if (isPointOnLine(xPos, yPos, prevPointX + halfWidth, prevPointY + halfHeight, pointX + halfWidth, pointY + halfHeight, Math.max(halfThickness, Math.min(4 / this.editor.zoom, 8))) == true && this.removeAnnotaions[render._id] == null) {
             this.removeAnnotaions[render._id] = render;
+            this.editor.selecting[render._id] = { remove: true };
             this.editor.render.hide(annotation);
             this.PUBLISH.u = { _id: render._id, remove: true };
             await this.editor.forceShort();

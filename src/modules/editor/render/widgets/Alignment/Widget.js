@@ -84,6 +84,9 @@ export class Widget {
       formats: ["bold", "italic", "underline", "strike"],
       placeholder
     });
+    this.quills[id] = { quill, label };
+    let quillCache = this.quills[id];
+
     quill.on("text-change", () => {
       let save = {
         _id: this.parent.properties._id,
@@ -91,13 +94,15 @@ export class Widget {
       };
       save[id] = quill.getContents().ops;
       this.editor.saveAnnotation(save);
+      if (quillCache != null) {
+        quillCache.lastContent = null;
+      }
     });
     quill.on("selection-change", (range) => {
       if (range == null) { // Unfocus
         this.setQuillContent(id, this.parent.properties[id], true);
       }
     });
-    this.quills[id] = { quill, label };
   }
   setQuillContent(id, content, force) {
     if (content == null) {

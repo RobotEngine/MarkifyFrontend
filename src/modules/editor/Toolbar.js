@@ -723,6 +723,7 @@ export class Module {
       }
       delete newAnno.old_ID;
       delete newAnno.m;
+      delete newAnno.from;
       let setLock = [];
       let canLock = this.editor.utils.canChangeLock(newAnno);
       for (let l = 0; l < canLock.length; l++) {
@@ -880,6 +881,7 @@ export class Module {
         newAnno.l = maxZIndex + ((newAnno.l ?? this.editor.maxLayer) - minZIndex);
       }
       delete newAnno.m;
+      delete newAnno.from;
       let setLock = [];
       let canLock = this.editor.utils.canChangeLock(newAnno);
       for (let l = 0; l < canLock.length; l++) {

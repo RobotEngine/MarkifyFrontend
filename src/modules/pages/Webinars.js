@@ -164,7 +164,7 @@ export class Page extends PageFrame {
                 <button class="largeButton">Register</button>
               </div>
             </a>
-            <a class="wEvent" event="evt-II60KMUuUDfnt9D">
+            <a class="wEvent" event="evt-II60KMUuUDfnt9D" style="display: none">
               <div class="wEventHeader">
                 <div class="wEventLogo"><img src="${breakoutBadgeIcon}" /></div>
                 <div class="WEventInfo">

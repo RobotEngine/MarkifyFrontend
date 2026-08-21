@@ -77,6 +77,8 @@ export class Widget {
       formats: ["bold", "italic", "underline", "strike"],
       placeholder
     });
+    let quillCache = { quill };
+
     quill.on("text-change", () => {
       let save = {
         _id: this.parent.properties._id,
@@ -84,13 +86,17 @@ export class Widget {
       };
       save[id] = quill.getContents().ops;
       this.editor.saveAnnotation(save);
+      if (quillCache != null) {
+        quillCache.lastContent = null;
+      }
     });
     quill.on("selection-change", (range) => {
       if (range == null) { // Unfocus
-        this.setQuillContent({ quill }, this.parent.properties[id], true);
+        this.setQuillContent(quillCache, this.parent.properties[id] ?? [], true);
       }
     });
-    return { quill };
+
+    return quillCache;
   }
   setQuillContent(quillCache, content, force) {
     if (content == null || quillCache == null) {
@@ -101,6 +107,7 @@ export class Widget {
     }
     let setContent = this.editor.text.uncleanQuill(content);
     if (objectEqual(setContent, quillCache.lastContent) == false || force == true) {
+      let setContent = this.editor.text.uncleanQuill(content);
       quillCache.lastContent = setContent;
       quillCache.quill.setContents(setContent, "silent");
     }
@@ -128,7 +135,7 @@ export class Widget {
     }
     let optionStore = this.options[render._id];
     if (optionStore != null) {
-      this.setQuillContent(optionStore.quill, render.content);
+      this.setQuillContent(optionStore.quill, render.content ?? []);
     }
     let percent = (render.votes ?? 0) / Math.max(this.totalVotes, 1);
     option.style.setProperty("--percent", percent);
@@ -153,7 +160,7 @@ export class Widget {
       option.innerHTML = `<div class="eWidgetPollOptionText"></div>
       <div class="eWidgetPollOptionPercentHolder">
         <div class="eWidgetPollOptionPercent"></div>
-        <a class="eWidgetPollOptionRemove">${closeIcon}</a>
+        <a class="eWidgetPollOptionRemove" title="Remove Option">${closeIcon}</a>
       </div>
       <div class="eWidgetPollOptionBar"></div>`;
       let optionStore = this.options[render._id];
@@ -242,6 +249,30 @@ export class Widget {
       });
     });
 
+    this.optionsHolder.addEventListener("click", (event) => {
+      let target = event.target;
+      let option = target.closest(".eWidgetPollOption");
+      if (option == null) {
+        return;
+      }
+      if (this.parent.properties.active == true) {
+        // Vote
+      } else {
+        if (target.closest(".eWidgetPollOptionRemove") != null) {
+          let count = this.optionsHolder.childElementCount;
+          let id = parseInt(option.getAttribute("optionid"));
+          let save = { _id: this.parent.properties._id, options: (count - 1) };
+          for (let i = id + 1; i <= count; i++) {
+            save["option_" + (i - 1)] = this.parent.properties["option_" + i];
+          }
+          save["option_" + count] = null;
+          this.removeOption(count);
+          save.s = this.getSize();
+          this.editor.saveAnnotation(save);
+        }
+      }
+    });
+
     this.parent.subscribe("update", (data) => {
       if (this.editor.self._id == data._id && data.hasOwnProperty("access") == true) {
         this.updateInteractivity();
@@ -264,7 +295,7 @@ export class Widget {
     for (let i = 0; i < options; i++) {
       let count = i + 1;
       await this.addOption({
-        ...(this.parent.properties["option_" + count] ?? {}),
+        content: this.parent.properties["option_" + count] ?? {},
         _id: count
       });
     }

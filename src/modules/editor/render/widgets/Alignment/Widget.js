@@ -45,12 +45,12 @@ export class Widget {
     ".eWidgetAlignment": `box-sizing: border-box; display: flex; flex-direction: column; width: 100%; padding: 16px; background: var(--pageColor); box-shadow: var(--lightShadow); border-radius: var(--borderRadius); pointer-events: all !important; justify-content: center; align-items: center; transition: .4s`,
     ".eWidget:not([selected]) .eWidgetAlignment": `border-radius: 16px !important`,
     ".eWidget:not([selected]) .ql-container": `pointer-events: none !important`,
-    ".eWidgetAlignment .ql-container": `position: relative; font-family: var(--font) !important`,
+    ".eWidgetAlignment .ql-container": `position: relative; font-family: var(--font) !important; line-height: 125%`,
     ".eWidgetAlignment .ql-container:before": `content: ""; position: absolute; width: 100%; height: 100%; left: 50%; top: 50%; transform: translate(-50%, -50%); background: var(--hover); opacity: 0; border-radius: 2px; transition: .4s; z-index: 1`,
     ".eWidgetAlignment .ql-container:focus-within:before": `opacity: .4; border-radius: 8px`,
     ".eWidgetAlignment .ql-editor": `position: relative; z-index: 2; font-family: var(--font); font-size: inherit; line-height: inherit; text-align: inherit`,
     ".eWidgetAlignmentHeader": `box-sizing: border-box; display: flex; flex-wrap: wrap; gap: 8px; width: 100%; justify-content: center; align-items: flex-start`,
-    ".eWidgetAlignmentTitle": `flex: 1 1 300px; min-height: 32px; padding: 4px 8px; margin: auto 0; font-size: 18px !important; font-weight: 600 !important; text-align: left !important; align-content: center`,
+    ".eWidgetAlignmentTitle": `flex: 1 1 300px; min-height: 32px; padding: 4px 8px; margin: auto 0; font-size: 16px !important; font-weight: 600 !important; text-align: left !important; line-height: 150% !important; align-content: center`,
     ".eWidgetAlignmentVotesHolder": `display: flex; min-width: 100px; margin: 4px 4px 4px auto; justify-content: flex-end; align-items: center`,
     ".eWidgetAlignmentVotes": `width: fit-content; padding: 4px 8px; background: var(--pageColor); box-shadow: inset var(--lightShadow); color: var(--theme); border-radius: 14px; font-size: 13px; font-weight: 500; transition: .4s`,
     ".eWidgetAlignmentBar": `position: relative; box-sizing: border-box; width: 100%; height: 132px; padding: 8px; margin: 8px 0; box-shadow: inset var(--lightShadow); border-radius: 16px; cursor: pointer`,
@@ -82,6 +82,7 @@ export class Widget {
   async setupQuill(label, id, placeholder) {
     let quill = new (await this.editor.text.getQuill())(label, {
       formats: ["bold", "italic", "underline", "strike"],
+      modules: { history: { maxStack: 0 } },
       placeholder
     });
     this.quills[id] = { quill, label };

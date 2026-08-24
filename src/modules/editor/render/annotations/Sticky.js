@@ -101,9 +101,10 @@ export class Annotation extends BaseAnnotation {
     let loadText = async () => {
       if (this.quill == null) {
         this.quill = new (await this.editor.text.getQuill())(text, {
-          formats: ["font", "size", "bold", "italic", "underline", "strike", "list", "link", "align", "formula"],
+          formats: ["font", "size", "bold", "italic", "underline", "strike", "list", "indent", "link", "align", "formula"],
           modules: {
-            history: { maxStack: 0 }
+            history: { maxStack: 0 },
+            keyboard: {}
           },
           //placeholder: "Double click to type...",
           readOnly: true

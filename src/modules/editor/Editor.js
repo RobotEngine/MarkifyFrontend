@@ -59,6 +59,9 @@ export class Editor {
     ".eAnnotation .ql-editor.ql-blank::before": `color: var(--textColor) !important; opacity: .6 !important`,
     ".eAnnotation .ql-editor ol": `padding: unset`,
     ".eAnnotation .ql-editor a": `color: var(--theme) !important`,
+    
+    
+
     ".eAnnotation:not([selected]) > .ql-container .ql-editor a": `pointer-events: none !important`,
     ".eAnnotation .ql-formula": `position: relative; border: none; background: unset !important; box-shadow: unset !important`,
     '.eAnnotation .ql-editor[contenteditable="false"] .ql-formula': `pointer-events: none !important`,

@@ -24,7 +24,7 @@ export class Text {
   };
 
   async getQuill() {
-    let Quill = (await QUILL()).default;
+    let [ { default: Quill }, ...formats ] = await QUILL(); //, KeyboardModule
     if (window.QuillSetup != true) {
       window.QuillSetup = true;
       let Parchment = Quill.import("parchment");
@@ -43,7 +43,56 @@ export class Text {
       Quill.register(new Parchment.StyleAttributor("size", "font-size", {
         scope: Parchment.Scope.INLINE
       }));
-      Quill.register(class BoldBlot extends Inline {
+      Quill.register(new Parchment.StyleAttributor("align", "text-align", {
+        scope: Parchment.Scope.BLOCK,
+        whitelist: ["left", "center", "right"]
+      }));
+
+      for (let i = 0; i < formats.length; i++) {
+        let newModule = formats[i];
+        Quill.register(newModule.default ?? newModule, true);
+      }
+
+      // 1. Import List and ListContainer from Quill
+      let List = Quill.import("formats/list");
+      class CustomListItem extends List {
+        static register() {} // Intentionally empty: prevents standard List from calling Quill.register(ListContainer) again
+
+        optimize(context) {
+          super.optimize(context);
+          this.updateMaxFontSize();
+        }
+
+        format(name, value) {
+          super.format(name, value);
+          this.updateMaxFontSize();
+        }
+
+        updateMaxFontSize() {
+          if (this.domNode == null) {
+            return;
+          }
+
+          let maxFontSize = 0;
+          let styledNodes = this.domNode.querySelectorAll('[style*="font-size"]');
+
+          styledNodes.forEach((node) => {
+            let fontSizePx = parseFloat(window.getComputedStyle(node).fontSize);
+            if (isNaN(fontSizePx) == false && fontSizePx > maxFontSize) {
+              maxFontSize = fontSizePx;
+            }
+          });
+
+          if (maxFontSize > 0) {
+            this.domNode.style.fontSize = `${maxFontSize}px`;
+          } else {
+            this.domNode.style.removeProperty("font-size");
+          }
+        }
+      }
+      Quill.register(CustomListItem, true);
+      
+      /*Quill.register(class BoldBlot extends Inline {
         static blotName = "bold";
         static tagName = "STRONG";
       });
@@ -77,19 +126,6 @@ export class Text {
         constructor(scroll, domNode) {
           super(scroll, domNode);
           const ui = domNode.ownerDocument.createElement("span");
-          /*const listEventHandler = (e) => {
-            if (!scroll.isEnabled()) return;
-            const format = this.statics.formats(domNode, scroll);
-            if (format == "checked") {
-              this.format("list", "unchecked");
-              e.preventDefault();
-            } else if (format == "unchecked") {
-              this.format("list", "checked");
-              e.preventDefault();
-            }
-          };
-          ui.addEventListener("mousedown", listEventHandler);
-          ui.addEventListener("touchstart", listEventHandler);*/
           this.attachUI(ui);
         }
         format(name, value) {
@@ -101,35 +137,6 @@ export class Text {
         }
         optimize(context) {
           super.optimize(context);
-
-          /*if (this.children.length >= 1) {
-            let child = this.children.head;
-            let attributes = child?.attributes?.attributes;
-
-            if (attributes != null) {
-              for (let key in attributes) {
-                let element = attributes[key];
-                let name = element.keyName;
-                let value = element.value(child.domNode);
-
-                if (name == "color") {
-                  this.domNode.style.color = value;
-                  //super.format("custom-color-attributor", value);
-                } else if (name == "ql-font") {
-                  let font = (fontMapping[value] ?? [])[0];
-                  if (font != null) {
-                    this.domNode.style.fontFamily = '"' + font + '", sans-serif';
-                  } else {
-                    this.domNode.style.fontFamily = "var(--font)";
-                  }
-                  //super.format("custom-family-attributor", value);
-                } else if (name == "font-size") {
-                  this.domNode.style.fontSize = value;
-                  //super.format("custom-size-attributor", value);
-                }
-              }
-            }
-          }*/
         }
       }
       ListItem.blotName = "list";
@@ -176,7 +183,8 @@ export class Text {
             this.domNode.setAttribute("href", this.constructor.sanitize(value));
           }
         }
-      });
+      });*/
+
       let editor = this.editor;
       Quill.register(class FormulaBlot extends Embed {
         static blotName = "formula";
@@ -262,6 +270,35 @@ export class Text {
           return node.getAttribute("data-value");
         }
       });
+
+      /*let keyboard = KeyboardModule.default || KeyboardModule;
+      if (keyboard.DEFAULTS.bindings == null) {
+        keyboard.DEFAULTS.bindings = {};
+      }
+      keyboard.DEFAULTS.bindings['indent list'] = {
+        key: 'Tab',
+        shiftKey: false,
+        handler(range, context) {
+          // Manually check if current line or format is a list
+          if (context.format && context.format.list) {
+            this.quill.format('indent', '+1', 'user');
+            return false; // Prevent tab from jumping focus
+          }
+          return true; // Allow default tab behavior otherwise
+        }
+      };
+      keyboard.DEFAULTS.bindings['outdent list'] = {
+        key: 'Tab',
+        shiftKey: true,
+        handler(range, context) {
+          if (context.format && context.format.list) {
+            this.quill.format('indent', '-1', 'user');
+            return false;
+          }
+          return true;
+        }
+      };
+      Quill.register('modules/keyboard', keyboard, true);*/
     }
     return Quill;
   }

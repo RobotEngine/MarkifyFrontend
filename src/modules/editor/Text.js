@@ -24,7 +24,7 @@ export class Text {
   };
 
   async getQuill() {
-    let [ { default: Quill }, ...formats ] = await QUILL(); //, KeyboardModule
+    let { Quill, formats } = await QUILL(); //, KeyboardModule
     if (window.QuillSetup != true) {
       window.QuillSetup = true;
       let Parchment = Quill.import("parchment");
@@ -49,8 +49,7 @@ export class Text {
       }));
 
       for (let i = 0; i < formats.length; i++) {
-        let newModule = formats[i];
-        Quill.register(newModule.default ?? newModule, true);
+        Quill.register(formats[i], true);
       }
 
       // 1. Import List and ListContainer from Quill

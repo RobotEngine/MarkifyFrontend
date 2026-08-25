@@ -1291,6 +1291,13 @@ const movedPages = { dashboard: "app/dashboard", lesson: "app/lesson", join: "ap
     dropdownModule.close();
     await init();
 
+    // TESTING:
+    if (hasFeatureEnabled("socket_test_flag") == true) {
+      socket.socket.addEventListener("close", (event) => {
+        alert(`Socket Closed: -> Code: ${event.code}, Reason: "${event.reason}", Clean: ${event.wasClean}`);
+      });
+    }
+
     // Handle Routing:
     let openPage = defaultPage;
     let path = window.location.pathname.substring(1);

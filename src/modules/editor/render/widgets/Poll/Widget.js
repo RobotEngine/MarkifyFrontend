@@ -1,11 +1,13 @@
-import { objectEqual, getEpoch, sendRequest, addS } from "@/crucial";
+import { objectEqual, getEpoch, sendRequest, hash, addS } from "@/crucial";
+
+import { Tool as EditTool } from "./actions/Edit";
 
 import { close as closeIcon } from "@modules/utility/core-icons";
 
 export class Widget {
   WIDTH = 400;
 
-  ACTION_BAR_TOOLS = [];
+  ACTION_BAR_TOOLS = [EditTool];
 
   OPTIONS = {
     SHOW_ONLY_WIDTH_HANDLES: true,
@@ -141,12 +143,7 @@ export class Widget {
     let percent = (render.votes ?? 0) / Math.max(this.totalVotes, 1);
     option.style.setProperty("--percent", percent);
     let percentDisplay = option.querySelector(".eWidgetPollOptionPercent");
-    if (percent > 0) {
-      percentDisplay.textContent = Math.round(percent * 100) + "%";
-      percentDisplay.removeAttribute("hidden");
-    } else {
-      percentDisplay.setAttribute("hidden", "");
-    }
+    percentDisplay.textContent = Math.round((percent ?? 0) * 100) + "%";
   }
   async addOption(render, option) {
     if (option == null) {
@@ -188,14 +185,15 @@ export class Widget {
 
   updateInteractivity() {
     let isActive = this.parent.properties.active == true;
+    let canEdit = this.editor.utils.canMemberModify(this.parent.properties);
     let disabled = (
       isActive == true
-      || this.editor.utils.canMemberModify(this.parent.properties) == false
+      || canEdit == false
       || this.editor.utils.isLocked(this.parent.properties) == true
     );
     if (isActive == true) {
       this.widget.removeAttribute("editing");
-      if (this.selfVote == null) {
+      if (this.selfVote == null && canEdit != true) {
         this.widget.removeAttribute("voted");
       } else {
         this.widget.setAttribute("voted", "");
@@ -261,12 +259,13 @@ export class Widget {
       if (option == null) {
         return;
       }
+      let id = parseInt(option.getAttribute("optionid"));
       if (this.parent.properties.active == true) {
-        // Vote
+        let optionID = hash(this.parent.properties["option_" + id]);
+        console.log(optionID);
       } else {
         if (target.closest(".eWidgetPollOptionRemove") != null) {
           let count = this.optionsHolder.childElementCount;
-          let id = parseInt(option.getAttribute("optionid"));
           let save = { _id: this.parent.properties._id, options: (count - 1) };
           for (let i = id + 1; i <= count; i++) {
             save["option_" + (i - 1)] = this.parent.properties["option_" + i];

@@ -22,7 +22,7 @@ import openSidebarIcon from "@assets/dashboard/opensidebar.svg?raw";
 import folderIcon from "@assets/dashboard/folder.svg?raw";
 import folderArrowIcon from "@assets/dashboard/folderarrow.svg?raw";
 
-const CURRENT_BANNER = "summer-series-webinars"; // "breakout-alpha-release" "1.0-release"
+const CURRENT_BANNER = null; // "summer-series-webinars" "breakout-alpha-release" "1.0-release"
 import BANNER_IMAGE from "@assets/webinars/summerseries/logo.png?no-inline";
 const BANNER_TITLE = "Live Webinars: <i><b>The Markify Summer Series</b></i>";
 const BANNER_DESCRIPTION = "For the first time ever, we're hosting FREE webinars on how to best use Markify! Learn how to connect whole-class instruction and small-group breakouts in 30 minute sessions.";

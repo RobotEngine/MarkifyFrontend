@@ -17,17 +17,6 @@ export class Page extends PageFrame {
   <img class="lBackdrop" src="../images/launch/backdrop.png" center>
   <div class="lSection" header backdrop="center">
     <div class="lHeaderContent">
-      <div class="lHeaderBanner">
-        <img class="lHeaderBannerIcon" src="${BANNER_IMAGE}" />
-        <div class="lHeaderBannerPlaceholder"></div>
-        <div class="lHeaderBannerContent">
-          <div class="lHeaderBannerTitle">Live Webinars: <i><b>The Markify Summer Series</b></i></div>
-          <div class="lHeaderBannerText">For the first time ever, we're hosting FREE webinars on how to best use Markify! Learn how to connect whole-class instruction and small-group breakouts in 30 minute sessions.</div>
-          <div class="lHeaderBannerButtons">
-            <button class="lHeaderBannerAction buttonAnim border" openpage="webinars">Reserve Your Spot</button>
-          </div>
-        </div>
-      </div>
       <div class="lHeaderRow">
         <div>
           <img src="../images/launch/tools/draw.svg" low>
@@ -202,6 +191,7 @@ export class Page extends PageFrame {
   css = {
     ".lSection": `position: relative; display: flex; flex-direction: column; z-index: 1; align-items: center; --blueShadow: 0px 0px 24px var(--hover)`,
     ".lBackdrop": `--setOpacity: .3; position: fixed; width: 100%; height: 100%; left: 0px; top: 0px; object-fit: cover; opacity: 0; transition: .3s`,
+    ".lSection[header]": `margin-top: 40px`,
     ".lHeaderContent": `display: flex; flex-direction: column; box-sizing: border-box; max-width: 100%; min-height: 1000px; padding: 26px; align-items: center; overflow: hidden`,
     ".lHeaderRow": `display: flex; width: 100%; justify-content: center`,
     ".lHeaderRow div": `display: flex; flex: 1; min-width: 300px; max-width: 500px; justify-content: space-around; align-items: center`,
@@ -217,15 +207,6 @@ export class Page extends PageFrame {
     ".lHeaderActions": `display: flex; flex-wrap: wrap; gap: 24px; margin-top: 40px; justify-content: center`,
     ".lHeaderPrice": `margin-top: 24px; font-size: 16px`,
     ".lHeaderPrice b": `color: var(--theme); font-weight: 700`,
-
-    ".lHeaderBanner": `position: relative; box-sizing: border-box; display: flex; flex-wrap: wrap; gap: 8px; width: 100%; max-width: 900px; padding: 16px; margin-bottom: 5vh; box-shadow: inset var(--darkShadow); border-radius: 24px; justify-content: center; align-items: center; transition: .4s`,
-    ".lHeaderBannerIcon": `width: 300px; max-width: 100%; height: 120px; object-fit: contain`,
-    ".lHeaderBannerContent": `display: flex; flex-direction: column; flex: 1 1 300px; text-align: left`,
-    ".lHeaderBannerTitle": `margin-top: 4px; font-size: 24px; font-weight: 700; color: var(--theme)`,
-    ".lHeaderBannerText": `margin-top: 8px; font-size: 16px; line-height: 1.5`,
-    ".lHeaderBannerButtons": `display: flex; gap: 8px; height: fit-content; min-height: 50px; padding: 0 8px 0 0; margin-top: 12px; justify-content: center; align-items: center`,
-    ".lHeaderBannerButtons button": `position: relative; --borderWidth: 4px; --borderRadius: 12px; font-size: 18px; font-weight: 700`,
-    ".lHeaderBannerAction": `--themeColor: var(--theme); padding: 6px 10px; font-size: 16px; font-weight: 600; color: var(--theme); min-height: 28px; margin: 3px`,
 
     ".lOpen": `display: flex; flex-direction: row; bottom: 0px; align-items: center; --borderRadius: 20.25px; background: var(--theme); color: #fff;`,
     ".lOpen img[loginBtnBeforeImg]": `width: 24px; height: 24px; margin-right: 8px; object-fit: cover; border-radius: 16px; border: 4px solid var(--themeColor); background: #0084FF;`,

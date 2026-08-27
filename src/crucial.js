@@ -717,6 +717,19 @@ export const uncleanString = (str) => {
   return str.replace(/&#62;/g, ">").replace(/&#60;/g, "<");
 }
 
+export const hash = (text) => {
+  if (typeof text === "object") {
+    text = JSON.stringify(text);
+  }
+  let hash = 0;
+  for (let i = 0; i < text.length; i++) {
+    let char = text.charCodeAt(i);
+    hash = ((hash << 5) - hash) + char;
+    hash = hash & hash;
+  }
+  return hash;
+}
+
 export const isValidURL = (urlString) => {
   try {
     new URL(urlString);
@@ -1453,6 +1466,9 @@ import {
   setPage,
   setFrame,
   sleep,
+  cleanString,
+  uncleanString,
+  hash,
   timeSince,
   formatFullDate,
   addS,

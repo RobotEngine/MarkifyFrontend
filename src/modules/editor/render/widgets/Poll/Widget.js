@@ -386,6 +386,7 @@ export class Widget {
     await this.addOption({ _id: 2, content: [ { insert: "Fall" } ], votes: 2 });
     await this.addOption({ _id: 3, content: [ { insert: "Winter" } ], votes: 1 });
     await this.addOption({ _id: 4, content: [ { insert: "Spring" } ], votes: 3 });
+    this.updateVoterCount(10);
     this.widget.setAttribute("voted", "");
     this.HEIGHT = this.widget.offsetHeight;
   }

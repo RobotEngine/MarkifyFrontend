@@ -22,8 +22,6 @@ export class Widget {
 
   totalVotes = 0;
 
-  loaded = false;
-
   html = `<div class="eWidgetPoll" edit>
     <div class="eWidgetPollHeader">
       <div class="eWidgetPollTitle"></div>
@@ -31,7 +29,7 @@ export class Widget {
         <div class="eWidgetPollVotes" hidden></div>
       </div>
     </div>
-    <div class="eWidgetPollOptions"></div>
+    <div class="eWidgetPollOptions" pending></div>
     <div class="eWidgetPollActions">
       <button class="eWidgetPollAddOption largeButton">Add Option</button>
       <button class="eWidgetPollPublish largeButton">Publish</button>
@@ -49,7 +47,7 @@ export class Widget {
     ".eWidgetPollVotesHolder": `display: flex; min-width: 100px; margin: 4px 4px 4px auto; justify-content: flex-end; align-items: center`,
     ".eWidgetPollVotes": `width: fit-content; padding: 4px 8px; background: var(--pageColor); box-shadow: inset var(--lightShadow); color: var(--theme); border-radius: 12px; font-size: 13px; font-weight: 500; transition: .4s`,
     ".eWidgetPollOptions": `display: flex; flex-direction: column; gap: 6px; width: 100%; margin-top: 12px; transition: .2s`,
-    ".eWidgetPollOptions[pending]": `pointer-events: none !important; opacity: .5 !important`,
+    ".eWidgetPoll:not([editing]) .eWidgetPollOptions[pending]": `pointer-events: none !important; opacity: .5 !important`,
     ".eWidgetPollOption": `position: relative; box-sizing: border-box; display: flex; gap: 8px; width: 100%; padding: 8px; box-shadow: inset var(--lightShadow); --borderTopLeft: 8px; --borderTopRight: 8px; --borderBottomLeft: 8px; --borderBottomRight: 8px; border-radius: var(--borderTopLeft) var(--borderTopRight) var(--borderBottomLeft) var(--borderBottomRight); justify-content: center; align-items: center`,
     ".eWidgetPoll[voted]:not([editing]) .eWidgetPollOption[selected]": `box-shadow: var(--lightShadow) !important`,
     ".eWidgetPoll[voted]:not([editing]) .eWidgetPollOption[selected]:after": `content: ""; position: absolute; box-sizing: border-box; width: 100%; height: 100%; left: 0; top: 0; border: solid 2px var(--theme); border-radius: inherit; z-index: 1; pointer-events: 1`,
@@ -217,7 +215,7 @@ export class Widget {
         this.widget.removeAttribute("disable", "");
       } else {
         this.widget.setAttribute("voted", "");
-        if (canEdit != true || this.loaded != true) {
+        if (canEdit != true) {
           this.widget.setAttribute("disable", "");
         } else {
           this.widget.removeAttribute("disable", "");
@@ -388,6 +386,7 @@ export class Widget {
     await this.addOption({ _id: 4, content: [ { insert: "Spring" } ], votes: 3 });
     this.updateVoterCount(10);
     this.widget.setAttribute("voted", "");
+    this.optionsHolder.removeAttribute("pending");
     this.HEIGHT = this.widget.offsetHeight;
   }
 }

@@ -47,7 +47,9 @@ export class Worker extends BaseWorker {
     widgetModule.updateVoterCount();
     if (widgetModule.loaded != true) {
       widgetModule.loaded = true;
-      widgetModule.updateInteractivity();
+      if (widgetModule.optionsHolder != null) {
+        widgetModule.optionsHolder.removeAttribute("pending");
+      }
     }
   }
 

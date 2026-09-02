@@ -128,7 +128,7 @@ export class Worker extends BaseWorker {
 
   async onAnnotationCreate(annotation) {
     let component = annotation.component;
-    await component.loadWidget;
+    await component.loadWidget; // Wait for widget to finish loading
     if (component.widgetModule != null) {
       this.setupCreate(component.widgetModule);
     }

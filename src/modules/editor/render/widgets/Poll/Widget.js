@@ -1,13 +1,14 @@
 import { objectEqual, getEpoch, sendRequest, hash, addS } from "@/crucial";
 
 import { Tool as EditTool } from "./actions/Edit";
+import { Tool as ResetTool } from "./actions/Reset";
 
 import { close as closeIcon } from "@modules/utility/core-icons";
 
 export class Widget {
   WIDTH = 400;
 
-  ACTION_BAR_TOOLS = [EditTool];
+  ACTION_BAR_TOOLS = [EditTool, ResetTool];
 
   OPTIONS = {
     SHOW_ONLY_WIDTH_HANDLES: true,
@@ -20,6 +21,8 @@ export class Widget {
   MAX_OPTIONS = 8;
 
   totalVotes = 0;
+
+  loaded = false;
 
   html = `<div class="eWidgetPoll" edit>
     <div class="eWidgetPollHeader">
@@ -45,13 +48,14 @@ export class Widget {
     ".eWidgetPollTitle": `flex: 1 1 180px; min-height: 24px; padding: 4px 8px; margin: auto 0; font-size: 16px !important; font-weight: 600 !important; text-align: left !important; line-height: 150% !important; align-content: center`,
     ".eWidgetPollVotesHolder": `display: flex; min-width: 100px; margin: 4px 4px 4px auto; justify-content: flex-end; align-items: center`,
     ".eWidgetPollVotes": `width: fit-content; padding: 4px 8px; background: var(--pageColor); box-shadow: inset var(--lightShadow); color: var(--theme); border-radius: 12px; font-size: 13px; font-weight: 500; transition: .4s`,
-    ".eWidgetPollOptions": `display: flex; flex-direction: column; gap: 6px; width: 100%; margin-top: 12px`,
+    ".eWidgetPollOptions": `display: flex; flex-direction: column; gap: 6px; width: 100%; margin-top: 12px; transition: .2s`,
+    ".eWidgetPollOptions[pending]": `pointer-events: none !important; opacity: .5 !important`,
     ".eWidgetPollOption": `position: relative; box-sizing: border-box; display: flex; gap: 8px; width: 100%; padding: 8px; box-shadow: inset var(--lightShadow); --borderTopLeft: 8px; --borderTopRight: 8px; --borderBottomLeft: 8px; --borderBottomRight: 8px; border-radius: var(--borderTopLeft) var(--borderTopRight) var(--borderBottomLeft) var(--borderBottomRight); justify-content: center; align-items: center`,
     ".eWidgetPoll[voted]:not([editing]) .eWidgetPollOption[selected]": `box-shadow: var(--lightShadow) !important`,
     ".eWidgetPoll[voted]:not([editing]) .eWidgetPollOption[selected]:after": `content: ""; position: absolute; box-sizing: border-box; width: 100%; height: 100%; left: 0; top: 0; border: solid 2px var(--theme); border-radius: inherit; z-index: 1; pointer-events: 1`,
     ".eWidgetPollOption:first-child": `--borderTopLeft: 16px !important; --borderTopRight: 16px !important`,
     ".eWidgetPollOption:last-child": `--borderBottomLeft: 16px !important; --borderBottomRight: 16px !important`,
-    ".eWidgetPollOptionText": `flex: 1; min-height: 24px; padding: 4px 6px; margin: auto 0; font-size: 16px !important; font-weight: 500 !important; text-align: left !important; align-content: center; z-index: 2; pointer-events: all`,
+    ".eWidgetPollOptionText": `flex: 1; min-height: 24px; padding: 4px 6px; margin: auto 0; font-size: 16px !important; font-weight: 500 !important; text-align: left !important; align-content: center; z-index: 2`,
     ".eWidgetPollOptionPercentHolder": `display: flex; min-width: 60px; min-height: 28px; margin-left: auto; justify-content: flex-end; align-items: center; z-index: 2`,
     ".eWidgetPollOptionPercent": `display: none; width: fit-content; padding: 4px 8px; margin-right: 2px; background: var(--pageColor); box-shadow: var(--lightShadow); opacity: 0; color: var(--theme); border-radius: 12px; font-size: 13px; font-weight: 600; pointer-events: none; transition: .4s`,
     ".eWidgetPollOptionPercent[winner]": `background: var(--theme); color: #fff`,
@@ -59,10 +63,11 @@ export class Widget {
     ".eWidgetPollOptionRemove svg": `--secondary: var(--error); width: 16px; height: 16px`,
     ".eWidgetPollOptionBar": `position: absolute; width: calc(100% - 8px); height: calc(100% - 8px); left: 4px; top: 4px; border-radius: calc(var(--borderTopLeft) - 4px) calc(var(--borderTopRight) - 4px) calc(var(--borderBottomLeft) - 4px) calc(var(--borderBottomRight) - 4px); overflow: hidden; z-index: 1`,
     ".eWidgetPollOptionBar:before": `content: ""; position: absolute; width: 0; min-width: 8px; height: 100%; left: 0; top: 0; background: var(--hover); opacity: 0; border-radius: 4px; transition: .4s var(--bounce)`,
-    ".eWidgetPoll[editing] .eWidgetPollOption, .eWidgetPoll[voted] .eWidgetPollOption": `transform: scale(1) !important; pointer-events: none !important`,
+    ".eWidgetPoll[editing] .eWidgetPollOption, .eWidgetPoll[disable] .eWidgetPollOption": `transform: scale(1) !important; pointer-events: none !important`,
     ".eWidgetPoll:not([editing]) .eWidgetPollOptionPercent": `display: flex !important`,
-    ".eWidgetPoll[editing][canremove] .eWidgetPollOptionRemove": `display: flex !important`,
-    ".eWidgetPoll[voted] .eWidgetPollOptionPercent": `opacity: 1 !important; pointer-events: all !important`,
+    ".eWidgetPoll[editing] .eWidgetPollOptions:not([disabled]) .eWidgetPollOptionText": `pointer-events: all`,
+    ".eWidgetPoll[editing][canremove] .eWidgetPollOptions:not([disabled]) .eWidgetPollOptionRemove": `display: flex !important`,
+    ".eWidgetPoll[voted] .eWidgetPollOptionPercent": `opacity: 1 !important`, //; pointer-events: all !important
     ".eWidgetPoll[voted]:not([editing]) .eWidgetPollOptionBar:before": `width: calc(100% * var(--percent)) !important; opacity: 1 !important`,
     ".eWidgetPollActions": `display: none; flex-wrap: wrap; gap: 8px; width: 100%; margin-top: 12px; justify-content: space-between; align-items: center`,
     ".eWidgetPoll[editing] .eWidgetPollActions": `display: flex !important`,
@@ -132,6 +137,20 @@ export class Widget {
     }
   }
 
+  updateOptionStat(render, option) {
+    if (render == null || option == null) {
+      return;
+    }
+    let percent = (render.votes ?? 0) / Math.max(this.totalVotes, 1);
+    option.style.setProperty("--percent", percent);
+    let percentDisplay = option.querySelector(".eWidgetPollOptionPercent");
+    percentDisplay.textContent = Math.round((percent ?? 0) * 100) + "%";
+    if (render._id != this.selfVote) {
+      option.removeAttribute("selected");
+    } else {
+      option.setAttribute("selected", "");
+    }
+  }
   updateOption(render, option) {
     if (render == null || option == null) {
       return;
@@ -140,14 +159,12 @@ export class Widget {
     if (optionStore != null) {
       this.setQuillContent(optionStore.quill, render.content ?? []);
     }
-    let percent = (render.votes ?? 0) / Math.max(this.totalVotes, 1);
-    option.style.setProperty("--percent", percent);
-    let percentDisplay = option.querySelector(".eWidgetPollOptionPercent");
-    percentDisplay.textContent = Math.round((percent ?? 0) * 100) + "%";
+    this.updateOptionStat(render, option);
   }
   async addOption(render, option) {
+    let existingRender = this.options[render._id] ?? {};
     if (option == null) {
-      option = (this.options[render._id] ?? {}).element;
+      option = existingRender.element;
     }
     let newOption = option == null;
     if (newOption == true) {
@@ -169,7 +186,9 @@ export class Widget {
       this.checkAddRemoveOptionButtons();
     }
 
-    this.updateOption(render, option);
+    this.updateOption({ votes: (existingRender.votes ?? 0), ...render }, option);
+
+    return option;
   }
   removeOption(id, option) {
     if (option == null) {
@@ -189,19 +208,26 @@ export class Widget {
     let disabled = (
       isActive == true
       || canEdit == false
-      || this.editor.utils.isLocked(this.parent.properties) == true
+      || this.editor.utils.isLocked(this.parent.properties)
     );
     if (isActive == true) {
       this.widget.removeAttribute("editing");
       if (this.selfVote == null && canEdit != true) {
         this.widget.removeAttribute("voted");
+        this.widget.removeAttribute("disable", "");
       } else {
         this.widget.setAttribute("voted", "");
+        if (canEdit != true || this.loaded != true) {
+          this.widget.setAttribute("disable", "");
+        } else {
+          this.widget.removeAttribute("disable", "");
+        }
       }
       this.optionsHolder.removeAttribute("disabled");
     } else {
       this.widget.setAttribute("editing", "");
       this.widget.removeAttribute("voted");
+      this.widget.removeAttribute("disable");
       if (disabled != true) {
         this.optionsHolder.removeAttribute("disabled");
         this.actionsHolder.removeAttribute("disabled");
@@ -228,6 +254,15 @@ export class Widget {
     }
   }
 
+  updateVoterCount() {
+    if (this.totalVotes > 0) {
+      this.votes.innerHTML = `<b>${this.totalVotes}</b> vote${addS(this.totalVotes)}`;
+      this.votes.removeAttribute("hidden");
+    } else {
+      this.votes.setAttribute("hidden", "");
+    }
+  }
+
   async js(frame) {
     this.widget = frame.querySelector(".eWidgetPoll");
     this.title = this.widget.querySelector(".eWidgetPollTitle");
@@ -245,15 +280,19 @@ export class Widget {
 
     this.addOptionButton.addEventListener("click", async () => {
       let count = this.optionsHolder.childElementCount + 1;
-      await this.addOption({ _id: count });
+      let option = await this.addOption({ _id: count });
       this.editor.saveAnnotation({
         _id: this.parent.properties._id,
         options: count,
         s: this.getSize()
       });
+      let optionStore = this.options[count] ?? {};
+      if (optionStore.quill != null) {
+        optionStore.quill.quill.focus();
+      }
     });
 
-    this.optionsHolder.addEventListener("click", (event) => {
+    this.optionsHolder.addEventListener("click", async (event) => {
       let target = event.target;
       let option = target.closest(".eWidgetPollOption");
       if (option == null) {
@@ -261,8 +300,17 @@ export class Widget {
       }
       let id = parseInt(option.getAttribute("optionid"));
       if (this.parent.properties.active == true) {
-        let optionID = hash(this.parent.properties["option_" + id]);
-        console.log(optionID);
+        let method;
+        let body;
+        if (option.hasAttribute("selected") == false) {
+          method = "POST";
+          body = { hash: hash(this.parent.properties["option_" + id] ?? {}) + "_" + option.getAttribute("optionid") };
+        } else {
+          method = "DELETE";
+        }
+        this.optionsHolder.setAttribute("pending", "");
+        await sendRequest(method, "lessons/widgets/poll/vote?widget=" + this.parent.properties._id, body, { session: this.editor.session });
+        this.optionsHolder.removeAttribute("pending");
       } else {
         if (target.closest(".eWidgetPollOptionRemove") != null) {
           let count = this.optionsHolder.childElementCount;
@@ -284,7 +332,7 @@ export class Widget {
         _id: this.parent.properties._id,
         active: true,
         s: this.getSize()
-      });
+      }, { saveImmediately: true });
     });
 
     this.parent.subscribe("update", (data) => {

@@ -88,7 +88,7 @@ export class Annotation extends BaseAnnotation {
             }
           }
           if (this.widgetModule.render != null) {
-            this.widgetModule.render();
+            await this.widgetModule.render();
           }
         }
 

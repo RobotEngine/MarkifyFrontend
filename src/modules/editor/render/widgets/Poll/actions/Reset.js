@@ -14,7 +14,7 @@ export class Tool {
 
   async js() {
     this.button.setAttribute("disabled", "");
-    await sendRequest("DELETE", "lessons/widgets/alignment/reset?widget=" + this.toolbar.getPreferenceTool()._id, null, { session: this.editor.session });
+    await sendRequest("DELETE", "lessons/widgets/poll/reset?widget=" + this.toolbar.getPreferenceTool()._id, null, { session: this.editor.session });
     this.button.removeAttribute("disabled");
   }
 }

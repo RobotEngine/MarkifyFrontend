@@ -1,4 +1,4 @@
-import { PageFrame, userID, account, setPage, sleep, getParam, getLocalStore, setLocalStore, modifyParams, sendRequest, promptLogin } from "@/crucial";
+import { PageFrame, userID, account, setPage, sleep, getParam, getLocalStore, setLocalStore, modifyParams, sendRequest, promptLogin, getTheme } from "@/crucial";
 
 import { alert as alertModule } from "@modules/utility/Alert";
 
@@ -55,8 +55,8 @@ export class Page extends PageFrame {
   </div>
   `;
   css = {
-    ".jBackdrop": `position: fixed; min-width: 100%; min-height: 100vh; z-index: 0; background: #fff; opacity: .8; pointer-events: none`,
-    ".jBackground": `position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; background-image: url(../images/editor/backdrop.svg); background-size: 25px; background-position: center; opacity: .08`,
+    ".jBackdrop": `position: fixed; min-width: 100%; min-height: 100vh; z-index: 0; opacity: .8; pointer-events: none`,
+    ".jBackground": `position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; background-size: 25px; background-position: center; opacity: .08`,
     ".jSplash": `position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; object-fit: cover`,
     
     ".jModalHolder": `display: flex; width: 100%; min-height: 100vh; left: 0px; top: 0px; justify-content: center; align-items: center; overflow: hidden`,
@@ -104,6 +104,15 @@ export class Page extends PageFrame {
     //".jCaptchaHolder[hidden]": `display: none`
     //".jCFTurnstile": ``
   };
+
+  updateTheme() {
+    if (getTheme() != "dark") {
+      this.background.style.setProperty("background-image", "url(../images/editor/backdropblack.svg)");
+    } else {
+      this.background.style.setProperty("background-image", "url(../images/editor/backdropwhite.svg)");
+    }
+  }
+
   async js(page) {
     let code = getParam("pin") ?? "";
     let lessonID = getParam("lesson") ?? "";
@@ -111,6 +120,8 @@ export class Page extends PageFrame {
 
     //modifyParams("lesson");
     //modifyParams("team");
+
+    this.background = page.querySelector(".jBackground");
 
     let modal = page.querySelector(".jModal");
     let inputHolder = modal.querySelector(".jInputHolder");
@@ -126,6 +137,13 @@ export class Page extends PageFrame {
     if (window.previousLessonSession != null) {
       delete window.previousLessonSession;
     }
+
+    window.updateAccountSettings = (settings) => {
+      if (settings.hasOwnProperty("theme") == true) {
+        this.updateTheme();
+      }
+    }
+    this.updateTheme();
 
     page.querySelector(".jLogo").addEventListener("click", (event) => {
       setPage("pages/launch");

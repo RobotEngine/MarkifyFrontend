@@ -14,7 +14,7 @@ export class Setup {
   </div>`;
 
   progressFooterStyles = {
-    ".brSetupProgress": `position: sticky; display: flex; flex-wrap: wrap; gap: 12px; width: calc(100% - 24px); bottom: 0; padding: 12px; font-size: 16px; background: rgba(var(--background), .7); backdrop-filter: blur(4px); justify-content: center; align-items: center; z-index: 2`,
+    ".brSetupProgress": `position: sticky; display: flex; flex-wrap: wrap; gap: 12px; width: calc(100% - 24px); bottom: 0; padding: 12px; font-size: 16px; background: rgba(var(--background), .8); backdrop-filter: blur(4px); justify-content: center; align-items: center; z-index: 2`,
     ".brSetupProgress .largeButton": `--themeColor: var(--theme); --themeColor2: var(--themeColor); --borderRadius: 12px; max-width: 100%; padding: 6px 10px; margin: 3px; justify-content: center; font-size: 18px`,
     ".brSetupProgress .largeButton svg": `width: 24px`,
     ".brSetupProgress .largeButton[back] svg": `transform: scaleX(-1)`,

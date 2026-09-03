@@ -45,13 +45,14 @@
     --green: rgb(var(--greenRGB));
     --redRGB: 220, 20, 60;
     --red: rgb(var(--redRGB));
+    --errorRGB: var(--redRGB);
     --error: rgb(var(--redRGB));
     --pageColor: rgb(var(--background));
     --activeGray: rgb(var(--activeGrayRGB));
     --gray: rgb(var(--grayRGB));
-    --lightShadow: 0px 0px 8px 0px rgba(var(--themeRGB), .3);
-    --darkShadow: 0px 0px 8px 0px rgba(var(--themeRGB), .5);
-    --shadow: 0px 0px 8px 0px var(--gray);
+    --lightShadow: 0 0 8px 0 rgba(var(--themeRGB), .3);
+    --darkShadow: 0 0 8px 0 rgba(var(--themeRGB), .5);
+    --shadow: 0 0 8px 0 var(--gray);
     --bounce: cubic-bezier(0.175, 0.885, 0.32, 1.275);
     --font: "Montserrat Variable", sans-serif;
   }
@@ -82,8 +83,8 @@
   }
 
   body {
-    margin: 0px;
-    padding: 0px;
+    margin: 0;
+    padding: 0;
     background: var(--pageColor);
     touch-action: pan-x pan-y;
 
@@ -105,8 +106,8 @@
     position: fixed;
     width: 100%;
     height: 100%;
-    top: 0px;
-    left: 0px;
+    top: 0;
+    left: 0;
     overflow: auto;
     z-index: 999;
     pointer-events: none;
@@ -116,8 +117,8 @@
     position: absolute;
     width: 100%;
     height: 100%;
-    left: 0px;
-    top: 0px;
+    left: 0;
+    top: 0;
     transition: opacity .4s;
     z-index: 999;
     overflow: hidden;

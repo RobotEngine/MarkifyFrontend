@@ -44,7 +44,7 @@ export class Frame {
 
     ".brgMemberMemberHolder": `min-height: 4px`,
     ".brgMemberAccessHolder": `display: none; margin-bottom: 12px; background: var(--pageColor)`,
-    ".brgMemberAccessTitle": `position: sticky; display: flex; width: 100%; padding: 0; top: 0px; justify-content: center; align-items: center; background: rgba(var(--background), .7); backdrop-filter: blur(4px); z-index: 2; text-align: left; font-weight: 700; font-size: 18px`,
+    ".brgMemberAccessTitle": `position: sticky; display: flex; width: 100%; padding: 0; top: 0px; justify-content: center; align-items: center; background: rgba(var(--background), .8); backdrop-filter: blur(4px); z-index: 2; text-align: left; font-weight: 700; font-size: 18px`,
     ".brgMemberAccessTitle div[holder]": `display: flex; width: 100%; padding: 4px 8px; top: 0px; justify-content: space-between; transition: .1s`,
     ".brgMemberAccessTitle div[count]": `margin-left: 6px; font-weight: 500`,
     ".brgMemberAccessTitle:hover div[holder]": `background: var(--hover)`,

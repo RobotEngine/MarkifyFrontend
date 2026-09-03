@@ -84,7 +84,7 @@ export class Annotation extends BaseAnnotation {
     let embedLink = infoHolder.querySelector("a[link]");
     if (this.properties.d != null && this.properties.embed != null) {
       linkInputHolder.removeAttribute("visible");
-      if (this.exporting != true) {
+      if (this.editor.exporting != true) {
         if (this.properties.embed.url != null) {
           if (embedFrame == null) {
             embedActivate.style.display = "flex";
@@ -95,7 +95,7 @@ export class Annotation extends BaseAnnotation {
       }
       if (this.properties.embed.image != null) {
         if (embedFrame == null) {
-          if (this.exporting != true) {
+          if (this.editor.exporting != true) {
             thumbnail.src = this.properties.embed.image;
           } else {
             this.parent.exportPromises.push(new Promise(async (resolve) => {

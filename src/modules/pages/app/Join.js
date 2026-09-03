@@ -14,7 +14,7 @@ export class Page extends PageFrame {
   </div>
   <div class="jModalHolder">
     <div class="jModalContainer">
-      <img class="jBack" src="../images/icon.svg" />
+      <!--<img class="jBack" src="../images/icon.svg" />-->
       <div class="jModal">
         <a class="jLogo" href="/launch"><img src="../images/logo.svg" /></a>
         <div class="jTitle">Join the Lesson!</div>
@@ -55,13 +55,13 @@ export class Page extends PageFrame {
   </div>
   `;
   css = {
-    ".jBackdrop": `position: fixed; min-width: 100%; min-height: 100vh; z-index: 0; background: #fff`,
-    ".jBackground": `position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; background-image: url(../images/editor/backdrop.svg); background-size: 25px; background-position: center; opacity: .075`,
+    ".jBackdrop": `position: fixed; min-width: 100%; min-height: 100vh; z-index: 0; background: #fff; opacity: .8; pointer-events: none`,
+    ".jBackground": `position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; background-image: url(../images/editor/backdrop.svg); background-size: 25px; background-position: center; opacity: .08`,
     ".jSplash": `position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; object-fit: cover`,
     
     ".jModalHolder": `display: flex; width: 100%; min-height: 100vh; left: 0px; top: 0px; justify-content: center; align-items: center; overflow: hidden`,
     ".jModalContainer": `position: relative`,
-    ".jModal": `position: relative; display: flex; flex-direction: column; width: fit-content; max-width: 100%; height: fit-content; padding: 16px; margin: 8px; overflow: hidden; background: var(--pageColor); transform: scale(.9); opacity: 0; align-items: center; border-radius: 16px; box-shadow: var(--lightShadow); transition: .3s`,
+    ".jModal": `position: relative; display: flex; flex-direction: column; width: fit-content; max-width: 100%; height: fit-content; padding: 16px; margin: 8px; overflow: hidden; background: var(--pageColor); transform: scale(.9); opacity: 0; align-items: center; border-radius: 16px; box-shadow: var(--darkShadow); transition: .3s`,
     ".jBack": `position: absolute; width: 150%; left: 50%; top: 50%; transform: translate(-50%, -50%); opacity: .1`,
 
     ".jLogo": `max-width: 100%; height: 60px`,

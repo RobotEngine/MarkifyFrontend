@@ -93,9 +93,9 @@ export class Page {
     ".broTopScroll": `position: absolute; display: flex; width: 36px; height: 36px; top: 50%; transform: translateY(-50%); background: rgba(var(--hoverRGB), .75); opacity: 0; backdrop-filter: blur(2px); border-radius: 18px; justify-content: center; align-items: center; z-index: 200`,
     ".broTopScroll svg": `width: 22px`,
     ".broTopScroll:active": `transform: translateY(-50%) scale(.85) !important`,
-    ".broTopSection": `box-sizing: border-box; display: flex; height: 50px; padding: 6px; flex-shrink: 0; align-items: center; background: var(--pageColor); box-shadow: var(--lightShadow); pointer-events: all`,
-    ".broTopHolder[scroll] .broTopSection": `padding: 6px 0px !important; box-shadow: unset !important`,
-    ".broTopSection[left]": `border-bottom-right-radius: 12px`,
+    ".broTopSection": `box-sizing: border-box; display: flex; height: 50px; padding: 6px 5px; flex-shrink: 0; align-items: center; background: var(--pageColor); box-shadow: var(--lightShadow); pointer-events: all`,
+    ".broTopHolder[scroll] .broTopSection": `padding: 6px 0 !important; box-shadow: unset !important`,
+    ".broTopSection[left]": `padding-left: 6px !important; border-bottom-right-radius: 12px`,
     ".broTopSection[right]": `border-bottom-left-radius: 12px`,
 
     ".broLogo": `display: flex; width: 38px; height: 38px; padding: 0; margin-right: 4px; user-select: none; justify-content: center; align-items: center; border-radius: 6px`,

@@ -154,7 +154,7 @@ export class Page {
     ".brgBottomSide": `display: flex; flex-shrink: 0; gap: 8px`,
     ".brgBottomSide[left]": `flex-direction: row`,
     ".brgBottomSide[right]": `flex-direction: row-reverse`,
-    ".brgBottomSection": `display: flex; box-sizing: border-box; height: 50px; padding: 6px; flex-shrink: 0; align-items: center; background: var(--pageColor); box-shadow: var(--lightShadow); pointer-events: all`,
+    ".brgBottomSection": `display: flex; box-sizing: border-box; height: 50px; padding: 6px 5px; flex-shrink: 0; align-items: center; background: var(--pageColor); box-shadow: var(--lightShadow); pointer-events: all`,
     ".brgBottomSection[hidden]": `display: none !important`,
     ".brgBottomSide[left] .brgBottomSection": `border-top-right-radius: 12px`,
     ".brgBottomSide[left] .brgBottomSection:not([hidden]) ~ .brgBottomSection:not([hidden])": `border-top-left-radius: 12px`,

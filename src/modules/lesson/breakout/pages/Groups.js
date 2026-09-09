@@ -103,7 +103,7 @@ export class Page {
     ".brgsBottomHolder": `position: relative; flex: 1; width: 100%; margin: auto 0 8px 0; visibility: visible`,
     ".brgsBottom": `position: absolute; display: flex; width: 100%; height: 100%; padding-top: 8px; left: 0px; top: 0px; overflow-x: auto; overflow-y: hidden; justify-content: space-between; align-items: flex-end; scrollbar-width: none`,
     ".brgsBottom::-webkit-scrollbar": `display: none`,
-    ".brgsBottomSection": `box-sizing: border-box; display: flex; height: 50px; padding: 6px; flex-shrink: 0; align-items: center; background: var(--pageColor); box-shadow: var(--lightShadow); border-radius: 12px 12px 0 0; pointer-events: all`,
+    ".brgsBottomSection": `box-sizing: border-box; display: flex; height: 50px; padding: 6px 5px; flex-shrink: 0; align-items: center; background: var(--pageColor); box-shadow: var(--lightShadow); border-radius: 12px 12px 0 0; pointer-events: all`,
     ".brgsBottomSection[hidden]": `display: none`,
     
     ".brgsOpenBoard": `display: none; box-shadow: var(--boardLightShadow); border-top-left-radius: 0`,

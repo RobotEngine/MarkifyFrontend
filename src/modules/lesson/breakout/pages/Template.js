@@ -130,7 +130,7 @@ export class Page {
     ".brtBottomSide": `display: flex; flex-shrink: 0; gap: 8px`,
     ".brtBottomSide[left]": `flex-direction: row`,
     ".brtBottomSide[right]": `flex-direction: row-reverse`,
-    ".brtBottomSection": `display: flex; box-sizing: border-box; height: 50px; padding: 6px; flex-shrink: 0; align-items: center; background: var(--pageColor); box-shadow: var(--lightShadow); pointer-events: all`,
+    ".brtBottomSection": `display: flex; box-sizing: border-box; height: 50px; padding: 6px 5px; flex-shrink: 0; align-items: center; background: var(--pageColor); box-shadow: var(--lightShadow); pointer-events: all`,
     ".brtBottomSection[hidden]": `display: none !important`,
     ".brtBottomSide[left] .brtBottomSection": `border-top-right-radius: 12px`,
     ".brtBottomSide[left] .brtBottomSection:not([hidden]) ~ .brtBottomSection:not([hidden])": `border-top-left-radius: 12px`,

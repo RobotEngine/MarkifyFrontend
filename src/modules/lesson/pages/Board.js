@@ -169,7 +169,7 @@ export class Page {
     ".eBottomSide": `display: flex; flex-shrink: 0; gap: 8px`,
     ".eBottomSide[left]": `flex-direction: row`,
     ".eBottomSide[right]": `flex-direction: row-reverse`,
-    ".eBottomSection": `display: flex; box-sizing: border-box; height: 50px; padding: 6px; flex-shrink: 0; align-items: center; background: var(--pageColor); box-shadow: var(--lightShadow); pointer-events: all`,
+    ".eBottomSection": `display: flex; box-sizing: border-box; height: 50px; padding: 6px 5px; flex-shrink: 0; align-items: center; background: var(--pageColor); box-shadow: var(--lightShadow); pointer-events: all`,
     ".eBottomSection[hidden]": `display: none !important`,
     ".eBottomSide[left] .eBottomSection": `border-top-right-radius: 12px`,
     ".eBottomSide[left] .eBottomSection:not([hidden]) ~ .eBottomSection:not([hidden])": `border-top-left-radius: 12px`,

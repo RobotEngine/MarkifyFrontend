@@ -139,8 +139,10 @@ export class Widget {
     if (render == null || option == null) {
       return;
     }
-    let percent = (render.votes ?? 0) / Math.max(this.totalVotes, 1);
+    let voteCount = render.votes ?? 0;
+    let percent = voteCount / Math.max(this.totalVotes, 1);
     option.style.setProperty("--percent", percent);
+    option.title = voteCount + " vote" + addS(voteCount);
     let percentDisplay = option.querySelector(".eWidgetPollOptionPercent");
     percentDisplay.textContent = Math.round((percent ?? 0) * 100) + "%";
     if (render._id != this.selfVote) {

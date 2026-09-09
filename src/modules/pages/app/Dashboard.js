@@ -1237,7 +1237,7 @@ export class Page extends PageFrame {
       openButton.href = "/app/lesson?lesson=" + account.currentWhatsNew;
       openButton.addEventListener("click", (event) => {
         event.preventDefault();
-        setPage("pages/app/lesson", { params: { lesson: account.currentWhatsNew } });
+        setPage("pages/app/lesson", { params: { lesson: account.currentWhatsNew, name: "Anonymous" } });
       });
       let shareButton = this.updateAlert.querySelector("button[share]");
       shareButton.addEventListener("click", () => {

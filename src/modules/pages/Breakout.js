@@ -1,4 +1,4 @@
-import { PageFrame, userID, account } from "@/crucial";
+import { PageFrame, setPage, userID, account } from "@/crucial";
 
 export class Page extends PageFrame {
   title = "Breakout Waitlist";
@@ -53,6 +53,8 @@ export class Page extends PageFrame {
     ".waitSocials a img": `width: 100%; height: 100%`
   };
   async js(page) {
+    return setPage("pages/app/dashboard");
+
     let beforeModal = page.querySelector(".waitModal[before]");
     let afterModal = page.querySelector(".waitModal[after]");
 

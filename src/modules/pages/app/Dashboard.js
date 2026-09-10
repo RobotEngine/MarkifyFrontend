@@ -1291,7 +1291,7 @@ export class Page extends PageFrame {
       if (this.isFolderID(this.sort) == true) {
         params["folder"] = this.sort;
       }
-      setPage("pages/app/lesson", { params: params });
+      setPage("pages/app/lesson", { params });
     });
     this.newBreakoutLessonButton.addEventListener("click", (event) => {
       event.preventDefault();
@@ -1299,7 +1299,7 @@ export class Page extends PageFrame {
       if (this.isFolderID(this.sort) == true) {
         params["folder"] = this.sort;
       }
-      setPage("pages/app/lesson", { params: params });
+      setPage("pages/app/lesson", { params });
     });
 
     // Sidebar new folder button:

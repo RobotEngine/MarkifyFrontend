@@ -792,7 +792,7 @@ export const formatFullDate = (time) => {
 }
 
 export const addS = (num = 1) => {
-  if (num > 1) {
+  if (num != 1) {
     return "s";
   }
   return "";

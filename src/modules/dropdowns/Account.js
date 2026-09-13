@@ -146,7 +146,7 @@ export class Frame {
     //setSVG(installpwa.querySelector("div[image]"), "../images/tooltips/account/app.svg");
     let whatsNew = frame.querySelector(".accountDrop[whatsnew]");
     whatsNew.addEventListener("click", () => {
-      setPage("pages/app/lesson", { params: { lesson: account.currentWhatsNew } });
+      setPage("pages/app/lesson", { params: { lesson: account.currentWhatsNew, name: "Anonymous" } });
     });
     if (account.currentWhatsNew == null) {
       whatsNew.remove();

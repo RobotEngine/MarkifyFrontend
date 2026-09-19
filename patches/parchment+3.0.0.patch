@@ -1,5 +1,5 @@
 diff --git a/node_modules/parchment/dist/parchment.js b/node_modules/parchment/dist/parchment.js
-index 63f462e..cd159bb 100644
+index 63f462e..51e9c73 100644
 --- a/node_modules/parchment/dist/parchment.js
 +++ b/node_modules/parchment/dist/parchment.js
 @@ -367,12 +367,28 @@ class LinkedList {
@@ -14,14 +14,14 @@ index 63f462e..cd159bb 100644
        memo = callback(memo, cur), cur = next();
      return memo;
 +  }*/
-+  reduce(callback, memo) {
++  reduce(callback, memo) { // npx patch-package parchment
 +    const next = this.iterator();
 +    let cur = next();
 +    const seenBlots = [];
 +    for (; cur; ) {
 +      if (seenBlots.includes(cur)) {
 +        console.warn("[Quill Fix] Circular loop detected in parchment. Terminating sequence safely.");
-+        break; 
++        break;
 +      }
 +      seenBlots.push(cur);
 +

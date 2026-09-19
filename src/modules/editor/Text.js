@@ -54,7 +54,12 @@ export class Text {
 
       // 1. Import List and ListContainer from Quill
       let List = Quill.import("formats/list");
+      let ListContainer = Quill.import("formats/list-container");
       class CustomListItem extends List {
+        static blotName = "list";
+        static tagName = "LI";
+        static requiredContainer = ListContainer;
+        
         static register() {} // Intentionally empty: prevents standard List from calling Quill.register(ListContainer) again
 
         optimize(context) {
@@ -68,6 +73,8 @@ export class Text {
         }
 
         updateMaxFontSize() {
+          return;
+
           if (this.domNode == null) {
             return;
           }
@@ -89,7 +96,7 @@ export class Text {
           }
         }
       }
-      Quill.register(CustomListItem, true);
+      Quill.register({ "formats/list": CustomListItem }, true);
       
       /*Quill.register(class BoldBlot extends Inline {
         static blotName = "bold";

@@ -5,7 +5,7 @@ import legacy from "@vitejs/plugin-legacy";
 import { visualizer } from "rollup-plugin-visualizer";
 import { VitePWA } from "vite-plugin-pwa";
 
-import resilientImportsPlugin from "./plugins/resilient-imports";
+//import resilientImportsPlugin from "./plugins/resilient-imports";
 
 // sudo npm run dev
 
@@ -44,9 +44,9 @@ export default defineConfig({
   ],
   resolve: {
     alias: {
-      "@": path.resolve(__dirname, "./src"),
-      "@modules": path.resolve(__dirname, "./src/modules"),
-      "@assets": path.resolve(__dirname, "./src/assets")
+      "@": path.resolve(import.meta.dirname, "./src"),
+      "@modules": path.resolve(import.meta.dirname, "./src/modules"),
+      "@assets": path.resolve(import.meta.dirname, "./src/assets")
     }
   },
   server: {

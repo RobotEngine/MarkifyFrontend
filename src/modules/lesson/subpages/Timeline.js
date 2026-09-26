@@ -51,7 +51,7 @@ class FilterDropdown {
     ".timelineFilterCollaborator div[content]": `display: flex; flex: 1; min-width: 0; max-width: calc(var(--width) - 34px); height: 28px; margin-left: 6px; text-align: left; overflow: hidden; align-items: center; z-index: 2; transition: .2s`,
     ".timelineFilterCollaborator div[content] div[name]": `font-size: 16px; font-weight: 600; white-space: nowrap; text-overflow: ellipsis; overflow: hidden`,
 
-    ".timelineFilterApplyHolder": `position: sticky; display: flex; flex-wrap: wrap; max-width: var(--dropdownWidth); padding: 8px; gap: 24px; left: 0px; bottom: 0px; justify-content: center; align-items: center; background: rgba(var(--background), .8); backdrop-filter: blur(4px); border-radius: 0px 0px 12px 12px; z-index: 2`,
+    ".timelineFilterApplyHolder": `position: sticky; display: flex; flex-wrap: wrap; max-width: var(--dropdownWidth); padding: 8px; gap: 24px; left: 0px; bottom: 0px; justify-content: center; align-items: center; background: rgba(var(--background), .9); backdrop-filter: blur(4px); border-radius: 0px 0px 12px 12px; z-index: 2`,
     ".timelineFilterApplyHolder button": `padding: 6px 10px; background: var(--theme); --borderColor: var(--secondary); --borderRadius: 16px; color: #fff; font-size: 16px`,
     ".timelineFilterApplyHolder button[remove]": `background: unset !important; --borderColor: var(--error); color: var(--error)`,
   };

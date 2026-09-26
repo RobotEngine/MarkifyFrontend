@@ -36,7 +36,7 @@ export class Frame {
     ".brgWelcomeGroupMemberCursor": `flex-shrink: 0; position: relative; box-sizing: border-box; width: 40px; height: 40px; margin-right: 10px; background: var(--themeColor); border: solid 4px var(--pageColor); border-radius: 12px 20px 20px; transition: .2s`,
     ".brgWelcomeGroupMemberCursor:before": `content: ""; position: absolute; width: calc(100% + 8px); height: calc(100% + 8px); left: -4px; top: -4px; border-radius: inherit; contain: strict; box-shadow: 0 0 6px rgb(0 0 0 / 25%)`,
     ".brgWelcomeGroupMemberText": `font-size: 22px; font-weight: 600; white-space: nowrap; overflow-x: hidden; text-overflow: ellipsis; transition: .2s`,
-    ".brgWelcomeEnter": `position: sticky; display: flex; flex-wrap: wrap; gap: 12px; width: calc(100% - 24px); bottom: 0; padding: 12px; font-size: 16px; background: rgba(var(--background), .8); backdrop-filter: blur(4px); justify-content: center; align-items: center; z-index: 2`,
+    ".brgWelcomeEnter": `position: sticky; display: flex; flex-wrap: wrap; gap: 12px; width: calc(100% - 24px); bottom: 0; padding: 12px; font-size: 16px; background: rgba(var(--background), .9); backdrop-filter: blur(4px); justify-content: center; align-items: center; z-index: 2`,
     ".brgWelcomeEnter .largeButton": `--themeColor: var(--theme); --themeColor2: var(--themeColor); --borderRadius: 12px; max-width: 100%; padding: 6px 10px; margin: 3px; justify-content: center; font-size: 18px`
   };
 

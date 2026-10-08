@@ -73,8 +73,6 @@ export class Text {
         }
 
         updateMaxFontSize() {
-          return;
-
           if (this.domNode == null) {
             return;
           }

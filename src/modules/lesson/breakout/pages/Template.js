@@ -248,6 +248,10 @@ export class Page {
       this.openBoardHolder.setAttribute("hidden", "");
     }
   }
+  updateActivePage() {
+    this.editor.active = this.parent.parent.activePageID == this.parent.pageID;
+    this.updateSplitScreenButton();
+  }
 
   async js(frame, extra = {}) {
     if (extra.template == null) {
@@ -589,9 +593,9 @@ export class Page {
     });
     this.pipeline.subscribe("pageAdd", "page_add", () => { this.updateSplitScreenButton(); });
     this.pipeline.subscribe("pageRemove", "page_remove", () => { this.updateSplitScreenButton(); });
-    this.pipeline.subscribe("pageSwitch", "page_switch", () => { this.updateSplitScreenButton(); });
+    this.pipeline.subscribe("pageSwitch", "page_switch", () => { this.updateActivePage(); });
     this.pipeline.subscribe("pageMaximize", "maximize", () => { this.updateSplitScreenButton(); });
-    this.updateSplitScreenButton();
+    this.updateActivePage();
 
     this.updateInterface();
   }

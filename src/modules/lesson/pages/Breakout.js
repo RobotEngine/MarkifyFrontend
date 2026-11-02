@@ -1,4 +1,4 @@
-import { body, account, changeGlobalImports, getParam } from "@/crucial";
+import { body, account, changeGlobalImports, getParam, sendRequest } from "@/crucial";
 
 import { alert as alertModule } from "@modules/utility/Alert";
 
@@ -13,6 +13,8 @@ export class Page {
   }
   
   html = ``;
+
+  static scoped = true;
   css = {
     ".brPage": `position: absolute; display: block; width: 100%; height: 100%; left: 0px; top: 0px; z-index: 2; pointer-events: all; transition: .2s`,
     ".brPage[hidden]": `z-index: 1`,
@@ -43,11 +45,11 @@ export class Page {
 
     this.closePage(id);
 
-    this.frame.insertAdjacentHTML("beforeend", `<div class="brPage" new></div>`);
-    let newPage = this.frame.querySelector(".brPage[new]");
-    newPage.removeAttribute("new");
+    let newPage = document.createElement("div");
+    newPage.className = "brPage";
     newPage.setAttribute("pageid", id);
     newPage.setAttribute("path", path);
+    this.frame.appendChild(newPage);
 
     this.pages[id] = await this.setFrame(new Promise(async (resolve) => {
       let loadModuleFunction = breakoutPages[breakoutPagesPath + path + ".js"];
@@ -204,6 +206,14 @@ export class Page {
       } else {
         await this.openPage("secondary", "group", { groupID: team });
       }
+    }
+
+    // Handle re-adding Breakout:
+    if (
+      (this.parent.lesson.breakout ?? {}).status != null
+      && this.parent.lesson.tool.includes("breakout") == false
+    ) {
+      await sendRequest("PATCH", "lessons/toggle/attach", { tool: "breakout" }, { session: this.parent.session });
     }
   }
 }

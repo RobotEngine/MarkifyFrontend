@@ -29,7 +29,7 @@ export class Module {
     ".eCursor[hidden]": `transition: transform 0s, all .25s`,
     ".eCursor[pressed]": `--backgroundColor: #fff; --borderColor: var(--themeColor); color: var(--textColor) !important`,
     ".eCursor[pressed] svg": `transform: scale(.9)`,
-    ".eCursor .pointer": `width: 20px; height: 20px; background: var(--backgroundColor); border: solid 3px var(--borderColor); overflow: hidden; border-radius: 8px 14px 14px 14px; box-shadow: 0 0 6px rgb(0 0 0 / 25%); transition: all .25s, color 0s`,
+    ".eCursor .pointer": `width: 20px; height: 20px; background: var(--backgroundColor); border: solid 3px var(--borderColor); overflow: hidden; border-radius: 8px 14px 14px 14px; box-shadow: 0 0 8px var(--shadowColor); transition: all .25s, color 0s`,
     ".eCursor .pointer[none]": `border-radius: 14px; opacity: 0; width: 0px`,
     ".eCursor [name]": `box-sizing: border-box; display: flex; width: fit-content; height: 100%; padding: 0px 6px; border-radius: 14px; overflow: hidden; opacity: 0; font-size: 14px; font-weight: 700; white-space: nowrap; align-items: center`,
     ".eCursor:not([anonymous]):hover [color]": `width: var(--fullyExtended)`,
@@ -504,22 +504,29 @@ export class Module {
       let elements = (this.members[memberKeys[i]] ?? {}).elements ?? {};
       let elementKeys = Object.keys(elements);
       for (let e = 0; e < elementKeys.length; e++) {
-        let { element, scale } = elements[elementKeys[e]] ?? {};
+        let { element, scale, children } = elements[elementKeys[e]] ?? {};
         if (element != null && scale == true) {
-          element.setAttribute("notransition", "");
-          if (element.hasAttribute("width") == true) {
-            element.style.width = parseFloat(element.getAttribute("width")) * this.editor.zoom + "px";
+          let loopElements = [element];
+          if (children == true) {
+            loopElements = element.children;
           }
-          if (element.hasAttribute("height") == true) {
-            element.style.height = parseFloat(element.getAttribute("height")) * this.editor.zoom + "px";
+          for (let c = 0; c < loopElements.length; c++) {
+            let element = loopElements[c];
+            element.setAttribute("notransition", "");
+            if (element.hasAttribute("width") == true) {
+              element.style.width = parseFloat(element.getAttribute("width")) * this.editor.zoom + "px";
+            }
+            if (element.hasAttribute("height") == true) {
+              element.style.height = parseFloat(element.getAttribute("height")) * this.editor.zoom + "px";
+            }
+            if (element.hasAttribute("x") == true && element.hasAttribute("y") == true) {
+              let x = parseFloat(element.getAttribute("x")) * this.editor.zoom;
+              let y = parseFloat(element.getAttribute("y")) * this.editor.zoom;
+              element.style.transform = "translate(" + (x + annotationRect.left + (parseInt(element.getAttribute("offsetx") ?? "0")) + scrollLeft) + "px," + (y + annotationRect.top + (parseInt(element.getAttribute("offsety") ?? "0")) + scrollTop) + "px)";
+            }
+            element.offsetHeight;
+            element.removeAttribute("notransition");
           }
-          if (element.hasAttribute("x") == true && element.hasAttribute("y") == true) {
-            let x = parseFloat(element.getAttribute("x")) * this.editor.zoom;
-            let y = parseFloat(element.getAttribute("y")) * this.editor.zoom;
-            element.style.transform = "translate(" + (x + annotationRect.left + (parseInt(element.getAttribute("offsetx") ?? "0")) + scrollLeft) + "px," + (y + annotationRect.top + (parseInt(element.getAttribute("offsety") ?? "0")) + scrollTop) + "px)";
-          }
-          element.offsetHeight;
-          element.removeAttribute("notransition");
         }
         if (this.editor.settings.anonymousMode != true) {
           element.removeAttribute("anonymous");
@@ -741,6 +748,7 @@ export class Module {
             cursorHolder.style.setProperty("--textColor", "#000");
           }
           cursorHolder.style.setProperty("--themeColor", memberData.color);
+          cursorHolder.style.setProperty("--shadowColor", hexToRGBString(memberData.color, .3));
           let colorMain = cursorHolder.querySelector("[color]");
           colorMain.style.width = "fit-content";
           cursorHolder.style.setProperty("--fullyExtended", colorMain.clientWidth + "px");
@@ -1025,7 +1033,7 @@ export class Module {
           if (textSelectHolder == null) {
             this.editor.realtimeHolder.insertAdjacentHTML("beforeend", `<div class="eSelection" member="${memberID}"></div>`);
             textSelectHolder = this.editor.realtimeHolder.querySelector('.eSelection[member="' + memberID + '"]:not([old])');
-            member.elements.textSelectionHolder = { element: textSelectHolder, scale: true };
+            member.elements.textSelectionHolder = { element: textSelectHolder, scale: true, children: true };
             textSelectHolder.style.setProperty("--themeColor", memberData.color);
           } else {
             textSelectHolder.innerHTML = "";

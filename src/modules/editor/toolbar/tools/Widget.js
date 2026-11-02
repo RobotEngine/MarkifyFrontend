@@ -1,5 +1,3 @@
-import { setFrame } from "@/crucial";
-
 import { Placement } from "../Placement";
 
 import { loadWidgetModule } from "../../render/annotations/Widget";
@@ -108,7 +106,7 @@ export class Frame {
           return;
         }
         let tilePreview = tile.querySelector(".eToolWidgetTilePreview");
-        let widgetModule = await setFrame(widgetTemplate, tilePreview, {
+        let widgetModule = await this.editor.setFrame(widgetTemplate, tilePreview, {
           construct: {
             parent: this,
             editor: this.editor,

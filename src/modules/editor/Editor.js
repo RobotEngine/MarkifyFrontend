@@ -34,8 +34,25 @@ export class Editor {
       <div class="eAnnotations"></div>
     </div>
     <div class="eBackground"></div>
+    <svg style="position: absolute; width: 0; height: 0; overflow: hidden;" aria-hidden="true">
+      <defs>
+        <filter id="tool-cursor-drop-shadow" color-interpolation-filters="sRGB" filterUnits="userSpaceOnUse">
+          <feFlood flood-opacity="0" result="BackgroundImageFix" />
+          <feColorMatrix in="SourceAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0" result="hardAlpha" />
+          <feOffset dx="0" dy="0" />
+          <feGaussianBlur stdDeviation="4" />
+          <feComposite in2="hardAlpha" operator="out" result="shadowMask" />
+          <feFlood flood-color="var(--themeColor)" result="floodColor" />
+          <feComposite in="floodColor" in2="shadowMask" operator="in" result="coloredShadow" />
+          <feBlend mode="normal" in="coloredShadow" in2="BackgroundImageFix" result="effect_shadow" />
+          <feBlend mode="normal" in="SourceGraphic" in2="effect_shadow" result="shape" />
+        </filter>
+      </defs>
+    </svg>
   </div>
   `;
+
+  static scoped = true;
   css = {
     ".eContent": `position: relative; display: flex; flex-direction: column; width: fit-content; min-width: calc(100% - (var(--interfacePadding) * 2)); min-height: calc(100vh - (var(--interfacePadding) * 2)); padding: var(--interfacePadding); contain: paint; align-items: center; overflow: hidden; background-color: var(--backgroundColor); pointer-events: all; transition: background-color .3s; --zoom: 1`,
     ".eRealtime": `position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; z-index: 3; overflow: hidden; pointer-events: none`,
@@ -59,8 +76,6 @@ export class Editor {
     ".eAnnotation .ql-editor.ql-blank::before": `color: var(--textColor) !important; opacity: .6 !important`,
     ".eAnnotation .ql-editor ol": `padding: unset`,
     ".eAnnotation .ql-editor a": `color: var(--theme) !important`,
-    
-    
 
     ".eAnnotation:not([selected]) > .ql-container .ql-editor a": `pointer-events: none !important`,
     ".eAnnotation .ql-formula": `position: relative; border: none; background: unset !important; box-shadow: unset !important`,
@@ -102,7 +117,7 @@ export class Editor {
     return this.active == true;
   }
   isThisPage(element) {
-    return element != null && element.closest(".lPage") == this.pageFrame;
+    return element != null && this.page.contains(element) == true;
   }
   isEditorContent(target) {
     if (target == null) {
@@ -1028,6 +1043,9 @@ export class Editor {
     this.pageFrame = this.page.closest(".lPage");
     
     this.widgetDrawer = this.page.querySelector(".eWidgetDrawer");
+    if (this.widgetDrawer != null) {
+      this.widgetDrawer.setAttribute("module-scope", this.moduleID);
+    }
 
     this.content = this.contentHolder.querySelector(".eContent");
     this.realtimeHolder = this.content.querySelector(".eRealtime");
@@ -1106,13 +1124,13 @@ export class Editor {
       }
       this.resizeCenterPosition = null;
     });
-    this.page.addEventListener("DOMMouseScroll", (event) => {
+    this.content.addEventListener("DOMMouseScroll", (event) => {
       this.pipeline.publish("wheel", { type: "DOMMouseScroll", event: event });
     }, { passive: false });
-    this.page.addEventListener("mousewheel", (event) => {
+    this.content.addEventListener("mousewheel", (event) => {
       this.pipeline.publish("wheel", { type: "mousewheel", event: event });
     }, { passive: false });
-    this.page.addEventListener("wheel", (event) => {
+    this.content.addEventListener("wheel", (event) => {
       this.pipeline.publish("wheel", { type: "wheel", event: event });
     }, { passive: false });
 

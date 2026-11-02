@@ -3,7 +3,7 @@ import { fixed, newModule, sleep } from "@/crucial";
 import { close, alerts } from "./core-icons";
 
 export const Alert = class {
-  css = {
+  globalcss = {
     ".alertHolder": `--floatMargin: 12px; position: relative; box-sizing: border-box; display: flex; flex-direction: column; width: 600px; max-width: 100%; height: fit-content; margin: calc(30px + (var(--floatMargin) * 2)) 8px 8px 8px; align-items: center; z-index: 9999`,
     ".alert": `--themeColor: rgb(var(--themeColorRGB)); position: relative; box-sizing: border-box; display: flex; max-width: 100%; transform: scale(0); opacity: 0; background: rgba(var(--background), .9); backdrop-filter: blur(4px); border-radius: 26px; pointer-events: all`, //; overflow: hidden
     ".alert:before": `content: ""; position: absolute; width: 100%; height: 100%; left: 0; top: 0; border-radius: inherit; box-shadow: 0 0 0 2px rgba(var(--themeColorRGB), .4); pointer-events: none`,

@@ -70,7 +70,7 @@ export class Annotation extends BaseAnnotation {
       this.element.style.width = width + "px";
       this.element.style.height = height + "px";
       this.element.innerHTML = `<svg>
-        <path stroke-width="${parseFloat(this.properties.t)}" d="${drawSetPoints}" stroke="${"#" + cleanString(this.properties.c)}" opacity="${parseFloat(this.properties.o) / 100}"/>
+        <path stroke-width="${parseFloat(this.properties.t)}" d="${drawSetPoints}" stroke="#${cleanString(this.properties.c)}" opacity="${parseFloat(this.properties.o) / 100}"/>
       </svg>`;
       let path = this.element.querySelector("path");
       path.setAttribute("fill", "none");

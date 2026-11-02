@@ -13,6 +13,7 @@ const lessonPagesPath = "/src/modules/lesson/pages/";
 
 export class Page extends PageFrame {
   title = "Lesson";
+  requiresSimpleSocket = true;
   allowBackgroundChange = true;
 
   exit() {

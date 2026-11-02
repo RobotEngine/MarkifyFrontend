@@ -176,7 +176,7 @@ export class Frame {
 
     let enlargeButton = frame.querySelector(".eSharePinEnlarge");
     enlargeButton.addEventListener("click", () => {
-      modalModule.open(EnlargeModal, enlargeButton, { parent, lesson, title: "" });
+      modalModule.open(EnlargeModal, parent.frame, { parent, lesson, title: "" });
       this.close();
     });
 

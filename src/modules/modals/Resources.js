@@ -43,7 +43,7 @@ export class Frame {
     ".dmTutorialButton div": `flex: 1 1 100px; margin: 0 8px`,
     ".dmSkipButton": `width: fit-content; margin: 16px 0 12px 0; color: var(--theme); font-size: 18px; font-weight: 600`,
 
-    ".dmBackground": `position: absolute; width: calc(100% + 12px); height: calc(100% + 12px); left: -6px; top: -6px; object-fit: cover; z-index: 0; opacity: 0; transition: .5s`,
+    ".dmBackground": `position: absolute; width: calc(100% + 16px); height: calc(100% + 16px); left: -8px; top: -8px; object-fit: cover; z-index: 0; opacity: 0; transition: .5s`,
     ".dmBackground[hover]": `opacity: 1`
   };
   async js(frame) {
@@ -86,7 +86,7 @@ export class Frame {
   }
 }
 
-export const resources = class {
+export class resources {
   html = `
   <div class="dmucHolder" new>
     <div class="dmucImageHolder">
@@ -109,7 +109,7 @@ export const resources = class {
   css = {
     ".dmucHolder": `position: relative; display: flex; flex-direction: column; width: 450px; max-width: 100%; text-align: center; align-items: center; z-index: 1`,
     ".dmucHolder[new] *": `transition: none !important`,
-    ".dmucImageHolder": `position: relative; width: calc(100% + 12px); height: 200px; overflow: hidden`,
+    ".dmucImageHolder": `position: relative; width: 100%; height: 200px; border-radius: 16px 16px 0 0; overflow: hidden`,
     ".dmucImageContent": `position: absolute; width: 100%; height: 198px; left: 0px; top: 0%; overflow: hidden`,
     ".dmucImageGradient": `width: 100%; height: 100%`,
     ".dmucImage": `position: absolute; width: calc(100% - 40px); height: 100%; left: 20px; top: 100%; border-radius: 16px; opacity: 0; transform: scale(.8); transition: .5s`,

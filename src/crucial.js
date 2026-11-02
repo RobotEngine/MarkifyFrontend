@@ -42,6 +42,7 @@ export const isLocal = ["localhost", "127.0.0.1"].includes(location.hostname);
 
 export let socket = {};
 export let connected = false;
+let simpleSocketLoadingPromise;
 
 export const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
 export const week = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
@@ -54,9 +55,9 @@ export const app = body.querySelector(".app");
 export const fixed = body.querySelector(".fixed");
 export const favicon = document.querySelector('link[rel="icon"]');
 
-const styleTag = document.createElement("style");
-head.appendChild(styleTag);
-export const stylesheet = styleTag.sheet;
+const styleElement = document.createElement("style");
+head.appendChild(styleElement);
+export const stylesheet = styleElement.sheet;
 
 export const loadingAnim = app.innerHTML;
 
@@ -242,17 +243,40 @@ export const sleep = (ms) => {
   return new Promise((resolve) => setTimeout(resolve, ms ?? 1));
 }
 
-export const appendCSS = (newRules) => {
+export const appendCSS = (newRules, moduleID) => {
+  /*let scopePrefix;
+  if (moduleID != null) {
+    scopePrefix = `[module-scope="${moduleID}"]`;
+  }*/
+  
+  let cssBatch = "";
   let ruleKeys = Object.keys(newRules);
   for (let i = 0; i < ruleKeys.length; i++) {
-    let rule = ruleKeys[i];
-    try {
-      stylesheet.insertRule(rule + "{" + newRules[rule] + "}", stylesheet.cssRules.length);
-    } catch {}
+    let selector = (ruleKeys[i] ?? "").trim();
+    let declarations = newRules[selector];
+
+    /*if (scopePrefix == null || selector.startsWith("@") == true) { // Add the rule as-is:
+      cssBatch += `${selector}{${declarations}}\n`;
+      continue;
+    }
+
+    let scopedSelector = selector
+    .split(",")
+    .map(part => `${scopePrefix} ${part.trim()}`)
+    .join(", ");*/
+
+    cssBatch += `${selector}{${declarations}}\n`;
+  }
+
+  if (moduleID != null) {
+    styleElement.textContent += `@scope ([module-scope="${moduleID}"]) {${cssBatch}}`;
+  } else {
+    styleElement.textContent += cssBatch;
   }
 }
 
 export class PageFrame {
+  static scoped = true;
   isActive = () => {
     return this.loadId == currentPageLoadId;
   }
@@ -277,19 +301,34 @@ export const newModule = async (template, parent) => {
     return;
   }
   let templateResult = await template;
+  let templateClass = templateResult;
   let module;
   if (typeof templateResult != "object") {
     module = new templateResult(parent);
   } else {
-    module = new (
+    templateClass = (
       templateResult.Frame
       ?? templateResult.Module
       ?? templateResult.default
-    )(parent);
+    );
+    module = new templateClass(parent);
   }
   if (module == null) {
     return;
   }
+
+  if (templateClass.hasOwnProperty("moduleID") == false) {
+    if (parent != null && parent.moduleID != null && templateClass.scoped != true) {
+      templateClass.moduleID = parent.moduleID;
+    } else {
+      templateClass.moduleID = randomString(10) + getEpoch();
+      templateClass.moduleScoped = true;
+    }
+    //templateClass.moduleID = randomString(10) + getEpoch();
+  }
+  module.moduleID = templateClass.moduleID;
+  module.moduleScoped = templateClass.moduleScoped;
+
   module.newModule = function (moduleImport) {
     return newModule(moduleImport, this);
   }
@@ -302,10 +341,13 @@ export const newModule = async (template, parent) => {
   if (parent != null) {
     module.parent = parent;
   }
-  if (loadedModules.has(template) == false) {
-    loadedModules.add(template);
+  if (loadedModules.has(templateClass) == false) {
+    loadedModules.add(templateClass);
     if (module.css != null) {
-      appendCSS(module.css);
+      appendCSS(module.css, templateClass.moduleID);
+    }
+    if (module.globalcss != null) {
+      appendCSS(module.globalcss);
     }
   }
   return module;
@@ -468,6 +510,16 @@ export const setFrame = async (modulePromise, frame, extra, parent) => {
   if (extra.construct != null) {
     Object.assign(module, extra.construct);
   }
+  if (module.requiresSimpleSocket == true) {
+    await simpleSocketLoadingPromise;
+  } else if (module.onConnect != null) {
+    (async () => {
+      await simpleSocketLoadingPromise;
+      if (module != null) {
+        module.onConnect();
+      }
+    })();
+  }
   if (module.preJs != null) {
     continueLoading = (await (module.preJs())) != false;
   }
@@ -479,6 +531,11 @@ export const setFrame = async (modulePromise, frame, extra, parent) => {
   if (continueLoading == true) {
     let frameContent = document.createElement("div");
     frameContent.className = "content";
+
+    if (module.moduleID != null && module.moduleScoped == true) {
+      frameContent.setAttribute("module-scope", module.moduleID);
+    }
+
     frameContent.style.opacity = 0;
     frameContent.style.transition = "all .3s, max-height 0s";
     frameContent.innerHTML = module.html ?? "";
@@ -551,7 +608,11 @@ export const setPage = async (path, extra) => {
   extra.path = path;
 
   if (currentPageModule != null && currentPageModule.close != null) {
-    currentPageModule.close();
+    currentPageModule.close(); // Runs immediately
+  }
+  let previousPageModule;
+  if (path != currentPage && currentPageModule != null && currentPageModule.exit != null) {
+    previousPageModule = currentPageModule;
   }
 
   let page = await setFrame(new Promise(async (resolve) => {
@@ -565,8 +626,8 @@ export const setPage = async (path, extra) => {
     return;
   }
 
-  if (path != currentPage && currentPageModule != null && currentPageModule.exit != null) {
-    currentPageModule.exit();
+  if (previousPageModule != null) {
+    previousPageModule.exit(); // Runs AFTER the next page is done loading
   }
   currentPageModule = page;
 
@@ -1234,9 +1295,46 @@ export const loadScript = (url) => {
   });
 }
 
+const movedPages = {
+  dashboard: "app/dashboard",
+  lesson: "app/lesson",
+  join: "app/join",
+  editor: "app/lesson"
+};
+let setFrameFromInit = () => {
+  // Handle Routing:
+  let openPage = defaultPage;
+  let path = window.location.pathname.substring(1);
+  if (path == "") {
+    if (userID != null && path == "") {
+      openPage = "pages/app/dashboard";
+    } else {
+      openPage = "pages/launch";
+    }
+  }
+  if (window.location.pathname != "/") {
+    openPage = "pages/" + path;
+  } else if (window.location.hash != "") {
+    let hash = window.location.hash.substring(1);
+    openPage = "pages/" + (movedPages[hash] ?? hash);
+  }
+
+  setPage(
+    openPage,
+    {
+      pushHistory: false,
+      replaceHistory: true,
+      passParams: true,
+      unsub: false,
+      missPageRedirect: true
+    }
+  );
+}
+
+// Startup SimpleSocket:
+
 let wasConnected = false;
-const movedPages = { dashboard: "app/dashboard", lesson: "app/lesson", join: "app/join", editor: "app/lesson" };
-(async () => {
+simpleSocketLoadingPromise = new Promise(async (resolve) => {
   if (typeof SimpleSocket == "undefined") { // Backup if static fails
     await loadScript("https://simplesocket.net/static/v2/simplesocket.js");
   }
@@ -1280,18 +1378,6 @@ const movedPages = { dashboard: "app/dashboard", lesson: "app/lesson", join: "ap
     }
   }
 
-  let loadPage = defaultPage;
-  if (window.location.pathname != "/") {
-    loadPage = "pages/" + window.location.pathname.substring(1);
-  } else if (window.location.hash != "") {
-    let hash = window.location.hash.substring(1);
-    loadPage = "pages/" + (movedPages[hash] ?? hash);
-  }
-  let preloadModuleFunction = pages["./modules/" + loadPage + ".js"];
-  if (preloadModuleFunction != null) {
-    preloadModuleFunction();
-  }
-  
   socket.onopen = async () => {
     if (navigator.serviceWorker != null && navigator.serviceWorker.controller != null) {
       navigator.serviceWorker.controller.postMessage({ type: "CONNECTED" });
@@ -1299,7 +1385,7 @@ const movedPages = { dashboard: "app/dashboard", lesson: "app/lesson", join: "ap
 
     connected = true;
     if (endStartup == true) {
-      return;
+      return resolve();
     }
     dropdownModule.close();
     await init();
@@ -1311,28 +1397,14 @@ const movedPages = { dashboard: "app/dashboard", lesson: "app/lesson", join: "ap
       });
     }
 
-    // Handle Routing:
-    let openPage = defaultPage;
-    let path = window.location.pathname.substring(1);
-    if (path == "") {
-      if (userID != null && path == "") {
-        openPage = "pages/app/dashboard";
-      } else {
-        openPage = "pages/launch";
-      }
-    }
-    if (window.location.pathname != "/") {
-      openPage = "pages/" + path;
-    } else if (window.location.hash != "") {
-      let hash = window.location.hash.substring(1);
-      openPage = "pages/" + (movedPages[hash] ?? hash);
-    }
+    if (wasConnected == false) {
+      wasConnected = true;
+      resolve(); // Socket is connected and ready to go!
+    } else {
+      setFrameFromInit();
 
-    setPage(openPage, { pushHistory: false, replaceHistory: true, passParams: true, unsub: false, missPageRedirect: true });
-    if (wasConnected == true) {
       alertModule.open("worked", `<b>Connected</b>Reconnected to Markify`, { id: "connection" });
     }
-    wasConnected = true;
   };
   socket.onclose = () => {
     connected = false;
@@ -1341,7 +1413,12 @@ const movedPages = { dashboard: "app/dashboard", lesson: "app/lesson", join: "ap
     }
     alertModule.open("warning", `<b>Lost Connection</b>Reconnecting to Markify...`, { id: "connection", time: "never" });
   };
-})();
+});
+
+
+// // // Load the First Page // // //
+setFrameFromInit();
+// // // // // //
 
 export const elementInViewport = (element) => {
   if (element == null) {

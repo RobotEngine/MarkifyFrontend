@@ -50,7 +50,7 @@ export class Frame {
     ".eFileAction": `--themeColor: var(--theme); display: flex; width: 100%; padding: 4px 8px 4px 4px; border-radius: 8px; align-items: center; font-size: 16px; font-weight: 600; text-align: left; transition: .15s`,
     ".eFileAction[hidden]": `display: none`,
     ".eFileAction:not(:last-child)": `margin-bottom: 4px`,
-    ".eFileAction div": `width: 24px; height: 24px; padding: 2px; margin-right: 8px; background: var(--pageColor); border-radius: 4px`,
+    ".eFileAction div": `width: 24px; height: 24px; flex-shrink: 0; padding: 2px; margin-right: 8px; background: var(--pageColor); border-radius: 4px`,
     ".eFileAction div svg": `width: 100%; height: 100%`,
     ".eFileAction:hover": `background: var(--themeColor); color: #fff`,
     ".eFileLine": `width: 100%; height: 2px; margin-bottom: 4px; background: var(--gray); border-radius: 1px`

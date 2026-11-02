@@ -212,6 +212,7 @@ export class Frame extends Setup {
         this.blankButton,
         {
           parent: this,
+          page: this.parent,
           requestPath: "lessons/breakout/templates/new",
           callback: async ({ body }) => {
             this.open(Frame, this.blankButton, { parent: this.parent, template: body, title: "Start a Breakout" });

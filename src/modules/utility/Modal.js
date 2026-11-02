@@ -6,11 +6,11 @@ export const Modal = class {
   history = [];
   cache = {};
 
-  css = {
-    ".modal": `position: absolute; box-sizing: border-box; max-width: calc(100% - 16px); max-height: calc(100% - 16px); left: 50%; top: 50%; transform: translate(-50%, -50%); opacity: 0; box-shadow: var(--darkShadow); border-radius: 12px; transform-origin: 50% 25%; pointer-events: all; outline: none !important`,
+  globalcss = {
+    ".modal": `position: absolute; box-sizing: border-box; max-width: calc(100% - 16px); max-height: calc(100% - 16px); left: 50%; top: 50%; transform: translate(-50%, -50%); opacity: 0; box-shadow: var(--darkShadow); border-radius: 16px; transform-origin: 50% 25%; pointer-events: all; outline: none !important`,
     ".modal .loading": `pointer-events: none`,
     ".modalOverflow": `position: relative; width: 100%; height: 100%; overflow: hidden; background: var(--pageColor); border-radius: inherit; z-index: 0`,
-    ".modalContent": `position: absolute; box-sizing: border-box; width: max-content; height: max-content; max-height: var(--maxHeight); padding: 6px; overflow: auto`, //background: var(--pageColor)
+    ".modalContent": `position: absolute; box-sizing: border-box; width: max-content; height: max-content; max-height: var(--maxHeight); padding: 8px; overflow: auto`, //background: var(--pageColor)
     ".modalFrame": `position: relative`,
     ".modalHeader": `position: relative; display: flex; gap: 6px; padding: 6px 6px 0 6px; justify-content: space-between; transition: .4s; z-index: 2`,
     ".modalHeader button": `position: relative; width: 24px; height: 24px; margin: 3px; background: var(--pageColor); --borderWidth: 3px; --borderRadius: 14px`,
@@ -265,6 +265,10 @@ export const Modal = class {
     this.maxHeight = (this.module ?? {}).maxHeight;
 
     this.content = content;
+
+    if (this.module.moduleID != null && this.element != null) {
+      this.element.setAttribute("module-scope", this.module.moduleID);
+    }
 
     if (oldContent != null) {
       setTimeout(() => {

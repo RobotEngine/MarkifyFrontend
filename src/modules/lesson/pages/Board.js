@@ -99,6 +99,8 @@ export class Page {
   </div>
   <div class="boPage" timeline hidden></div>
   `;
+
+  static scoped = true;
   css = {
     ".boPage": `position: absolute; display: block; width: 100%; height: 100%; left: 0px; top: 0px; z-index: 2; pointer-events: all; transition: .2s`,
     ".boPage[hidden]": `z-index: 1`,
@@ -949,6 +951,7 @@ export class Page {
         {
           parentElement: this.frame.querySelector(".eCreateBoardHolder"),
           parent: this,
+          page: this,
           callback: ({ modal }) => {
             if (this.lesson.tool.includes("board") == false) {
               this.lesson.tool.unshift("board");

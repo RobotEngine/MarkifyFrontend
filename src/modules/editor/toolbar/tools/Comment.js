@@ -22,7 +22,7 @@ class MoreDropdown {
   css = {
     ".eToolbarCommentMoreAction": `--themeColor: var(--theme); display: flex; width: 100%; padding: 4px 8px 4px 4px; border-radius: 8px; align-items: center; font-size: 16px; font-weight: 600; text-align: left; transition: .15s`,
     ".eToolbarCommentMoreAction:not(:last-child)": `margin-bottom: 4px`,
-    ".eToolbarCommentMoreAction div": `width: 24px; height: 24px; padding: 2px; margin-right: 8px; background: var(--pageColor); border-radius: 4px`,
+    ".eToolbarCommentMoreAction div": `width: 24px; height: 24px; flex-shrink: 0; padding: 2px; margin-right: 8px; background: var(--pageColor); border-radius: 4px`,
     ".eToolbarCommentMoreAction div svg": `width: 100%; height: 100%`,
     ".eToolbarCommentMoreAction:hover": `background: var(--themeColor); color: #fff`
   };

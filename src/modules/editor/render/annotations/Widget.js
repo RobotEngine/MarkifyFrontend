@@ -1,4 +1,4 @@
-import { changeGlobalImports, setFrame, sleep } from "@/crucial";
+import { changeGlobalImports, sleep } from "@/crucial";
 
 import { BaseAnnotation } from "../BaseAnnotation";
 
@@ -70,7 +70,7 @@ export class Annotation extends BaseAnnotation {
         let widgetTemplate = ((await loadWidgetModule(this.properties.d)) ?? {}).Widget;
         
         if (widgetTemplate != null && this.element != null) {
-          this.widgetModule = await setFrame(widgetTemplate, this.element.querySelector(".eWidgetContent"), {
+          this.widgetModule = await this.editor.setFrame(widgetTemplate, this.element.querySelector(".eWidgetContent"), {
             construct: {
               parent: this,
               editor: this.parent

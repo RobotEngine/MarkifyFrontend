@@ -209,10 +209,11 @@ export class Frame {
     ".lessonUpload div[text]": `font-size: 22px`
   };
   js(frame, extra) {
-    this.parent = extra.parent;
+    //this.parent = extra.parent;
     //this.editor = extra.editor;
+    this.page = extra.page;
     this.callback = extra.callback;
-    this.session = this.parent.parent.session ?? this.parent.parent.parent.session;
+    this.session = this.page.parent.session;
     this.requestPath = extra.requestPath ?? "lessons/board/new";
     this.folder = getParam("folder");
 
@@ -222,7 +223,7 @@ export class Frame {
     if (closeButton.hasAttribute("listener") == false) {
       closeButton.setAttribute("listener", "");
       closeButton.addEventListener("click", () => {
-        this.parent.parent.removePage(this.parent.pageID, this.parent.pageType, { animate: true });
+        this.page.parent.removePage(this.page.pageID, this.page.pageType, { animate: true });
       });
     }
 

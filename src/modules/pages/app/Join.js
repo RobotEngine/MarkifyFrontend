@@ -5,6 +5,7 @@ import { alert as alertModule } from "@modules/utility/Alert";
 import { close as closeIcon } from "@modules/utility/core-icons";
 
 export class Page extends PageFrame {
+  requiresSimpleSocket = true;
   turnstileEnabled = false;
 
   title = "Join";

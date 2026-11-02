@@ -44,8 +44,8 @@ export class Tool {
   css = {
     ".eSubToolThicknessButtonHolder": `position: relative; display: flex; width: 100%; height: 100%; justify-content: center; align-items: center; overflow: hidden`,
     ".eSubToolThicknessHolder": `position: absolute; background: var(--pageColor); border: solid 3px var(--pageColor); border-radius: 14px`,
-    ".eToolbarHolder[left] .eSubToolThicknessHolder": `margin-right: 16px`,
-    ".eToolbarHolder[right] .eSubToolThicknessHolder": `margin-left: 16px`,
+    ":scope[left] .eSubToolThicknessHolder": `margin-right: 16px`,
+    ":scope[right] .eSubToolThicknessHolder": `margin-left: 16px`,
     ".eActionBar[top] .eSubToolThicknessHolder": `margin-top: 16px`,
     ".eActionBar[bottom] .eSubToolThicknessHolder": `margin-bottom: 16px`,
     ".eSubToolThickness": `border-radius: 10px`,

@@ -30,6 +30,8 @@ export class Page {
   pageBorderSize = 4;
 
   html = `<div class="eExportHolder"></div>`;
+
+  static scoped = true;
   css = {
     ".loading": `display: none`,
     ".content": `transition: unset !important`,

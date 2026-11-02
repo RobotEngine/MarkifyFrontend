@@ -53,7 +53,7 @@ export class Page extends PageFrame {
     ".waitSocials a img": `width: 100%; height: 100%`
   };
   async js(page) {
-    return setPage("pages/app/dashboard");
+    return setPage("pages/app/lesson", { params: { type: "breakout" } });
 
     let beforeModal = page.querySelector(".waitModal[before]");
     let afterModal = page.querySelector(".waitModal[after]");

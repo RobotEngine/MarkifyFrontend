@@ -29,17 +29,17 @@ export class Module {
   }
 
   css = {
-    ".eToolbarHolder": `position: relative; display: block; flex: 1; visibility: visible`,
+    ":scope": `position: relative; display: block; flex: 1; visibility: visible`,
     ".eToolbar": `--toolbarWidth: 50px; position: absolute; display: block; width: var(--toolbarWidth); height: fit-content; max-height: var(--maxToolbarHeight); top: 50%; transform: translateY(-50%); z-index: 2; background: var(--pageColor); box-shadow: var(--lightShadow); pointer-events: all; transition: transform .4s, opacity .4s, border-radius .2s`,
     ".eToolbar[hidden]": `transform: translate(var(--translate), -50%) !important; z-index: 1 !important`,
     ".eToolbarContent": `position: relative; box-sizing: border-box; max-height: var(--maxToolbarHeight); background: var(--pageColor); overflow-x: hidden; overflow-y: auto; z-index: 3; border-radius: inherit`,
-    ".eToolbarHolder[left] .eToolbar": `--translate: -100%; left: 0px; border-radius: 0 12px 12px 0; transform-origin: left center`,
-    ".eToolbarHolder[right] .eToolbar": `--translate: 100%; right: 0px; border-radius: 12px 0 0 12px; transform-origin: right center`,
+    ":scope[left] .eToolbar": `--translate: -100%; left: 0px; border-radius: 0 12px 12px 0; transform-origin: left center`,
+    ":scope[right] .eToolbar": `--translate: 100%; right: 0px; border-radius: 12px 0 0 12px; transform-origin: right center`,
     ".eToolbarTooltip": `position: absolute; display: flex; width: max-content; padding: 3px 6px; z-index: 5; background: var(--pageColor); border-radius: 6px; box-shadow: var(--lightShadow); pointer-events: none; user-select: none; text-wrap: nowrap; font-size: 16px; font-weight: 600; transform: scale(0); opacity: 0`,
     ".eToolMediaInput": `position: absolute; display: block; left: 0px; top: 0px`,
 
     ".eTool": `--hoverColor: var(--hover); display: flex; flex-shrink: 0; padding: 0; justify-content: center; align-items: center; transition: opacity .3s; outline: none !important`,
-    ".eToolbarHolder .eTool": `width: 50px; height: 46px`,
+    ":scope .eTool": `width: 50px; height: 46px`,
     ".eActionBar .eTool": `width: 46px; height: 50px`,
     ".eTool[hidden]": `display: none !important`,
     ".eTool > *": `pointer-events: none`,
@@ -53,8 +53,8 @@ export class Module {
     ".eTool:active > div:after": `width: 42px !important; height: 42px !important; left: 0px !important; top: 0px !important; border-radius: 8px !important`,
     ".eTool[selected] > div:after": `background: var(--theme)`,
     ".eTool[selected][option] > div:after": `background: var(--secondary) !important`,
-    ".eToolbarHolder[left] .eTool[extend] > div:after": `width: 46px; left: 0px; top: 0px; border-radius: 8px 0 0 8px`,
-    ".eToolbarHolder[right] .eTool[extend] > div:after": `width: 46px; left: -4px; top: 0px; border-radius: 0 8px 8px 0`,
+    ":scope[left] .eTool[extend] > div:after": `width: 46px; left: 0px; top: 0px; border-radius: 8px 0 0 8px`,
+    ":scope[right] .eTool[extend] > div:after": `width: 46px; left: -4px; top: 0px; border-radius: 0 8px 8px 0`,
     ".eActionBar[top] .eTool[extend] > div:after": `height: 46px; left: 0px; top: -4px; border-radius: 0 0 8px 8px`,
     ".eActionBar[bottom] .eTool[extend] > div:after": `height: 46px; left: 0px; top: 0px; border-radius: 8px 8px 0 0`,
     ".eTool[selecthighlight] > div:after": `background: var(--theme)`,
@@ -65,14 +65,14 @@ export class Module {
 
     ".eSubToolHolder": `--maxWidth: calc(var(--maxToolbarWidth) - var(--toolbarWidth) - 12px); position: absolute; width: calc(var(--maxWidth) + 4px); height: 100%; padding: 12px; top: -12px; z-index: 2; overflow: hidden; pointer-events: none`,
     ".eSubToolContainer .eSubToolHolder": `--maxWidth: calc(var(--maxToolbarWidth) - (var(--toolbarWidth) * 2) - (8px * 2));`,
-    ".eToolbarHolder[left] .eSubToolHolder": `left: calc(100% - 12px)`,
-    ".eToolbarHolder[right] .eSubToolHolder": `right: calc(100% - 12px)`,
+    ":scope[left] .eSubToolHolder": `left: calc(100% - 12px)`,
+    ":scope[right] .eSubToolHolder": `right: calc(100% - 12px)`,
     ".eSubToolContainer": `position: absolute; width: fit-content; max-width: calc(100% - 28px); max-height: 100%; background: var(--pageColor); opacity: 0; pointer-events: all; transition: opacity .25s, transform .25s; outline: none !important`,
     ".eSubToolContainer:after": `content: ""; position: absolute; width: 4px; height: 100%; top: 0px; background: var(--theme); z-index: 4`,
-    ".eToolbarHolder[left] .eSubToolContainer": `left: 12px; transform: translateX(-100%); padding-left: 4px; border-radius: 0 12px 12px 0`,
-    ".eToolbarHolder[right] .eSubToolContainer": `right: 12px; transform: translateX(100%); padding-right: 4px; border-radius: 12px 0 0 12px`,
-    ".eToolbarHolder[left] .eSubToolContainer:after": `left: 0px`,
-    ".eToolbarHolder[right] .eSubToolContainer:after": `right: 0px`,
+    ":scope[left] .eSubToolContainer": `left: 12px; transform: translateX(-100%); padding-left: 4px; border-radius: 0 12px 12px 0`,
+    ":scope[right] .eSubToolContainer": `right: 12px; transform: translateX(100%); padding-right: 4px; border-radius: 12px 0 0 12px`,
+    ":scope[left] .eSubToolContainer:after": `left: 0px`,
+    ":scope[right] .eSubToolContainer:after": `right: 0px`,
     ".eSubToolContainer[option]:after": `background: var(--secondary) !important`,
     ".eSubToolShadow": `position: absolute; display: flex; width: 100%; height: 100%; left: 0px; top: 0px; pointer-events: none; border-radius: inherit; z-index: -1`,
     ".eSubToolShadow:after": `content: ""; width: 100%; height: 100%; box-shadow: var(--lightShadow); border-radius: inherit`,
@@ -88,8 +88,8 @@ export class Module {
     ".eVerticalToolsShapeContainer > .eTool": `width: 46px !important`,
 
     ".eSideMenu": `position: absolute; display: flex; flex-direction: column; width: fit-content; max-width: calc(100% - 8px); height: fit-content; max-height: var(--maxToolbarHeight); top: 50%; z-index: 3; transform: translate(var(--translate), -50%); opacity: 0; background: var(--pageColor); box-shadow: var(--lightShadow); overflow: hidden; pointer-events: all; transition: transform .4s, opacity .4s, border-radius .2s`,
-    ".eToolbarHolder[left] .eSideMenu": `--translate: 100%; right: 0px; border-radius: 12px 0 0 12px; transform-origin: right center`,
-    ".eToolbarHolder[right] .eSideMenu": `--translate: -100%; left: 0px; border-radius: 0 12px 12px 0; transform-origin: left center`,
+    ":scope[left] .eSideMenu": `--translate: 100%; right: 0px; border-radius: 12px 0 0 12px; transform-origin: right center`,
+    ":scope[right] .eSideMenu": `--translate: -100%; left: 0px; border-radius: 0 12px 12px 0; transform-origin: left center`,
     ".eSideMenu .eSideMenuHeader": `display: flex; padding: 6px; gap: 6px; justify-content: space-between`,
     ".eSideMenu .eSideMenuHeaderTitle": `box-sizing: border-box; padding: 4px; flex: 1; max-width: fit-content; white-space: nowrap; text-overflow: ellipsis; overflow: hidden; font-weight: 500; font-size: 18px`,
     ".eSideMenu .eSideMenuHeaderClose": `position: relative; width: 22px; height: 22px; margin: 3px; --borderWidth: 3px; --borderRadius: 14px`,
@@ -240,7 +240,7 @@ export class Module {
         this.currentMouseSVG = cursor.value;
       }
     } else if (cursor.type == "svg") {
-      let insertString = `style="--themeColor: #2F2F2F`;
+      let insertString = `style="--themeColor: #2F2F2F; --shadowColor: rgba(47, 47, 47, .3)`;
       if (cursor.rotate != null) {
         insertString += "; transform: rotate(" + cursor.rotate + "deg)";
       }
@@ -305,7 +305,7 @@ export class Module {
     if (module == null) {
       return;
     }
-    return await this.editor.newModule(module);
+    return await this.newModule(module);
   }
   async activateTool(moduleTemplate, extra, options = {}) {
     //this.editor.pinchZoomDisable = false;
@@ -900,6 +900,9 @@ export class Module {
 
   async js() {
     this.toolbarHolder = this.editor.page.querySelector("div[toolbarholder]") ?? this.editor.page;
+
+    // Handle css scope:
+    this.toolbarHolder.setAttribute("module-scope", this.moduleID);
 
     // Load toolbar content:
     let loadToolbars = this.toolbarHolder.querySelectorAll(".eToolbar");

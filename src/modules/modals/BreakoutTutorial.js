@@ -64,7 +64,7 @@ export class Frame {
   css = {
     ".brtmHolder": `position: relative; display: flex; flex-direction: column; width: 450px; max-width: 100%; text-align: center; align-items: center; z-index: 1`,
     ".brtmHolder[new] *": `transition: none !important`,
-    ".brtmImageHolder": `position: relative; width: calc(100% + 12px); height: 200px; overflow: hidden`,
+    ".brtmImageHolder": `position: relative; width: 100%; height: 200px; border-radius: 16px 16px 0 0; overflow: hidden`,
     ".brtmImageContent": `position: absolute; width: 100%; height: 198px; left: 0px; top: 0%; overflow: hidden`,
     ".brtmImageGradient": `width: 100%; height: 100%`,
     ".brtmImage": `position: absolute; width: calc(100% - 40px); height: 100%; left: 20px; top: 100%; border-radius: 16px; opacity: 0; transform: scale(.8); transition: .5s`,

@@ -122,6 +122,8 @@ export class Frame {
 
     let dropdownTitle = frame.closest(".dropdownOverflow").querySelector(".dropdownTitle");
 
+    dropdownTitle.setAttribute("module-scope", parent.moduleID);
+
     let searchHolder = frame.querySelector(".eMemberSearch");
     let searchField = searchHolder.querySelector("input");
     let accessHolders = frame.querySelectorAll(".eMemberAccessHolder");

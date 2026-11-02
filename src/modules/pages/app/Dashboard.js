@@ -30,6 +30,7 @@ const BANNER_ACTION_BUTTON = "Reserve Your Spot";
 
 export class Page extends PageFrame {
   title = "Dashboard";
+  requiresSimpleSocket = true;
   allowBackgroundChange = true;
 
   preJs() {

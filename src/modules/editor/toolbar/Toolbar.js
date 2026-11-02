@@ -230,7 +230,7 @@ export class Toolbar {
     this.toolbar.subSubToolbar.removeAttribute("new");
     let contentContainer = this.toolbar.subSubToolbar.querySelector(".eSubToolContainer");
     
-    this.toolbar.applyToolModule(await this.toolbar.setFrame(
+    this.toolbar.applyToolModule(await this.editor.setFrame(
       this.toolbar.getModule(modulePath),
       this.toolbar.subSubToolbar.querySelector(".eSubToolContent"),
       { construct: { editor: this.editor, toolbar: this.toolbar, isToolbar: true } }

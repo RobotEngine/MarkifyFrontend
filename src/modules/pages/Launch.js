@@ -31,7 +31,7 @@ export class Page extends PageFrame {
       <div class="lHeaderSlogan"><b>Collaboration</b> without <b>Chaos</b></div>
       <div class="lHeaderSummary">Let students work collaboratively across the classroom while you facilitate. Eliminate chaos with robust sharing settings and temporary editing controls.</div>
       <div class="lHeaderActions">
-        <button class="lOpen largeButton" openpage="app/dashboard"></button>
+        <button class="lOpen largeButton" openpage="app/dashboard"><div accountuser>Open Markify</div></button>
         <button class="lJoin largeButton" openpage="app/join">Join Lesson<img src="../images/tooltips/link.svg"></button>
       </div>
       <div class="lHeaderPrice">Markify is <b>FREE</b> for educators and students.</div>
@@ -299,9 +299,9 @@ export class Page extends PageFrame {
     ".lFooterSocials a img": `width: 100%; height: 100%`
   };
 
-  async js(page) {
+  onConnect() {
     // Launch page login button
-    const loginBtn = page.querySelector(".lOpen");
+    const loginBtn = this.frame.querySelector(".lOpen");
     if (userID != null) {
       if (account.image != null) {
         loginBtn.innerHTML = `<img loginBtnBeforeImg /><div accountuser>Dashboard</div><img src="../images/tooltips/link.svg" loginBtnAfterImg />`;
@@ -310,10 +310,10 @@ export class Page extends PageFrame {
         loginBtn.innerHTML = `<img src="../images/profiles/defaultWhite.svg" defaultLoginBtnBeforeImg /><div accountuser>Dashboard</div><img src="../images/tooltips/link.svg" loginBtnAfterImg />`;
       }
       loginBtn.style.padding = "8px 14px 8px 8px";
-    } else {
-      loginBtn.innerHTML = `<div accountuser>Open Markify</div>`;
     }
+  }
 
+  async js(page) {
     // SECTION 2 | History
     let historySection = page.querySelector(".lSection[history]");
     let historyContent = historySection.querySelector(".lHistoryContent");

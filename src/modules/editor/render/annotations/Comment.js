@@ -96,9 +96,10 @@ export class Annotation extends BaseAnnotation {
   }
 
   css = {
+    ".eAnnotations[hidecomments] .eAnnotation[comment]:not([selected])": `display: none`,
+    
     ".eAnnotation[comment]": `--themeColor: var(--theme); z-index: calc(var(--maxZIndex) + var(--startZIndex) + 1) !important; `,
     ".eAnnotation[comment][selected]": `z-index: calc(var(--maxZIndex) + var(--startZIndex) + 2) !important`,
-    ".eAnnotations[hidecomments] .eAnnotation[comment]:not([selected])": `display: none`,
     ".eAnnotation[comment]:not([selected]):hover": `z-index: calc(var(--maxZIndex) + var(--startZIndex) + 2) !important`,
     ".eAnnotation[comment] > div[commentholder]": `width: 1px; height: 1px; transform: scale(calc(1 / var(--zoom)))`,
     ".eAnnotation[comment] > div[commentholder] > div[comment]": `position: absolute; display: flex; width: 32px; height: 32px; left: 0px; bottom: 0px; background: var(--pageColor); border-radius: 16px 16px 16px 6px; pointer-events: all; transform-origin: bottom left; transition: .2s`,

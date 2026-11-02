@@ -15,6 +15,7 @@ import share from "../../editor/icons/actions/send.svg?raw";
 
 export class Page extends PageFrame {
   title = "Dashboard";
+  requiresSimpleSocket = true;
   allowBackgroundChange = true;
   preJs() {
     if (userID == null) {

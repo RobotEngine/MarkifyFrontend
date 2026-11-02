@@ -31,8 +31,7 @@ export class Page {
 
   html = `<div class="eExportHolder"></div>`;
 
-  static scoped = true;
-  css = {
+  globalcss = {
     ".loading": `display: none`,
     ".content": `transition: unset !important`,
     '.lPage[pagetype="export"]': `transition: unset !important; contain: unset !important; will-change: unset !important`,

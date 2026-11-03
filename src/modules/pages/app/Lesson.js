@@ -1,4 +1,4 @@
-import { changeGlobalImports, PageFrame, fixed, favicon, userID, account, mouseDown, setPage, setFrame, sleep, getParam, modifyParams, getEpoch, sendRequest, socket, connected, subscribe, getLocalStore, setLocalStore, getObject, copyObject, objectUpdate, getTheme } from "@/crucial";
+import { changeGlobalImports, PageFrame, fixed, favicon, userID, account, mouseDown, setPage, setFrame, sleep, getParam, modifyParams, getEpoch, checkForAuth, sendRequest, socket, connected, subscribe, getLocalStore, setLocalStore, getObject, copyObject, objectUpdate, getTheme } from "@/crucial";
 
 import { alert as alertModule } from "@modules/utility/Alert";
 

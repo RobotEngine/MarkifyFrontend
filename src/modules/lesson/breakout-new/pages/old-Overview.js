@@ -31,7 +31,7 @@ export class Page {
       <div class="broTop">
         <div class="broTopSection" left>
           <a class="broLogo" href="/app/dashboard" draggable="false">${breakoutLogoIcon}</a>
-          <div class="broFileNameHolder border"><div class="broFileName" spellcheck="false" onpaste="clipBoardRead(event)" contenteditable></div></div>
+          <div class="broFileNameHolder border"><div class="broFileName" spellcheck="false" contenteditable></div></div>
           <button class="broFileDropdown" title="File Options">File</button>
           <button class="broStart" disabled></button>
           <button class="broPause" disabled>Pause</button>

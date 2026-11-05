@@ -31,7 +31,7 @@ export class Page {
       <div class="broTop">
         <div class="broTopSection" left>
           <a class="broLogo" href="/app/dashboard" draggable="false">${breakoutLogoIcon}</a>
-          <div class="broFileNameHolder border"><div class="broFileName" spellcheck="false" onpaste="clipBoardRead(event)" contenteditable></div></div>
+          <div class="broFileNameHolder border"><div class="broFileName" spellcheck="false" contenteditable></div></div>
           <button class="broFileDropdown" title="File Options">File</button>
           <button class="broStart" disabled></button>
           <button class="broPause" disabled>Pause</button>
@@ -1138,6 +1138,28 @@ export class Page {
         tile.editor.pipeline.publish("long", event);
       }
     });
+
+    // Preview (custom) scroll wheel events:
+    let scrollEventPush = (type, event) => {
+      let target = event.target;
+      if (target == null) {
+        return;
+      }
+      let tileElement = target.closest(".broTile");
+      if (tileElement == null) {
+        return;
+      }
+      let tile = this.layout.tiles[tileElement.getAttribute("group")];
+      if (tile == null) {
+        return;
+      }
+      if (tile.editor != null) {
+        tile.editor.pipeline.publish("wheel", { type, event });
+      }
+    }
+    this.groups.addEventListener("DOMMouseScroll", (event) => { scrollEventPush("DOMMouseScroll", event); }, { passive: false });
+    this.groups.addEventListener("mousewheel", (event) => { scrollEventPush("mousewheel", event); }, { passive: false });
+    this.groups.addEventListener("wheel", (event) => { scrollEventPush("wheel", event); }, { passive: false });
 
     // Template change event:
     this.pipeline.subscribe("previewTemplateChange", "templatechange", async (body) => {

@@ -26,7 +26,7 @@ export class Page {
       <div class="broTop">
         <div class="broTopSection" left>
           <a class="broLogo" href="/app/dashboard" draggable="false">${breakoutLogoIcon}</a>
-          <div class="broFileNameHolder border"><div class="broFileName" spellcheck="false" onpaste="clipBoardRead(event)" contenteditable>Test Lesson Name</div></div>
+          <div class="broFileNameHolder border"><div class="broFileName" spellcheck="false" contenteditable>Test Lesson Name</div></div>
         </div>
         <div class="broTopSection" center>
           <div class="broTopPageSelector">

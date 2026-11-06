@@ -66,8 +66,8 @@ export class Frame {
   js(frame, extra) {
     this.parent = extra.parent;
 
-    if (this.modal.closeButton.hasAttribute("listener") == false) {
-      this.modal.closeButton.setAttribute("listener", "");
+    if (this.modal.closeButton.hasAttribute("listen") == false) {
+      this.modal.closeButton.setAttribute("listen", "");
       this.modal.closeButton.addEventListener("click", () => {
         this.parent.parent.parent.parent.removePage(this.parent.parent.parent.pageID, this.parent.parent.parent.pageType, { animate: true });
       });

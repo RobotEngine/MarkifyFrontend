@@ -220,8 +220,8 @@ export class Frame {
     let modal = frame.closest(".modal");
     
     let closeButton = modal.querySelector(".modalClose");
-    if (closeButton.hasAttribute("listener") == false) {
-      closeButton.setAttribute("listener", "");
+    if (closeButton.hasAttribute("listen") == false) {
+      closeButton.setAttribute("listen", "");
       closeButton.addEventListener("click", () => {
         this.page.parent.removePage(this.page.pageID, this.page.pageType, { animate: true });
       });

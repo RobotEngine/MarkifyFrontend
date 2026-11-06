@@ -1220,8 +1220,9 @@ export class Page {
     // Click listener:
     this.frame.addEventListener("click", async (event) => {
       if (this.dragContext.enabled == true || this.wasDragging == true) {
+        event.preventDefault();
         this.wasDragging = false;
-        return event.preventDefault();
+        return;
       }
 
       let target = event.target;
@@ -1271,7 +1272,12 @@ export class Page {
       if (tile == null) {
         return;
       }
-      if (target.closest("button") == null && target.closest("div[contenteditable]") == null && target.closest(".broTileMembers") == null) {
+      if (
+        target.closest("button") == null
+        && target.closest("div[contenteditable]") == null
+        && target.closest(".broTileMembers") == null
+        && (this.dragContext.enabled != true && this.wasDragging != true)
+      ) {
         tile.style.removeProperty("--scale");
       } else if (tile.classList.contains("broTileAddGroup") == false) {
         tile.style.setProperty("--scale", "1");

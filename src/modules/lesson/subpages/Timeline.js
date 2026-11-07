@@ -268,6 +268,7 @@ export class Frame {
   <div class="timelineDisable"></div>
   `;
 
+  static scoped = true;
   css = {
     ".timelineInterface": `position: absolute; display: flex; flex-direction: column; width: 100%; height: 100%; left: 0px; top: 0px; visibility: hidden; pointer-events: none; user-select: none; overflow: scroll; z-index: 2`,
     ".timelineContentHolder": `position: relative; width: 100%; height: 100%; overflow: scroll; z-index: 1; transition: .5s`,

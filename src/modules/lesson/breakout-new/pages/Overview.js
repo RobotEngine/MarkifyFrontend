@@ -1,4 +1,4 @@
-import { userID, account, changeGlobalImports, setPage, sendRequest, clipBoardRead, promptLogin } from "@/crucial";
+import { userID, account, changeGlobalImports, setPage, sendRequest, selectAllText, clipBoardRead, promptLogin } from "@/crucial";
 
 import { dropdown as dropdownModule } from "@modules/utility/Dropdown";
 
@@ -390,6 +390,9 @@ export class Page {
     this.lessonName.addEventListener("focus", async () => {
       this.lessonName.parentElement.style.setProperty("--borderWidth", "4px");
       this.updateTopBar();
+      if ((this.parent.parent.lesson.name ?? "").length < 1) {
+        setTimeout(() => { selectAllText(this.lessonName); }, 1);
+      }
     });
     this.lessonName.addEventListener("paste", clipBoardRead);
 

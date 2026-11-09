@@ -1,4 +1,4 @@
-import { userID, account, getParam, modifyParams, sendRequest, connected, copyObject, objectUpdate, textBoxError, clipBoardRead } from "@/crucial";
+import { userID, account, getParam, modifyParams, sendRequest, connected, copyObject, objectUpdate, selectAllText, textBoxError, clipBoardRead } from "@/crucial";
 
 import { Editor } from "@modules/editor/Editor";
 import { REALTIME, TOOLBAR } from "@modules/editor/imports";
@@ -691,6 +691,9 @@ export class Page {
     this.groupName.addEventListener("focus", async () => {
       this.groupName.parentElement.style.setProperty("--borderWidth", "4px");
       this.updateTopBar();
+      if ((this.group.name ?? "").length < 1) {
+        setTimeout(() => { selectAllText(this.groupName); }, 1);
+      }
     });
     this.groupName.addEventListener("paste", clipBoardRead);
 

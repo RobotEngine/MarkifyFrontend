@@ -1,4 +1,4 @@
-import { userID, account, mouseDown, setPage, sleep, modifyParams, sendRequest, subscribe, objectUpdate, copyObject, clipBoardRead, promptLogin } from "@/crucial";
+import { userID, account, mouseDown, setPage, sleep, modifyParams, sendRequest, subscribe, objectUpdate, copyObject, selectAllText, clipBoardRead, promptLogin } from "@/crucial";
 
 import { dropdown as dropdownModule } from "@modules/utility/Dropdown";
 import { modal as modalModule } from "@modules/utility/Modal";
@@ -868,6 +868,9 @@ export class Page {
     this.lessonName.addEventListener("focus", async () => {
       this.lessonName.parentElement.style.setProperty("--borderWidth", "4px");
       this.updateTopBar();
+      if ((this.parent.parent.lesson.name ?? "").length < 1) {
+        setTimeout(() => { selectAllText(this.lessonName); }, 1);
+      }
     });
     this.lessonName.addEventListener("paste", clipBoardRead);
 

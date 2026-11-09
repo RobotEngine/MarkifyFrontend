@@ -907,6 +907,14 @@ export const svgIconsToObject = (modules = {}) => {
   }, {});
 }
 
+export const selectAllText = (element) => {
+  let range = document.createRange();
+  range.selectNodeContents(element);
+  let selection = window.getSelection();
+  selection.removeAllRanges();
+  selection.addRange(range);
+}
+
 export const textBoxError = async (box, error) => {
   alertModule.open("error", "<b>Invalid Input</b>" + error);
   if (box != null) {

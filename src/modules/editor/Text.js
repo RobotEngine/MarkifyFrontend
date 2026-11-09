@@ -1,4 +1,4 @@
-import { head, appendCSS, sleep, uncleanString } from "@/crucial";
+import { appendCSS, sleep, uncleanString } from "@/crucial";
 
 import { QUILL, MATHQUILL } from "./imports";
 

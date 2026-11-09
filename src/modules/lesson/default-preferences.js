@@ -6,8 +6,7 @@ export const defaultPreferences = {
       subtool: "select"
     },
     markup: {
-      subtool: "highlighter"
-      //subtool: "pen"
+      subtool: "pen"
     },
     text: {
       subtool: "text",

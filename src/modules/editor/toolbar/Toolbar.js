@@ -496,7 +496,11 @@ export class Toolbar {
         tool.setAttribute("off", "");
       }
     }
-    if (disabledTools.includes(this.toolbar.currentTool) == true && this.editor.self.access > 0) {
+    if (
+      disabledTools.includes(this.toolbar.currentTool) == true
+      && this.editor.self.access > 0
+      && this.editor.self.access < 4
+    ) {
       this.editor.openAlert("warning", "<b>Tool Toggle</b>Your current tool was disabled by the lesson owner.");
       this.setTool(this.toolbar.getToolbar().querySelector('.eToolbar:not([hidden]) .eTool[tool="selection"]'), true);
       this.setTool();

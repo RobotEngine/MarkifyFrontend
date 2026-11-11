@@ -7,7 +7,7 @@ import logoIcon from "@assets/logo.svg?raw";
 
 import sessionOneIcon from "@assets/webinars/actm/icon.png?no-inline";
 
-import splashBannerImg from "@assets/webinars/summerseries/wavesbeach.png?no-inline";
+import splashBannerImg from "@assets/webinars/banner.png?no-inline";
 import webinarLogoImg from "@assets/webinars/logo.png?no-inline";
 import presenterA from "@assets/webinars/summerseries/anthony.png?no-inline";
 import presenterB from "@assets/webinars/summerseries/jeff.png?no-inline";

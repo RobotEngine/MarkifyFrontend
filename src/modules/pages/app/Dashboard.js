@@ -25,7 +25,7 @@ import folderArrowIcon from "@assets/dashboard/folderarrow.svg?raw";
 const CURRENT_BANNER = "actm-2026-postconference-webinar"; // "summer-series-webinars" "breakout-alpha-release" "1.0-release"
 import BANNER_IMAGE from "@assets/webinars/actm/logo.png?no-inline";
 const BANNER_TITLE = "ACTM 2026 Post-Conference Webinar";
-const BANNER_DESCRIPTION = "Attended the ACTM Fall Forum? Come to our FREE webinar Thursday (November 19th) from 3:00 to 3:30 PM CDT to learn more about how to use Markify!";
+const BANNER_DESCRIPTION = "Attended the ACTM Fall Forum? Take your math collaboration further! Join our FREE 30-minute webinar on Thursday, November 19th at 3:00 PM CDT.";
 const BANNER_ACTION_BUTTON = "Reserve Your Spot";
 
 export class Page extends PageFrame {

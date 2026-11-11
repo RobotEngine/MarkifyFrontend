@@ -5,9 +5,7 @@ import { modal as modalModule } from "@modules/utility/Modal";
 
 import logoIcon from "@assets/logo.svg?raw";
 
-import boardBadgeIcon from "@assets/badges/blurred/board.png?no-inline";
-//import breakoutBadgeIcon from "@assets/badges/blurred/breakout.png?no-inline";
-//import boardBreakoutBadgeIcon from "@assets/badges/blurred/boardbreakout.png?no-inline";
+import sessionOneIcon from "@assets/webinars/actm/icon.png?no-inline";
 
 import splashBannerImg from "@assets/webinars/summerseries/wavesbeach.png?no-inline";
 import webinarLogoImg from "@assets/webinars/logo.png?no-inline";
@@ -84,8 +82,8 @@ export class Page extends PageFrame {
           </div>
           <div class="wInfoHeader">Learn the <b>Way of Markify</b></div>
           <div class="wDivider"></div>
-          <div class="wInfoText">Join one (or more) of our 30-minute live summer sessions to master whole-class collaboration, streamline small-group breakouts, or even combine both into one seamless lesson.</div>
-          <div class="wInfoText" breakout>In three sessions, we're showcasing our newest tool: <b>Markify Breakout</b></div>
+          <div class="wInfoText">Join one of our live webinars to master Markify! Discover how to build seamless whole-class collaboration and streamline small-group breakouts.</div>
+          <div class="wInfoText">We regularly update this page with any upcoming sessions.</div>
           <div class="wInfoText">Attendees will receive a completion certificate. <i>Please check with your district to see if you qualify for PD credit.</i></div>
           <div class="wInfoText">Can't make a live session? Register anyway and we'll send you the full recording afterward!</div>
           <div class="wInfoHeader">Meet the <b>Presenters</b></div>
@@ -112,18 +110,18 @@ export class Page extends PageFrame {
           </div>
         </div>
         <div class="wEventsContent">
-          <div class="wEventsHeader"><i>Upcoming Webinars</i></div>
+          <div class="wEventsHeader"><i>Upcoming Sessions</i></div>
           <div class="wDivider"></div>
           <div class="wEventsHolder">
 
             <a class="wEvent" event="evt-NXKjSU5ZRZHBuD2">
               <div class="wEventHeader">
-                <div class="wEventLogo"><img src="${boardBadgeIcon}" /></div>
+                <div class="wEventLogo"><img src="${sessionOneIcon}" /></div>
                 <div class="WEventInfo">
                   <div class="WEventInfoTitle">ACTM 2026 Post-Conference Webinar</div>
                   <div class="WEventTimeHolder">
                     <div date>Thursday, <b>Nov 12</b></div>
-                    <div time><b>3:00 - 3:30 AM</b> CDT</div>
+                    <div time><b>3:00 - 3:30 PM</b> CDT</div>
                   </div>
                 </div>
               </div>
@@ -170,7 +168,6 @@ export class Page extends PageFrame {
     ".wInfoHeader b": `color: var(--theme); font-size: 24px; font-weight: 700`,
     ".wInfoText": `box-sizing: border-box; width: 100%; max-width: 350px; font-size: 16px; line-height: 1.5; text-align: left`,
     ".wInfoText:not(:first-child)": `margin-top: 12px`,
-    ".wInfoText[breakout] b": `color: var(--breakoutTheme)`,
     ".wInfoPresenterHolder": `display: flex; flex-wrap: wrap; justify-content: center`,
     ".wInfoPresenter": `--shadowOpacity: .4; --shadow: 0px 0px 12px 0px rgba(var(--themeColor), var(--shadowOpacity)); --translateY: 0px; display: flex; flex-direction: column; margin: 16px; align-items: center; text-decoration: none; transition: .4s`,
     ".wInfoPresenter:hover": `--shadowOpacity: .6; --translateY: -46px !important; --rotate: 0deg !important`,
@@ -188,7 +185,7 @@ export class Page extends PageFrame {
     ".wEvent:before": `content: ""; position: absolute; width: calc(100% + (var(--hoverSize) * 2)); height: calc(100% + (var(--hoverSize) * 2)); left: 50%; top: 50%; transform: translate(-50%, -50%); background: var(--pageColor); box-shadow: 0px 0px 8px 0px rgba(var(--themeRGB), var(--shadowOpacity)); border-radius: calc(18px + var(--hoverSize)); z-index: 1; transition: .2s`,
     ".wEventHeader": `display: flex; flex-wrap: wrap; z-index: 2`,
     ".wEventLogo": `width: 80px; max-width: 100%; height: 80px`, // padding: 6px; box-shadow: inset var(--lightShadow); border-radius: 12px
-    ".wEventLogo img": `width: 100%; height: 100%`,
+    ".wEventLogo img": `width: 100%; height: 100%; border-radius: 12px`,
     ".WEventInfo": `display: flex; flex-direction: column; flex: 1 1 300px; padding: 12px; justify-content: space-between`,
     ".WEventInfoTitle": `font-size: 18px; font-weight: 600; text-align: left`,
     ".WEventTimeHolder": `box-sizing: border-box; display: flex; flex-wrap: wrap; gap: 8px; width: 100%; margin-top: 8px`,

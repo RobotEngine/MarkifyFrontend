@@ -554,6 +554,7 @@ export class Page {
     // Load Annotations:
     let pageParam = getParam("page");
     let checkForJumpLink = getParam("annotation");
+    let defaultZoom = getParam("zoom");
     (async () => {
       let annoBody;
       if (fetchAnnotations != null) {
@@ -562,7 +563,7 @@ export class Page {
           return this.editor.openAlert("error", `<b>Error Loading Annotations</b>Please try again later...`);
         }
         annoBody = result[1];
-        await this.editor.loadAnnotations(annoBody, { pageID: pageParam, jumpID: checkForJumpLink });
+        await this.editor.loadAnnotations(annoBody, { pageID: pageParam, jumpID: checkForJumpLink, zoom: defaultZoom });
       } else {
         let state = extra.editor.getState();
         let annotations = {};

@@ -983,6 +983,9 @@ export class Editor {
 
     clearTimeout(this.recenterTimeoutFromSimulatedResize);
 
+    if (extra.zoom != null && extra.zoom != "") {
+      await this.setZoom(extra.zoom);
+    }
     let jumpAnnotation = null;
     if (extra.jumpID != null && extra.jumpID != "") {
       if (this.annotations[extra.jumpID] != null) {

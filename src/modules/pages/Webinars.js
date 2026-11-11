@@ -6,11 +6,11 @@ import { modal as modalModule } from "@modules/utility/Modal";
 import logoIcon from "@assets/logo.svg?raw";
 
 import boardBadgeIcon from "@assets/badges/blurred/board.png?no-inline";
-import breakoutBadgeIcon from "@assets/badges/blurred/breakout.png?no-inline";
-import boardBreakoutBadgeIcon from "@assets/badges/blurred/boardbreakout.png?no-inline";
+//import breakoutBadgeIcon from "@assets/badges/blurred/breakout.png?no-inline";
+//import boardBreakoutBadgeIcon from "@assets/badges/blurred/boardbreakout.png?no-inline";
 
 import splashBannerImg from "@assets/webinars/summerseries/wavesbeach.png?no-inline";
-import summerseriesImg from "@assets/webinars/summerseries/logo.png?no-inline";
+import webinarLogoImg from "@assets/webinars/logo.png?no-inline";
 import presenterA from "@assets/webinars/summerseries/anthony.png?no-inline";
 import presenterB from "@assets/webinars/summerseries/jeff.png?no-inline";
 
@@ -57,7 +57,7 @@ class EmbedModal {
 }
 
 export class Page extends PageFrame {
-  title = "Summer PD";
+  title = "Webinars";
 
   html = `<div class="wPageHolder">
     <div class="wPage">
@@ -80,9 +80,9 @@ export class Page extends PageFrame {
         <div class="wInfoContent">
           <div class="wInfoBannerHolder">
             <img class="wInfoBanner" src="${splashBannerImg}" />
-            <img class="wInfoBannerLogo" src="${summerseriesImg}" />
+            <img class="wInfoBannerLogo" src="${webinarLogoImg}" />
           </div>
-          <div class="wInfoHeader">Learn the <i>Waves</i> of <b>Markify</b></div>
+          <div class="wInfoHeader">Learn the <b>Way of Markify</b></div>
           <div class="wDivider"></div>
           <div class="wInfoText">Join one (or more) of our 30-minute live summer sessions to master whole-class collaboration, streamline small-group breakouts, or even combine both into one seamless lesson.</div>
           <div class="wInfoText" breakout>In three sessions, we're showcasing our newest tool: <b>Markify Breakout</b></div>
@@ -116,83 +116,19 @@ export class Page extends PageFrame {
           <div class="wDivider"></div>
           <div class="wEventsHolder">
 
-            <a class="wEvent" event="evt-O3Mefd6onUQiZJn" style="display: none">
+            <a class="wEvent" event="evt-NXKjSU5ZRZHBuD2">
               <div class="wEventHeader">
                 <div class="wEventLogo"><img src="${boardBadgeIcon}" /></div>
                 <div class="WEventInfo">
-                  <div class="WEventInfoTitle">Whole-Class Collaboration That Works</div>
+                  <div class="WEventInfoTitle">ACTM 2026 Post-Conference Webinar</div>
                   <div class="WEventTimeHolder">
-                    <div date>Tuesday, <b>Aug 4</b></div>
-                    <div time><b>11:00 - 11:30 AM</b> CDT</div>
+                    <div date>Thursday, <b>Nov 12</b></div>
+                    <div time><b>3:00 - 3:30 AM</b> CDT</div>
                   </div>
                 </div>
               </div>
               <div class="wEventContent">
-                <div class="wEventContentText">Learn how to use Markify Board to turn whole-class instruction into an interactive, collaborative experience where every student contributes.</div>
-                <button class="largeButton">Register</button>
-              </div>
-            </a>
-            <a class="wEvent" event="evt-whhzNUVYeGCL7TR" style="display: none">
-              <div class="wEventHeader">
-                <div class="wEventLogo"><img src="${breakoutBadgeIcon}" /></div>
-                <div class="WEventInfo">
-                  <div class="WEventInfoTitle">Group Work That Works</div>
-                  <div class="WEventTimeHolder">
-                    <div date>Friday, <b>Aug 7</b></div>
-                    <div time><b>1:00 - 1:30 PM</b> CDT</div>
-                  </div>
-                </div>
-              </div>
-              <div class="wEventContent">
-                <div class="wEventContentText">See how Markify Breakout helps create more focused, productive, and engaging small-group learning experiences.</div>
-                <button class="largeButton">Register</button>
-              </div>
-            </a>
-            <a class="wEvent" event="evt-t4EvLXShKQjA8uR" style="display: none">
-              <div class="wEventHeader">
-                <div class="wEventLogo"><img src="${boardBadgeIcon}" /></div>
-                <div class="WEventInfo">
-                  <div class="WEventInfoTitle">Whole-Class Collaboration That Works</div>
-                  <div class="WEventTimeHolder">
-                    <div date>Wednesday, <b>Aug 12</b></div>
-                    <div time><b>11:00 - 11:30 AM</b> CDT</div>
-                  </div>
-                </div>
-              </div>
-              <div class="wEventContent">
-                <div class="wEventContentText">Learn how to use Markify Board to turn whole-class instruction into an interactive, collaborative experience where every student contributes.</div>
-                <button class="largeButton">Register</button>
-              </div>
-            </a>
-            <a class="wEvent" event="evt-II60KMUuUDfnt9D" style="display: none">
-              <div class="wEventHeader">
-                <div class="wEventLogo"><img src="${breakoutBadgeIcon}" /></div>
-                <div class="WEventInfo">
-                  <div class="WEventInfoTitle">Group Work That Works</div>
-                  <div class="WEventTimeHolder">
-                    <div date>Thursday, <b>Aug 20</b></div>
-                    <div time><b>3:00 - 3:30 PM</b> CDT</div>
-                  </div>
-                </div>
-              </div>
-              <div class="wEventContent">
-                <div class="wEventContentText">See how Markify Breakout helps create more focused, productive, and engaging small-group learning experiences.</div>
-                <button class="largeButton">Register</button>
-              </div>
-            </a>
-            <a class="wEvent" event="evt-JxgRQ7wABFWPx8f" style="display: none">
-              <div class="wEventHeader">
-                <div class="wEventLogo"><img src="${boardBreakoutBadgeIcon}" /></div>
-                <div class="WEventInfo">
-                  <div class="WEventInfoTitle">Tying Whole-Class and Group Work Into One Lesson</div>
-                  <div class="WEventTimeHolder">
-                    <div date>Wednesday, <b>Aug 26</b></div>
-                    <div time><b>4:00 - 4:30 PM</b> CDT</div>
-                  </div>
-                </div>
-              </div>
-              <div class="wEventContent">
-                <div class="wEventContentText">Learn how Markify Board and Breakout work together to support a seamless lesson plan with whole-class and small-group collaboration.</div>
+                <div class="wEventContentText">We hope you had a wonderful ACTM Conference last week! In this webinar, we will be holding an open discussion to answer questions, review Markify features, and just generally hangout together!</div>
                 <button class="largeButton">Register</button>
               </div>
             </a>
@@ -228,7 +164,7 @@ export class Page extends PageFrame {
     ".wInfoContent": `box-sizing: border-box; display: flex; flex-direction: column; flex: 1 1 250px; height: fit-content; padding: 12px; box-shadow: inset var(--lightShadow); border-radius: 24px; align-items: center`,
     ".wInfoBannerHolder": `position: relative; width: 100%; margin-bottom: 32px`,
     ".wInfoBanner": `width: 100%; height: 200px; border-radius: 12px; object-fit: cover`,
-    ".wInfoBannerLogo": `position: absolute; max-width: calc(100% - 16px); height: 60%; left: 50%; top: 100%; transform: translate(-50%, -70%); object-fit: contain`,
+    ".wInfoBannerLogo": `position: absolute; max-width: calc(100% - 64px); height: 60%; left: 50%; top: 100%; transform: translate(-50%, -60%); object-fit: contain`,
     ".wInfoHeader": `margin-top: 32px; font-size: 20px; font-weight: 500`,
     ".wInfoHeader i": `display: inline-block; font-size: 24px; font-weight: 700; transform: translateX(-4px)`,
     ".wInfoHeader b": `color: var(--theme); font-size: 24px; font-weight: 700`,
@@ -263,15 +199,9 @@ export class Page extends PageFrame {
     ".wEventContent .largeButton": `--borderRadius: 14px; height: fit-content; background: var(--theme); color: #fff`
   };
 
-  promptRegistration(event) {
-    modifyParams("event", event);
-    modalModule.open(EmbedModal, this.frame, { event, title: "Webinar Registration" });
-  }
-
-  js(page) {
-    // Account setup:
-    let accountButton = page.querySelector(".wAccount");
-    let loginButton = page.querySelector(".wLogin");
+  onConnect() {
+    let accountButton = this.frame.querySelector(".wAccount");
+    let loginButton = this.frame.querySelector(".wLogin");
     if (userID != null) {
       accountButton.querySelector("div").textContent = account.user;
       if (account.image != null) {
@@ -285,7 +215,14 @@ export class Page extends PageFrame {
       loginButton.style.display = "block";
       loginButton.addEventListener("click", () => { promptLogin(); });
     }
+  }
 
+  promptRegistration(event) {
+    modifyParams("event", event);
+    modalModule.open(EmbedModal, this.frame, { event, title: "Webinar Registration" });
+  }
+
+  js(page) {
     let eventsHolder = page.querySelector(".wEventsHolder");
     eventsHolder.addEventListener("click", (event) => {
       let eventTile = event.target.closest(".wEvent");

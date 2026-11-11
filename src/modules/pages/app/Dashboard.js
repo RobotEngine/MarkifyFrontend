@@ -45,6 +45,7 @@ export class Page extends PageFrame {
     modifyParams("annotation");
     modifyParams("pin");
     modifyParams("type");
+    modifyParams("zoom");
   }
 
   html = `<div class="dPageHolder">

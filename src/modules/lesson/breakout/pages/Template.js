@@ -347,12 +347,13 @@ export class Page {
     // Load Annotations:
     let pageParam = getParam("page");
     let checkForJumpLink = getParam("annotation");
+    let defaultZoom = getParam("zoom");
     (async () => {
       let [annoCode, annoBody] = await fetchAnnotations;
       if (annoCode != 200 && connected == true) {
         return this.editor.openAlert("error", `<b>Error Loading Annotations</b>Please try again later...`);
       }
-      await this.editor.loadAnnotations(annoBody, { pageID: pageParam, jumpID: checkForJumpLink });
+      await this.editor.loadAnnotations(annoBody, { pageID: pageParam, jumpID: checkForJumpLink, zoom: defaultZoom });
       this.contentHolder.removeAttribute("disabled");
     })();
 

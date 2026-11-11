@@ -22,10 +22,10 @@ import openSidebarIcon from "@assets/dashboard/opensidebar.svg?raw";
 import folderIcon from "@assets/dashboard/folder.svg?raw";
 import folderArrowIcon from "@assets/dashboard/folderarrow.svg?raw";
 
-const CURRENT_BANNER = null; // "summer-series-webinars" "breakout-alpha-release" "1.0-release"
-import BANNER_IMAGE from "@assets/webinars/summerseries/logo.png?no-inline";
-const BANNER_TITLE = "Live Webinars: <i><b>The Markify Summer Series</b></i>";
-const BANNER_DESCRIPTION = "For the first time ever, we're hosting FREE webinars on how to best use Markify! Learn how to connect whole-class instruction and small-group breakouts in 30 minute sessions.";
+const CURRENT_BANNER = "actm-2026-postconference-webinar"; // "summer-series-webinars" "breakout-alpha-release" "1.0-release"
+import BANNER_IMAGE from "@assets/webinars/actm/logo.png?no-inline";
+const BANNER_TITLE = "ACTM 2026 Post-Conference Webinar";
+const BANNER_DESCRIPTION = "Attended the ACTM Fall Forum? Come to our FREE webinar Thursday (November 19th) from 3:00 to 3:30 PM CDT to learn more about how to use Markify!";
 const BANNER_ACTION_BUTTON = "Reserve Your Spot";
 
 export class Page extends PageFrame {
@@ -223,7 +223,7 @@ export class Page extends PageFrame {
     ".dSelectedTitle": `font-size: 28px; font-weight: 600; text-align: left`,
     ".dBannerHolder": `display: none; box-sizing: border-box; width: 100%; height: fit-content; transition: .4s`,
     ".dBanner": `display: flex; flex-wrap: wrap; gap: 8px; width: 100%; height: fit-content; padding: 6px; margin: 8px; box-shadow: var(--darkShadow); border-radius: 4px 4px 12px 12px; justify-content: center; transition: .4s`,
-    ".dBannerIcon": `height: 50px; object-fit: contain`, // width: 50px;
+    ".dBannerIcon": `height: 50px; border-radius: 6px; object-fit: contain`, // width: 50px;
     ".dBannerContent": `display: flex; flex-direction: column; flex: 1 1 300px; text-align: left`,
     ".dBannerTitle": `margin-top: 4px; font-size: 18px; font-weight: 700; color: var(--theme)`,
     ".dBannerText": `margin-top: 4px; font-size: 14px`,

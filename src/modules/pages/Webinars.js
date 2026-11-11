@@ -5,7 +5,7 @@ import { modal as modalModule } from "@modules/utility/Modal";
 
 import logoIcon from "@assets/logo.svg?raw";
 
-import sessionOneIcon from "@assets/webinars/actm/icon.png?no-inline";
+import sessionOneIcon from "@assets/webinars/actm/logo.png?no-inline";
 
 import splashBannerImg from "@assets/webinars/banner.png?no-inline";
 import webinarLogoImg from "@assets/webinars/logo.png?no-inline";
@@ -120,7 +120,7 @@ export class Page extends PageFrame {
                 <div class="WEventInfo">
                   <div class="WEventInfoTitle">ACTM 2026 Post-Conference Webinar</div>
                   <div class="WEventTimeHolder">
-                    <div date>Thursday, <b>Nov 12</b></div>
+                    <div date>Thursday, <b>Nov 19</b></div>
                     <div time><b>3:00 - 3:30 PM</b> CDT</div>
                   </div>
                 </div>

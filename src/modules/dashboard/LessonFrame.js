@@ -31,8 +31,8 @@ export class LessonFrame {
     
     ".dTileInfoHolder": `box-sizing: border-box; display: flex; width: 100%; padding: 12px; align-items: flex-end; z-index: 2`,
     ".dTileInfo": `width: 100%; margin-right: 6px`,
-    ".dTileTitle": `box-sizing: border-box; width: 100%; font-size: 18px; font-weight: 600; text-align: left; transition: padding .2s, outline-width .2s`,
-    ".dTileTitle[contenteditable]": `padding: 2px 4px; margin-bottom: 4px; max-height: 100px; outline: solid 2px var(--themeColor); outline-offset: 0; border-radius: 4px; overflow: auto; cursor: text`,
+    ".dTileTitle": `box-sizing: border-box; width: 100%; font-size: 18px; font-weight: 600; text-align: left; outline: solid 2px rgba(var(--background), 0); outline-offset: 0; border-radius: 4px; transition: .2s`,
+    ".dTileTitle[contenteditable]": `padding: 2px 4px; margin-bottom: 4px; max-height: 100px; outline-color: var(--themeColor); overflow: auto; cursor: text`,
     ".dTileLastOpened": `width: 100%; color: var(--themeColor); margin-top: 4px; font-size: 13px; font-weight: 600; text-align: left`,
     ".dTileMemberCount": `display: none; box-sizing: border-box; padding: 6px 10px 6px 6px; margin: 4px 0; align-items: center; background: var(--pageColor); box-shadow: inset var(--lightShadow); border-radius: 18px`,
     ".dTileMemberCount div[icon]": `width: 22px; height: 22px; flex-shrink: 0`,

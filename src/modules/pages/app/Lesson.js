@@ -387,7 +387,7 @@ export class Page extends PageFrame {
 
     this.isDividerTicking = false;
   }
-  endDivider(event) {
+  endDivider() {
     if (this.divider == null) {
       return;
     }

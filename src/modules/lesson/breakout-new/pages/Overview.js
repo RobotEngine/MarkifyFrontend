@@ -96,7 +96,7 @@ export class Page {
     if (ignoreAttr != true) {
       this.topHolder.removeAttribute("scroll");
     }
-    if (this.top.scrollWidth > this.top.clientWidth) {
+    if (this.top.clientWidth < this.top.scrollWidth) {
       if (ignoreAttr != true) {
         this.topHolder.setAttribute("scroll", "");
       }

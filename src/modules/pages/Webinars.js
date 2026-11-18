@@ -1,4 +1,4 @@
-import { setPage, checkForAuth, promptLogin, PageFrame, userID, account, getParam, modifyParams } from "@/crucial";
+import { checkForAuth, promptLogin, PageFrame, userID, account, getParam, modifyParams } from "@/crucial";
 
 import { dropdown as dropdownModule } from "@modules/utility/Dropdown";
 import { modal as modalModule } from "@modules/utility/Modal";
@@ -139,12 +139,12 @@ export class Page extends PageFrame {
   css = {
     ".wPageHolder": `position: fixed; box-sizing: border-box; display: flex; width: 100vw; width: 100dvw; height: 100vh; height: 100dvh; padding: 8px; left: 0px; top: 0px; justify-content: center`, //transition: .2s
     ".wPage": `position: relative; display: flex; width: 100%; height: 100%; max-width: 1000px; box-shadow: var(--darkShadow); border-radius: 12px; overflow: hidden`,
-    ".wInterface": `position: absolute; display: flex; flex-direction: column; width: 100%; height: 100%; left: 0px; top: 0px; visibility: hidden; pointer-events: none; user-select: none; overflow-x: none; overflow-y: scroll; z-index: 2`,
+    ".wInterface": `position: absolute; display: flex; flex-direction: column; width: 100%; height: 100%; left: 0px; top: 0px; visibility: hidden; pointer-events: none; user-select: none; overflow-y: scroll; z-index: 2`,
     
     ".wTopHolder": `position: relative; width: 100%; height: 50px; margin-bottom: 8px; visibility: visible`,
     ".wTop": `position: absolute; box-sizing: border-box; display: flex; width: 100%; gap: 8px; padding-bottom: 8px; left: 0px; top: 0px; justify-content: space-between; overflow-x: auto; overflow-y: hidden; scrollbar-width: none`,
     ".wTop::-webkit-scrollbar": `display: none`,
-    ".wTopSection": `box-sizing: border-box; display: flex; height: 50px; padding: 6px; flex-shrink: 0; align-items: center; background: var(--pageColor); box-shadow: var(--lightShadow); pointer-events: all`,
+    ".wTopSection": `box-sizing: border-box; display: flex; height: 50px; padding: 6px 5px; flex-shrink: 0; align-items: center; background: var(--pageColor); box-shadow: var(--lightShadow); pointer-events: all`,
     ".wTopSection[left]": `border-bottom-right-radius: 12px`,
     ".wTopSection[right]": `border-bottom-left-radius: 12px`,
     ".wTopLogo": `display: flex; height: 38px; padding: 0; user-select: none; justify-content: center; align-items: center; border-radius: 6px`,
@@ -156,7 +156,7 @@ export class Page extends PageFrame {
     ".wAccount img": `width: 100%; height: 100%; object-fit: cover`,
     ".wLogin": `height: 32px; display: none; padding: 6px 10px; margin: 0 4px; background: var(--secondary); border-radius: 16px; color: #fff; font-size: 16px; font-weight: 600`,
 
-    ".wContentHolder": `position: relative; box-sizing: border-box; display: flex; flex-wrap: wrap; gap: 24px; width: 100%; height: 100%; padding: 66px 16px 16px; overflow-x: none; overflow-y: scroll; z-index: 1; transition: .5s`,
+    ".wContentHolder": `position: relative; box-sizing: border-box; display: flex; flex-wrap: wrap; gap: 24px; width: 100%; height: 100%; padding: 66px 16px 16px; overflow-y: scroll; z-index: 1; transition: .5s`,
     ".wDivider": `box-sizing: border-box; width: 80%; margin: 8px 0 16px 0; height: 4px; background-image: linear-gradient(90deg, transparent, var(--hover) 25%, var(--hover) 75%, transparent); border-radius: 2px`,
 
     ".wInfoContent": `box-sizing: border-box; display: flex; flex-direction: column; flex: 1 1 250px; height: fit-content; padding: 12px; box-shadow: inset var(--lightShadow); border-radius: 24px; align-items: center`,

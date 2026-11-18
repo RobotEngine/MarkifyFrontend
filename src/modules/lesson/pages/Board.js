@@ -110,7 +110,7 @@ export class Page {
     
     ".eTopHolder": `position: relative; width: 100%; height: 50px; margin-bottom: 8px; visibility: visible`,
     ".eTop": `position: absolute; box-sizing: border-box; display: flex; width: 100%; gap: 8px; padding-bottom: 8px; left: 0px; top: 0px; justify-content: space-between; overflow-x: auto; overflow-y: hidden; scrollbar-width: none`,
-    ".eTopHolder[scroll] .eTop": `gap: 0px !important; padding: 0 6px !important; padding-bottom: 0px !important; background: var(--pageColor); box-shadow: var(--lightShadow); pointer-events: all`,
+    ".eTopHolder[scroll] .eTop": `gap: 0px !important; padding: 0 5px 0 6px !important; padding-bottom: 0px !important; background: var(--pageColor); box-shadow: var(--lightShadow); pointer-events: all`,
     ".eTop::-webkit-scrollbar": `display: none`,
     ".eTopSection[scroll]": `display: none`,
     ".eTopHolder[scroll] .eTopSection[scroll]": `display: flex !important`,
@@ -208,7 +208,7 @@ export class Page {
     if (ignoreAttr != true) {
       this.topHolder.removeAttribute("scroll");
     }
-    if (this.top.scrollWidth > this.top.clientWidth) {
+    if (this.top.clientWidth < this.top.scrollWidth) {
       if (ignoreAttr != true) {
         this.topHolder.setAttribute("scroll", "");
       }

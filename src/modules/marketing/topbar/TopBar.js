@@ -47,7 +47,7 @@ export class Frame {
     ".topbarTopHolder[scroll] .topbarTopSection": `padding: 6px 0 !important; box-shadow: unset !important`,
     ".topbarTopSection[left]": `padding-left: 6px !important; border-bottom-right-radius: 12px`,
     ".topbarTopSection[right]": `border-bottom-left-radius: 12px`,
-    ".topbarTopLogo": `display: flex; height: 38px; padding: 0; user-select: none; justify-content: center; align-items: center; border-radius: 6px`,
+    ".topbarTopLogo": `display: flex; height: 38px; padding: 0; margin-right: 4px; user-select: none; justify-content: center; align-items: center; border-radius: 6px`,
     ".topbarTopLogo:hover": `background: var(--hover)`,
     ".topbarTopLogo svg": `height: 100%; transition: .2s`,
     ".topbarButton": `--themeColor: var(--theme); position: relative; box-sizing: border-box; height: 32px; padding: 6px 10px; margin: 0 4px; border-radius: 16px; font-size: 16px; font-weight: 600; text-decoration: none; isolation: isolate`,

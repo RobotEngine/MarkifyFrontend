@@ -24,179 +24,179 @@
   <link rel="manifest" href="../manifest.json" />
 
   <meta http-equiv="Cache-control" content="public, max-age=1800" />
-  <meta http-equiv="Content-Type" content="text/html; charset= ISO-8859-1" />
+
+  <style>
+    @import "@fontsource-variable/montserrat";
+
+    :root {
+      --blueRGB: 0, 132, 255;
+      --blue: rgb(var(--blueRGB));
+      --themeRGB: var(--blueRGB);
+      --theme: var(--blue);
+      --secondaryRGB: 72, 167, 255;
+      --secondary: rgb(var(--secondaryRGB));
+      --hover: rgb(var(--hoverRGB));
+      --purpleRGB: 223, 132, 255;
+      --purple: rgb(var(--purpleRGB));
+      --yellowRGB: 255, 185, 56;
+      --yellow: rgb(var(--yellowRGB));
+      --greenRGB: 52, 193, 114;
+      --green: rgb(var(--greenRGB));
+      --redRGB: 220, 20, 60;
+      --red: rgb(var(--redRGB));
+      --errorRGB: var(--redRGB);
+      --error: rgb(var(--redRGB));
+      --pageColor: rgb(var(--background));
+      --activeGray: rgb(var(--activeGrayRGB));
+      --gray: rgb(var(--grayRGB));
+      --lightShadow: 0 0 8px 0 rgba(var(--themeRGB), .3);
+      --darkShadow: 0 0 8px 0 rgba(var(--themeRGB), .5);
+      --shadow: 0 0 8px 0 var(--gray);
+      --bounce: cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      --font: "Montserrat Variable", sans-serif;
+    }
+    html[theme="light"] {
+      --hoverRGB: 180, 218, 253;
+      --lightGray: #E7E7E7;
+      --scrollGray: #F6F6F6;
+      --activeGrayRGB: 124, 124, 124;
+      --grayRGB: 204, 204, 204;
+      --darkGray: #2F2F2F;
+      --textColor: #000;
+      --background: 255, 255, 255;
+    }
+    html[theme="dark"] {
+      --hoverRGB: 12, 63, 111;
+      --lightGray: #00355E;
+      --scrollGray: #001D34;
+      --activeGrayRGB: 0, 92, 167;
+      --grayRGB: 0, 57, 104;
+      --darkGray: #E7E7E7;
+      --textColor: #fff;
+      --background: 10, 28, 45;
+    }
+
+    html {
+      overscroll-behavior-x: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      margin: 0;
+      padding: 0;
+      background: var(--pageColor);
+      touch-action: pan-x pan-y;
+
+      color: var(--textColor);
+      font-family: var(--font);
+      font-size: 18px;
+      text-align: center;
+      overflow-wrap: anywhere;
+    }
+
+    .app {
+      min-height: 100vh;
+      z-index: 0;
+      background: var(--pageColor);
+      transition: background-color .3s;
+    }
+
+    .fixed {
+      position: fixed;
+      width: 100%;
+      height: 100%;
+      top: 0;
+      left: 0;
+      overflow: auto;
+      z-index: 999;
+      pointer-events: none;
+    }
+
+    .loading {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      left: 0;
+      top: 0;
+      transition: opacity .4s;
+      z-index: 999;
+      overflow: hidden;
+      will-change: opacity;
+      border-radius: inherit;
+    }
+
+    .loadingSvgHolder {
+      display: flex;
+      width: 100%;
+      height: 100%;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .loadingSvgContainer {
+      --spacing: 276px;
+      position: relative;
+      box-sizing: border-box;
+      display: flex;
+      width: min(100%, 120px);
+      height: min(100%, 120px);
+      margin: 64px;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .loadingSvgContainer::before {
+      content: "";
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      padding: calc(100% * 2);
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      background: radial-gradient(rgba(var(--themeRGB), .1) 0%, rgba(var(--background), 0) 50%);
+    }
+
+    .loadsvg {
+      width: 100%;
+      height: 100%;
+    }
+
+    .loadsvg path {
+      transform-box: fill-box;
+      transform-origin: center;
+      animation: var(--anim) 3s cubic-bezier(0.46, 0.03, 0.52, 0.96) infinite;
+    }
+    @keyframes loadinga {
+      0% { transform: translate(0) rotate(0) }
+      25% { transform: translate(var(--spacing), 0) rotate(90deg) }
+      50% { transform: translate(var(--spacing), var(--spacing)) rotate(180deg) }
+      75% { transform: translate(0, var(--spacing)) rotate(270deg) }
+      100% { transform: translate(0) rotate(360deg) }
+    }
+    @keyframes loadingb {
+      0% { transform: translate(0) }
+      25% { transform: translate(0, var(--spacing)) }
+      50% { transform: translate(calc(var(--spacing) * -1), var(--spacing)) }
+      75% { transform: translate(calc(var(--spacing) * -1), 0) }
+      100% { transform: translate(0) }
+    }
+    @keyframes loadingc {
+      0% { transform: translate(0) }
+      25% { transform: translate(0, calc(var(--spacing) * -1)) }
+      50% { transform: translate(var(--spacing), calc(var(--spacing) * -1)) }
+      75% { transform: translate(var(--spacing), 0) }
+      100% { transform: translate(0) }
+    }
+    @keyframes loadingd {
+      0% { transform: translate(0) rotate(0) }
+      25% { transform: translate(calc(var(--spacing) * -1), 0) rotate(90deg) }
+      50% { transform: translate(calc(var(--spacing) * -1), calc(var(--spacing) * -1)) rotate(180deg) }
+      75% { transform: translate(0, calc(var(--spacing) * -1)) rotate(270deg) }
+      100% { transform: translate(0) rotate(360deg) }
+    }
+  </style>
 </head>
-<style>
-  @import "@fontsource-variable/montserrat";
-
-  :root {
-    --blueRGB: 0, 132, 255;
-    --blue: rgb(var(--blueRGB));
-    --themeRGB: var(--blueRGB);
-    --theme: var(--blue);
-    --secondaryRGB: 72, 167, 255;
-    --secondary: rgb(var(--secondaryRGB));
-    --hover: rgb(var(--hoverRGB));
-    --purpleRGB: 223, 132, 255;
-    --purple: rgb(var(--purpleRGB));
-    --yellowRGB: 255, 185, 56;
-    --yellow: rgb(var(--yellowRGB));
-    --greenRGB: 52, 193, 114;
-    --green: rgb(var(--greenRGB));
-    --redRGB: 220, 20, 60;
-    --red: rgb(var(--redRGB));
-    --errorRGB: var(--redRGB);
-    --error: rgb(var(--redRGB));
-    --pageColor: rgb(var(--background));
-    --activeGray: rgb(var(--activeGrayRGB));
-    --gray: rgb(var(--grayRGB));
-    --lightShadow: 0 0 8px 0 rgba(var(--themeRGB), .3);
-    --darkShadow: 0 0 8px 0 rgba(var(--themeRGB), .5);
-    --shadow: 0 0 8px 0 var(--gray);
-    --bounce: cubic-bezier(0.175, 0.885, 0.32, 1.275);
-    --font: "Montserrat Variable", sans-serif;
-  }
-  html[theme="light"] {
-    --hoverRGB: 180, 218, 253;
-    --lightGray: #E7E7E7;
-    --scrollGray: #F6F6F6;
-    --activeGrayRGB: 124, 124, 124;
-    --grayRGB: 204, 204, 204;
-    --darkGray: #2F2F2F;
-    --textColor: #000;
-    --background: 255, 255, 255;
-  }
-  html[theme="dark"] {
-    --hoverRGB: 12, 63, 111;
-    --lightGray: #00355E;
-    --scrollGray: #001D34;
-    --activeGrayRGB: 0, 92, 167;
-    --grayRGB: 0, 57, 104;
-    --darkGray: #E7E7E7;
-    --textColor: #fff;
-    --background: 10, 28, 45;
-  }
-
-  html {
-    overscroll-behavior-x: none;
-    -webkit-tap-highlight-color: transparent;
-  }
-
-  body {
-    margin: 0;
-    padding: 0;
-    background: var(--pageColor);
-    touch-action: pan-x pan-y;
-
-    color: var(--textColor);
-    font-family: var(--font);
-    font-size: 18px;
-    text-align: center;
-    overflow-wrap: anywhere;
-  }
-
-  .app {
-    min-height: 100vh;
-    z-index: 0;
-    background: var(--pageColor);
-    transition: background-color .3s;
-  }
-
-  .fixed {
-    position: fixed;
-    width: 100%;
-    height: 100%;
-    top: 0;
-    left: 0;
-    overflow: auto;
-    z-index: 999;
-    pointer-events: none;
-  }
-
-  .loading {
-    position: absolute;
-    width: 100%;
-    height: 100%;
-    left: 0;
-    top: 0;
-    transition: opacity .4s;
-    z-index: 999;
-    overflow: hidden;
-    will-change: opacity;
-    border-radius: inherit;
-  }
-
-  .loadingSvgHolder {
-    display: flex;
-    width: 100%;
-    height: 100%;
-    justify-content: center;
-    align-items: center;
-  }
-
-  .loadingSvgContainer {
-    --spacing: 276px;
-    position: relative;
-    box-sizing: border-box;
-    display: flex;
-    width: min(100%, 120px);
-    height: min(100%, 120px);
-    margin: 64px;
-    justify-content: center;
-    align-items: center;
-  }
-
-  .loadingSvgContainer::before {
-    content: "";
-    position: absolute;
-    width: 100%;
-    height: 100%;
-    padding: calc(100% * 2);
-    left: 50%;
-    top: 50%;
-    transform: translate(-50%, -50%);
-    background: radial-gradient(rgba(var(--themeRGB), .1) 0%, rgba(var(--background), 0) 50%);
-  }
-
-  .loadsvg {
-    width: 100%;
-    height: 100%;
-  }
-
-  .loadsvg path {
-    transform-box: fill-box;
-    transform-origin: center;
-    animation: var(--anim) 3s cubic-bezier(0.46, 0.03, 0.52, 0.96) infinite;
-  }
-  @keyframes loadinga {
-    0% { transform: translate(0) rotate(0) }
-    25% { transform: translate(var(--spacing), 0) rotate(90deg) }
-    50% { transform: translate(var(--spacing), var(--spacing)) rotate(180deg) }
-    75% { transform: translate(0, var(--spacing)) rotate(270deg) }
-    100% { transform: translate(0) rotate(360deg) }
-  }
-  @keyframes loadingb {
-    0% { transform: translate(0) }
-    25% { transform: translate(0, var(--spacing)) }
-    50% { transform: translate(calc(var(--spacing) * -1), var(--spacing)) }
-    75% { transform: translate(calc(var(--spacing) * -1), 0) }
-    100% { transform: translate(0) }
-  }
-  @keyframes loadingc {
-    0% { transform: translate(0) }
-    25% { transform: translate(0, calc(var(--spacing) * -1)) }
-    50% { transform: translate(var(--spacing), calc(var(--spacing) * -1)) }
-    75% { transform: translate(var(--spacing), 0) }
-    100% { transform: translate(0) }
-  }
-  @keyframes loadingd {
-    0% { transform: translate(0) rotate(0) }
-    25% { transform: translate(calc(var(--spacing) * -1), 0) rotate(90deg) }
-    50% { transform: translate(calc(var(--spacing) * -1), calc(var(--spacing) * -1)) rotate(180deg) }
-    75% { transform: translate(0, calc(var(--spacing) * -1)) rotate(270deg) }
-    100% { transform: translate(0) rotate(360deg) }
-  }
-</style>
 <body>
   <noscript>Please enable JavaScript to use this app.</noscript>
   <div class="app">

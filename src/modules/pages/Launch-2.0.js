@@ -42,9 +42,23 @@ import {
   clipBoardRead
 } from "@/crucial";
 
-import { Frame as TopbarFrame } from "../marketing/topbar/TopBar";
+import { Pipeline } from "@modules/editor/Pipeline";
+
+import { Frame as TopbarFrame } from "../marketing/topbar/Topbar";
+
+// Static import the first section since it's required to see the page:
+import { Frame as ShowcaseSection } from "../marketing/launch/sections/Showcase";
 
 export class Page extends PageFrame {
+  sections = [
+    ShowcaseSection,
+    import("../marketing/launch/sections/Purpose"),
+    import("../marketing/launch/sections/Features"),
+    import("../marketing/launch/sections/Testimonials"),
+    import("../marketing/launch/sections/Trust"),
+    import("../marketing/launch/sections/CallToAction")
+  ];
+
   html = `
   <div class="page">
     <div class="interface" showoverlay->
@@ -75,7 +89,7 @@ export class Page extends PageFrame {
       </div>
       <div class="interfaceSide"></div>
     </div>
-    <div class="container" style="background: linear-gradient(45deg, black, transparent)"></div>
+    <div class="container"></div>
   </div>
   `;
   css = {
@@ -90,12 +104,25 @@ export class Page extends PageFrame {
     ".interface[showoverlay] .overlay": `display: block`,
     ".interface:not([showoverlay]) .topbarTopSection, .interface:not([showoverlay]) .topbarTop": `border-radius: 12px !important`,
 
-    ".container": `position: relative; width: 100%; height: 1000px; z-index: 1`,
+    ".container": `position: relative; width: 100%; height: fit-content; z-index: 1`,
+    ".section": `position: relative; width: 100%`
   };
 
+  loadedSections = [];
   async js(page) {
+    this.pipeline = new Pipeline;
+    
     this.interface = page.querySelector(".interface");
     this.topbarHolder = this.interface.querySelector(".topbarHolder");
+
+    this.container = page.querySelector(".container");
+
+    // Load sections:
+    for (let i = 0; i < this.sections.length; i++) {
+      let newSection = document.createElement("div");
+      newSection.className = "section";
+      this.container.appendChild(newSection);
+    }
 
     // Set topbar:
     this.topbar = await this.setFrame(TopbarFrame, this.topbarHolder);

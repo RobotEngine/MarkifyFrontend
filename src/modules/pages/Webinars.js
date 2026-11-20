@@ -114,7 +114,7 @@ export class Page extends PageFrame {
           <div class="wDivider"></div>
           <div class="wEventsHolder">
 
-            <a class="wEvent" event="evt-NXKjSU5ZRZHBuD2">
+            <a class="wEvent" event="evt-NXKjSU5ZRZHBuD2" style="display: none">
               <div class="wEventHeader">
                 <div class="wEventLogo"><img src="${sessionOneIcon}" /></div>
                 <div class="WEventInfo">

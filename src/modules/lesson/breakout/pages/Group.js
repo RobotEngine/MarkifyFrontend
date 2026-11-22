@@ -163,7 +163,7 @@ export class Page {
     ".brgObserveIcon": `width: 34px; height: 34px; margin: 2px`,
     ".brgObserveIcon svg": `width: 100%; height: 100%`,
     ".brgObserveText": `margin: 0 6px`,
-    ".brgObserveCursor": `box-sizing: border-box; display: flex; padding: 2px 6px; margin-right: 4px; background: var(--theme); color: #fff; border: solid 3px var(--pageColor); box-shadow: 0 0 6px rgb(0 0 0 / 25%); border-radius: 8px 14px 14px; font-size: 14px; font-weight: 700`,
+    ".brgObserveCursor": `box-sizing: border-box; display: flex; padding: 2px 6px; margin-right: 4px; background: var(--theme); color: #fff; border: solid 3px var(--pageColor); box-shadow: 0 0 8px var(--shadowColor); border-radius: 8px 14px 14px; font-size: 14px; font-weight: 700`,
     ".brgObserveExit": `display: flex; position: relative; width: 22px; height: 22px; margin: 8px; justify-content: center; align-items: center; --borderWidth: 3px; --borderRadius: 14px`,
     ".brgObserveExit svg": `width: 12px; height: 12px; flex-shrink: 0`,
     ".brgPageNav": `display: flex; width: 32px; height: 32px; padding: 6px; margin: 0 4px; justify-content: center; align-items: center; background: var(--lightGray); border-radius: 16px`,

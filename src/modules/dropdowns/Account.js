@@ -47,7 +47,7 @@ export class Frame {
     <a href="../privacy" target="_blank">Privacy</a>
   </div>
   <div class="accountCopyrightHolder">
-    <a href="../launch" target="_blank">©2026 Markify, LLC</a>
+    <div>©2026 Markify, LLC</div>
     <div class="accountVersion"></div>
   </div>
   `;
@@ -61,12 +61,11 @@ export class Frame {
     ".accountDrop[pwa]": `display: none`,
     ".accountDropLine": `width: 100%; height: 2px; margin-bottom: 4px; background: var(--gray); border-radius: 1px`,
     ".accountSocialHolder": `display: flex; flex-wrap: wrap; height: fit-content; padding: 3px; justify-content: space-evenly`,
-    ".accountSocialHolder a": `width: 30px; height: 30px; margin: 3px`,
+    ".accountSocialHolder a": `width: 30px; height: 30px; margin: 4px; border-radius: 6px`,
     ".accountSocialHolder a img": `width: 100%; height: 100%`,
     ".accountPolicyHolder": `display: flex; flex-wrap: wrap; justify-content: space-evenly; align-items: center`,
-    ".accountPolicyHolder a": `margin: 4px; color: var(--darkGray); font-size: 16px; font-weight: 600; text-decoration: none`,
-    ".accountCopyrightHolder": `display: flex; flex-wrap: wrap; margin: 2px 0; justify-content: space-between; align-items: center; color: var(--darkGray); font-size: 14px; font-weight: 500`,
-    ".accountCopyrightHolder a": `text-decoration: none`,
+    ".accountPolicyHolder a": `padding: 0 4px; margin: 4px; color: var(--darkGray); font-size: 16px; font-weight: 600; text-decoration: none; border-radius: 10px`,
+    ".accountCopyrightHolder": `display: flex; flex-wrap: wrap; margin: 2px 0; justify-content: space-between; align-items: center; color: var(--darkGray); font-size: 14px; font-weight: 500`
   };
   async js(frame) {
     frame.style.width = "200px";

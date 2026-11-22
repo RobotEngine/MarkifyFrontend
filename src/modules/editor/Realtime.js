@@ -302,6 +302,7 @@ export class Module {
     observeCursor.textContent = member.name;
     observeCursor.style.color = textColorBackground(member.color);
     observeCursor.style.background = member.color;
+    observeCursor.style.setProperty("--shadowColor", hexToRGBString(member.color, .3));
     observeHolder.removeAttribute("hidden");
     //this.editor.page.style.setProperty("--lightShadow", "0px 0px 8px 0px " + hexToRGBString(member.color, .3));
     this.editor.page.style.boxShadow = "0px 0px 8px 0px " + hexToRGBString(member.color, "var(--shadowOpacity)");

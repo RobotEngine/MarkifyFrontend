@@ -88,7 +88,7 @@ export class Frame {
     ".sticky": `position: sticky; width: 100%; height: 100vh; height: 100dvh; left: 0; top: 0; pointer-events: none`,
     ".overviewBackdrop": `position: absolute; width: 100%; height: 100%; left: 0; top: 0; object-fit: cover; opacity: .4; z-index: 1`,
     ".overviewCenterBackground": `position: absolute; max-width: var(--maxContentWidth); left: 50%; top: 50%; transform: translate(-50%, calc(-50% - var(--scrollY))); background: radial-gradient(var(--pageColor) 40%, transparent 60%); z-index: 2`,
-    ".overviewCenterBackground:after": `content: ""; position: absolute; width: 100%; height: 100%; left: 0; top: 0; background-image: var(--dotsBackground); background-size: 24px 24px; background-position: center center; -webkit-mask-image: radial-gradient(black 20%, transparent 50%); mask-image: radial-gradient(black 30%, transparent 60%); opacity: .05; transform: translate3d(0, var(--dotBackgroundYOffset, 0), 0)`,
+    ".overviewCenterBackground:after": `content: ""; position: absolute; width: 100%; height: 100%; left: 0; top: 0; background-image: var(--dotsBackground); background-size: 24px 24px; background-position: center center; -webkit-mask-image: radial-gradient(black 20%, transparent 50%); mask-image: radial-gradient(black 30%, transparent 60%); opacity: .04; transform: translate3d(0, var(--dotBackgroundYOffset, 0), 0)`,
 
     ".scroll": `position: relative; width: 100%; height: fit-content`,
     ".scrollSection": `position: relative; box-sizing: border-box; display: flex; flex-direction: column; width: 100%; height: fit-content; min-height: 100vh; min-height: 100dvh; padding-top: var(--scrollOffset); justify-content: center; align-items: center`,
@@ -97,8 +97,8 @@ export class Frame {
     ".headerSloganTop": `width: 100%; height: auto; font-family: var(--font); font-size: 28px; fill: var(--textColor); font-weight: 500; letter-spacing: 6%`,
     ".headerSloganBottom": `font-family: var(--playfulFont); font-size: clamp(40px, 10cqi, 76px); color: var(--theme); letter-spacing: 4%`,
     ".detailText": `width: 100%; margin: 32px 0; font-size: 18px; line-height: 150%; text-wrap: balance`,
-    ".actionButtonHolder": `display: flex; flex-wrap: wrap; width: 100%; max-width: 600px; gap: 16px; margin-top: 40px; justify-content: space-evenly`,
-    ".actionButtonHolder > button": `--borderRadius: 20px; box-shadow: 0 0 16px 4px rgba(var(--themeRGB), .3)`,
+    ".actionButtonHolder": `box-sizing: border-box; display: flex; flex-wrap: wrap; width: 100%; max-width: 600px; padding: 16px; gap: 16px; margin-top: 40px; justify-content: space-evenly`,
+    ".actionButtonHolder > button": `--borderRadius: 20px; box-shadow: 0 0 24px 0 rgba(var(--themeRGB), .3)`,
     ".openDashboard": `display: flex; flex-direction: row; bottom: 0px; align-items: center; --borderRadius: 14px; background: var(--theme); color: #fff`,
     ".openDashboard img[loginBtnBeforeImg]": `width: 26px; height: 26px; margin-right: 8px; object-fit: cover; border-radius: 16px; border: 2px solid var(--secondary); background: var(--theme)`,
     ".openDashboard img[defaultLoginBtnBeforeImg]": `width: 24px; height: 24px; margin-right: 8px; object-fit: cover; border-radius: 16px; border: 4px solid var(--theme); background: var(--theme)`,
@@ -132,6 +132,7 @@ export class Frame {
         loginBtn.innerHTML = `<img src="../images/profiles/defaultWhite.svg" defaultLoginBtnBeforeImg /><div accountuser>Dashboard</div><img src="../images/tooltips/link.svg" loginBtnAfterImg />`;
       }
       loginBtn.style.padding = "8px 14px 8px 8px";
+      this.onBoundsChange();
     }
   }
 

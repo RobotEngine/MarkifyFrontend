@@ -4,6 +4,9 @@ import { alert as alertModule } from "@modules/utility/Alert";
 
 import { close as closeIcon } from "@modules/utility/core-icons";
 
+import dotsblackBackdrop from "@assets/backgrounds/dotsblack.svg?no-inline";
+import dotswhiteBackdrop from "@assets/backgrounds/dotswhite.svg?no-inline";
+
 export class Page extends PageFrame {
   requiresSimpleSocket = true;
   turnstileEnabled = false;
@@ -108,9 +111,9 @@ export class Page extends PageFrame {
 
   updateTheme() {
     if (getTheme() != "dark") {
-      this.background.style.setProperty("background-image", "url(../images/editor/backdropblack.svg)");
+      this.background.style.setProperty("background-image", "url(" + dotsblackBackdrop + ")");
     } else {
-      this.background.style.setProperty("background-image", "url(../images/editor/backdropwhite.svg)");
+      this.background.style.setProperty("background-image", "url(" + dotswhiteBackdrop + ")");
     }
   }
 
@@ -138,13 +141,6 @@ export class Page extends PageFrame {
     if (window.previousLessonSession != null) {
       delete window.previousLessonSession;
     }
-
-    window.updateAccountSettings = (settings) => {
-      if (settings.hasOwnProperty("theme") == true) {
-        this.updateTheme();
-      }
-    }
-    this.updateTheme();
 
     page.querySelector(".jLogo").addEventListener("click", (event) => {
       setPage("pages/launch");

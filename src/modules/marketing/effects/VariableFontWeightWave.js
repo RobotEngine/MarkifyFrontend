@@ -18,7 +18,7 @@ class VariableWeightWave {
       lockWidth: true,
       widthPadding: 0,
       waveOnStart: false,
-      waveDelay: 2000,
+      waveDelay: 1000,
       waveDuration: 2000,
       waveSpread: 5, // How wide the traveling wave pulse is (in character indices)
       wavePeakWeight: null, // Defaults to maxWeight if not set

@@ -46,8 +46,8 @@ export class Frame extends Setup {
     <div class="brtTemplate">
       <a class="brtTemplateTile" draggable="false">
         <div class="brtTemplateTileThumbnailHolder">
-          <img class="brtTemplateTileThumbnail" load src="../images/dashboard/placeholder.png" />
-          <img class="brtTemplateTileThumbnail" main />
+          <img class="brtTemplateTileThumbnail thumbnail" load src="../images/dashboard/placeholder.png" />
+          <img class="brtTemplateTileThumbnail thumbnail" main />
         </div>
         <div class="brtTemplateTileInfoHolder">
           <div class="brtTemplateTileInfo">
@@ -83,8 +83,7 @@ export class Frame extends Setup {
     ".brtTemplateTile:hover": `--shadow: var(--darkShadow)`,
     ".brtTemplateTileThumbnailHolder": `position: relative; width: 100%; aspect-ratio: 4/3`,
     ".brtTemplateTileThumbnail": `position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; object-fit: cover; border-radius: 12px; opacity: 0; pointer-events: none`,
-    'html[theme="dark"] .brtTemplateTileThumbnail': `filter: brightness(50%)`,
-    ".brtTemplateTile:hover .dTileThumbnail": `filter: brightness(100%)`,
+    ".brtTemplateTile:hover .brtTemplateTileThumbnail": `filter: brightness(100%)`,
     ".brtTemplateTileInfoHolder": `position: absolute; box-sizing: border-box; display: flex; width: 100%; padding: 10px; left: 0px; bottom: 0px; align-items: flex-end; background: var(--pageColor); box-shadow: var(--shadow)`,
     ".brtTemplateTileInfo": `width: 100%`,
     ".brtTemplateTileTitle": `box-sizing: border-box; width: 100%; font-size: 18px; font-weight: 600; text-align: left`,

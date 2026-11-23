@@ -565,6 +565,9 @@ export const setFrame = async (modulePromise, frame, extra, parent) => {
     if (module.js != null) {
       await module.js(frameContent, extra);
     }
+    if (module.updateTheme != null) {
+      module.updateTheme();
+    }
     if (frameContent.hasAttribute("hideoverflow") == true) { //frameContent.style.display == "none"
       frameContent.removeAttribute("hideoverflow");
       //frameContent.style.removeProperty("display");
@@ -1147,6 +1150,9 @@ export const updateTheme = () => {
   }
   document.documentElement.setAttribute("theme", pageTheme ?? setTheme);
   updateBackground();
+  if (currentPageModule != null && currentPageModule.updateTheme != null) {
+    currentPageModule.updateTheme();
+  }
 }
 if (window.matchMedia != null) {
   window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => { updateTheme(); });

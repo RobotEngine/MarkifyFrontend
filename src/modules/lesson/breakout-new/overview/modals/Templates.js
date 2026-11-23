@@ -20,7 +20,6 @@ export class Frame {
     ".brttTemplateTile:hover": `--shadow: var(--darkShadow)`,
     ".brttTemplateTileThumbnailHolder": `position: relative; width: 100%; aspect-ratio: 4/3`,
     ".brttTemplateTileThumbnail": `position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; object-fit: cover; border-radius: 12px; opacity: 0; pointer-events: none`,
-    'html[theme="dark"] .brttTemplateTileThumbnail': `filter: brightness(50%)`,
     ".brttTemplateTile:hover .brttTemplateTileThumbnail": `filter: brightness(100%)`,
     ".brttTemplateTileInfoHolder": `position: absolute; box-sizing: border-box; display: flex; width: 100%; padding: 10px; left: 0px; bottom: 0px; align-items: flex-end; background: var(--pageColor); box-shadow: var(--shadow)`,
     ".brttTemplateTileInfo": `width: 100%`,
@@ -46,8 +45,8 @@ export class Frame {
       }
       this.tileHolder.insertAdjacentHTML(insertAdj, `<a class="brttTemplateTile" draggable="false" new>
         <div class="brttTemplateTileThumbnailHolder">
-          <img class="brttTemplateTileThumbnail" src="../images/dashboard/placeholder.png" />
-          <img class="brttTemplateTileThumbnail" main />
+          <img class="brttTemplateTileThumbnail thumbnail" src="../images/dashboard/placeholder.png" />
+          <img class="brttTemplateTileThumbnail thumbnail" main />
         </div>
         <div class="brttTemplateTileInfoHolder">
           <div class="brttTemplateTileInfo">

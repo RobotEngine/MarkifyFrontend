@@ -19,7 +19,6 @@ import { Preferences } from "./Preferences";
 import dotsblackBackdrop from "@assets/backgrounds/dotsblack.svg?no-inline";
 import dotswhiteBackdrop from "@assets/backgrounds/dotswhite.svg?no-inline";
 
-
 export class Editor {
   constructor() {
     this.pipeline = new Pipeline;

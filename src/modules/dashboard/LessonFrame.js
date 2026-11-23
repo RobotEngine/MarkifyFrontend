@@ -26,7 +26,6 @@ export class LessonFrame {
     
     ".dTileThumbnail:after": `content: ""; position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; border-radius: inherit; box-shadow: inset 0px 0px 4px 0px rgba(var(--themeColorRGB), .5); z-index: 2`,
     ".dTileThumbnail img": `position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; object-fit: cover; object-position: top center; opacity: 0; z-index: 1; transition: .4s`,
-    'html[theme="dark"] .dTileThumbnail img': `filter: brightness(50%)`,
     ".dTile:hover .dTileThumbnail img": `filter: brightness(100%)`,
     
     ".dTileInfoHolder": `box-sizing: border-box; display: flex; width: 100%; padding: 12px; align-items: flex-end; z-index: 2`,
@@ -134,6 +133,7 @@ export class LessonFrame {
         }
       })();
       let image = document.createElement("img");
+      image.className = "thumbnail";
 
       let errorListener = () => {
         image.remove();

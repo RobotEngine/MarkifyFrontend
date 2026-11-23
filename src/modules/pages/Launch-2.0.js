@@ -110,6 +110,13 @@ export class Page extends PageFrame {
     ".section": `position: relative; width: 100%`
   };
 
+  onConnect() {
+    this.pipeline.publish("connect");
+  }
+  updateTheme() {
+    this.pipeline.publish("theme");
+  }
+
   loadedSections = [];
   async js(page) {
     this.pipeline = new Pipeline;

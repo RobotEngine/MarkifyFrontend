@@ -18,7 +18,6 @@ export class LessonFrame {
     ".dTile:hover": `--shadowOpacity: .5`,
     ".dTileThumbnailHolder": `position: relative; width: 100%; aspect-ratio: 4/3`,
     ".dTileThumbnail": `position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; object-fit: cover; border-radius: 12px; opacity: 0; pointer-events: none`,
-    'html[theme="dark"] .dTileThumbnail': `filter: brightness(50%)`,
     ".dTile:hover .dTileThumbnail": `filter: brightness(100%)`,
     ".dTileInfoHolder": `position: absolute; box-sizing: border-box; display: flex; width: 100%; padding: 10px; left: 0px; bottom: 0px; align-items: flex-end; background: var(--pageColor); box-shadow: var(--shadow); transition: .2s`,
     ".dTileInfo": `width: 100%`,
@@ -137,8 +136,8 @@ export class LessonFrame {
       }
       tileHolder.insertAdjacentHTML(insertAdj, `<a class="dTile" draggable="false" new>
         <div class="dTileThumbnailHolder">
-          <img class="dTileThumbnail" src="../images/dashboard/placeholder.png" />
-          <img class="dTileThumbnail" main />
+          <img class="dTileThumbnail thumbnail" src="../images/dashboard/placeholder.png" />
+          <img class="dTileThumbnail thumbnail" main />
         </div>
         <div class="dTileInfoHolder">
           <div class="dTileInfo">

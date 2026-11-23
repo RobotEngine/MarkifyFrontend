@@ -16,6 +16,10 @@ import { History } from "./History";
 import { Text } from "./Text";
 import { Preferences } from "./Preferences";
 
+import dotsblackBackdrop from "@assets/backgrounds/dotsblack.svg?no-inline";
+import dotswhiteBackdrop from "@assets/backgrounds/dotswhite.svg?no-inline";
+
+
 export class Editor {
   constructor() {
     this.pipeline = new Pipeline;
@@ -534,10 +538,10 @@ export class Editor {
       this.backgroundColor = setColor;
     }
     if (contrastCheck(this.backgroundColor) == true) {
-      this.background.style.setProperty("background-image", "url(../images/editor/backdropblack.svg)");
+      this.background.style.setProperty("background-image", "url(" + dotsblackBackdrop + ")");
       this.content.style.setProperty("--secondaryBackgroundColor", "#" + darkenHex(this.backgroundColor, 50));
     } else {
-      this.background.style.setProperty("background-image", "url(../images/editor/backdropwhite.svg)");
+      this.background.style.setProperty("background-image", "url(" + dotswhiteBackdrop + ")");
       this.content.style.setProperty("--secondaryBackgroundColor", "#" + lightenHex(this.backgroundColor, 50));
     }
     this.content.style.setProperty("--backgroundColor", "#" + this.backgroundColor);
@@ -1110,8 +1114,8 @@ export class Editor {
     // Handle scroll or resize change for rendering:
     this.pipeline.subscribe("boundChange", "bounds_change", () => { this.updatePageScroll(); this.updateChunks(); }, { sort: 1 });
     this.contentHolder.addEventListener("scroll", (event) => {
-      this.pipeline.publish("scroll", { event: event });
-      this.pipeline.publish("bounds_change", { type: "scroll", event: event });
+      this.pipeline.publish("scroll", { event });
+      this.pipeline.publish("bounds_change", { type: "scroll", event });
     });
     this.updatePageScroll();
 

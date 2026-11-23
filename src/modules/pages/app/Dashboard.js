@@ -22,6 +22,8 @@ import openSidebarIcon from "@assets/dashboard/opensidebar.svg?raw";
 import folderIcon from "@assets/dashboard/folder.svg?raw";
 import folderArrowIcon from "@assets/dashboard/folderarrow.svg?raw";
 
+import blurBackdrop from "@assets/dashboard/backdrop.svg?no-inline";
+
 const CURRENT_BANNER = null; // "actm-2026-postconference-webinar" "summer-series-webinars" "breakout-alpha-release" "1.0-release"
 import BANNER_IMAGE from "@assets/webinars/actm/logo.png?no-inline";
 const BANNER_TITLE = "ACTM 2026 Post-Conference Webinar";
@@ -52,7 +54,7 @@ export class Page extends PageFrame {
     <div class="dPage" dropdownholder>
       <div class="dSidebarHolder">
         <div class="dSidebarBackdrop"></div>
-        <img class="dSidebarBackdropImage" src="../images/dashboard/backdrop.svg" />
+        <img class="dSidebarBackdropImage" src="${blurBackdrop}" />
         <div class="dSidebar customScroll">
           <div class="dSidebarSection dSidebarHeader">
             <a class="dSidebarLogo" href="/launch">${logoIcon}</a>

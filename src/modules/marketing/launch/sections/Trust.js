@@ -1,7 +1,7 @@
 
 
 export class Frame {
-  html = ``;
+  html = `<div style="height: 1000px"></div>`;
 
   static scoped = true;
   css = {

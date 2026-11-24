@@ -112,9 +112,17 @@ class VariableWeightWave {
     this.onResize();
 
     if (waveOnStart == true) {
-      this.waveTimerId = window.setTimeout(() => {
-        this.doWave();
-      }, waveDelay);
+      if (document.fonts != null && document.fonts.ready != null) {
+        document.fonts.ready.then(() => {
+          this.waveTimerId = window.setTimeout(() => {
+            this.doWave();
+          }, waveDelay);
+        });
+      } else {
+        this.waveTimerId = window.setTimeout(() => {
+          this.doWave();
+        }, waveDelay);
+      }
     }
   }
 
@@ -351,8 +359,14 @@ export class VariableFontWeightWave {
       this.scroll();
     });
 
-    if (document.fonts && document.fonts.ready) {
-      document.fonts.ready.then(() => { this.resize(); });
+    if (document.fonts != null && document.fonts.ready != null) {
+      document.fonts.ready.then(() => {
+        requestAnimationFrame(() => {
+          requestAnimationFrame(() => {
+            this.resize();
+          });
+        });
+      });
     }
   }
 

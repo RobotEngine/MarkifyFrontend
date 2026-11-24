@@ -63,7 +63,7 @@ export class Page extends PageFrame {
 
   html = `
   <div class="page">
-    <div class="interface" showoverlay->
+    <div class="interface" showoverlay_>
       <div class="interfaceSide"></div>
       <div class="interfaceCenter">
         <div class="topbarHolder"></div>
@@ -71,22 +71,10 @@ export class Page extends PageFrame {
           <defs>
             <mask id="launch-overlay-frame-mask">
               <rect width="100%" height="100%" fill="white" />
-              <rect 
-                x="8" 
-                y="8" 
-                width="calc(100% - 16px)" 
-                height="calc(100% - 16px)" 
-                rx="12" 
-                fill="black" 
-              />
+              <rect x="8" y="8" rx="12" fill="black" style="width: calc(100% - 16px); height: calc(100% - 16px);" />
             </mask>
           </defs>
-          <rect 
-            width="100%" 
-            height="100%" 
-            fill="var(--pageColor)" 
-            mask="url(#launch-overlay-frame-mask)"
-          />
+          <rect width="100%" height="100%" fill="var(--pageColor)" mask="url(#launch-overlay-frame-mask)" />
         </svg>
       </div>
       <div class="interfaceSide"></div>

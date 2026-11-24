@@ -87,7 +87,7 @@ export class Frame {
 
     ".sticky": `position: sticky; width: 100%; height: 100vh; height: 100dvh; left: 0; top: 0; pointer-events: none`,
     ".overviewBackdrop": `position: absolute; width: 100%; height: 100%; left: 0; top: 0; object-fit: cover; opacity: .4; z-index: 1`,
-    ".overviewCenterBackground": `position: absolute; max-width: var(--maxContentWidth); left: 50%; top: 50%; transform: translate3d(-50%, calc(-50% - var(--scrollY, 0)), 0); background: radial-gradient(var(--pageColor) 40%, transparent 60%); z-index: 2`,
+    ".overviewCenterBackground": `position: absolute; max-width: var(--maxContentWidth); left: 0; top: 0; transform: translate3d(calc(var(--x, 0) - 50%), calc(var(--y, 0) - 50%), 0); background: radial-gradient(var(--pageColor) 40%, transparent 60%); z-index: 2`,
     ".overviewCenterBackground:after": `content: ""; position: absolute; width: 100%; height: 100%; left: 0; top: 0; background-image: var(--dotsBackground); background-size: 24px 24px; background-position: center center; -webkit-mask-image: radial-gradient(black 20%, transparent 50%); mask-image: radial-gradient(black 30%, transparent 60%); opacity: .04; transform: translate3d(0, var(--dotBackgroundYOffset, 0), 0)`,
 
     ".scroll": `position: relative; width: 100%; height: fit-content`,
@@ -116,10 +116,17 @@ export class Frame {
     let scrollY = window.scrollY;
 
     // Handle center background:
+    let { x: centerContentX, y: centerContentY, width: centerContentWidth, height: centerContentHeight } = this.overviewCenterContent.getBoundingClientRect();
+    console.log(centerContentWidth);
+    this.overviewCenterBackground.style.setProperty("--x", (centerContentX + (centerContentWidth / 2)) + "px");
+    this.overviewCenterBackground.style.setProperty("--y", (centerContentY + (centerContentHeight  /2)) + "px");
+    this.overviewCenterBackground.style.setProperty("--dotBackgroundYOffset", (scrollY % this.DOT_BACKGROUND_TILE_SIZE) + "px");
+  }
+
+  onResize() {
+    // Handle center background:
     this.overviewCenterBackground.style.width = (this.overviewCenterContent.offsetWidth * 2) + "px";
     this.overviewCenterBackground.style.height = (this.overviewCenterContent.offsetHeight * 2) + "px";
-    this.overviewCenterBackground.style.setProperty("--scrollY", scrollY + "px");
-    this.overviewCenterBackground.style.setProperty("--dotBackgroundYOffset", (scrollY % this.DOT_BACKGROUND_TILE_SIZE) + "px");
   }
 
   updateConnectLogin() {
@@ -160,9 +167,13 @@ export class Frame {
       waveOnStart: true
     });
 
-    // Handle Scroll (and Resize) Event:
-    this.parent.pipeline.subscribe("showcaseBoundsChange", "bounds_change", (event) => { this.onBoundsChange(event); });
+    // Handle Scroll Event:
+    this.parent.pipeline.subscribe("showcaseScroll", "scroll", () => { this.onBoundsChange(); });
     this.onBoundsChange();
+
+    // Handle Resize Event:
+    this.parent.pipeline.subscribe("showcaseResize", "resize", () => { this.onResize(); this.onBoundsChange(); });
+    this.onResize();
 
     // Update account on load:
     this.parent.pipeline.subscribe("showcaseConnect", "connect", () => { this.updateConnectLogin(); });

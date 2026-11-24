@@ -95,7 +95,7 @@ export class Frame {
 
     ".centerContent": `position: relative; box-sizing: border-box; display: flex; flex-direction: column; width: 100%; max-width: 700px; padding: 8px; align-items: center`,
     ".headerSloganTop": `width: 100%; height: auto; font-family: var(--font); font-size: 28px; fill: var(--textColor); font-weight: 500; letter-spacing: 6%`,
-    ".headerSloganBottom": `font-family: var(--playfulFont); font-size: clamp(40px, 10cqi, 76px); color: var(--theme); letter-spacing: 4%`,
+    ".headerSloganBottom": `font-family: var(--playfulFont); font-size: clamp(40px, 10cqi, 76px); color: var(--theme); letter-spacing: 4%; cursor: none`,
     ".detailText": `width: 100%; margin: 32px 0; font-size: 18px; line-height: 150%; text-wrap: balance`,
     ".actionButtonHolder": `box-sizing: border-box; display: flex; flex-wrap: wrap; width: 100%; max-width: 600px; padding: 16px; gap: 16px; margin-top: 40px; justify-content: space-evenly`,
     ".actionButtonHolder > button": `--borderRadius: 20px; box-shadow: 0 0 24px 0 rgba(var(--themeRGB), .3)`,

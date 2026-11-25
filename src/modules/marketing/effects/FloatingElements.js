@@ -271,7 +271,7 @@ export class FloatingElements {
     this.visibilityFadeDuration = options.visibilityFadeDuration ?? 250; // ms
 
     // scrollDistance as a multiplier of window.innerHeight (e.g., 0.5 = 50vh, 1 = 100vh)
-    this.scrollDistanceVh = options.scrollDistanceVh ?? options.scrollDistance ?? 0.5;
+    this.scrollDistanceVh = options.scrollDistanceVh ?? options.scrollDistance ?? 1;
     this.flyToCenter = options.flyToCenter ?? true;
     this.scrollFade = options.scrollFade ?? true;
     this.scrollShrink = options.scrollShrink ?? true;

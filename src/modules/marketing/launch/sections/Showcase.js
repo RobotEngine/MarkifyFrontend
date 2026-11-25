@@ -92,7 +92,7 @@ export class Frame {
     ".overviewBackdrop": `position: absolute; width: 100%; height: 100%; left: 0; top: 0; object-fit: cover; opacity: .4; z-index: 1`,
     ".overviewCenterBackground": `position: absolute; max-width: var(--maxContentWidth); left: 0; top: 0; transform: translate3d(calc(var(--x, 0) - 50%), calc(var(--y, 0) - 50%), 0); background: radial-gradient(var(--pageColor) 40%, transparent 60%); z-index: 2`,
     ".overviewCenterBackground:after": `content: ""; position: absolute; width: 100%; height: 100%; left: 0; top: 0; background-image: var(--dotsBackground); background-size: 24px 24px; background-position: center center; -webkit-mask-image: radial-gradient(black 20%, transparent 50%); mask-image: radial-gradient(black 30%, transparent 60%); opacity: .04; transform: translate3d(0, var(--dotBackgroundYOffset, 0), 0)`,
-    ".overviewSurroundElements": `position: absolute; width: var(--maxContentWidth); height: 100%; left: 50%; top: 50%; transform: translate(-50%, -50%); z-index: 3`,
+    ".overviewSurroundElements": `position: absolute; width: var(--maxContentWidth); height: 100%; max-height: 800px; left: 50%; top: 50%; transform: translate(-50%, -50%); z-index: 3`,
 
     ".scroll": `position: relative; width: 100%; height: fit-content`,
     ".scrollSection": `position: relative; box-sizing: border-box; display: flex; flex-direction: column; width: 100%; height: fit-content; min-height: 100vh; min-height: 100dvh; padding-top: var(--scrollOffset); justify-content: center; align-items: center`,

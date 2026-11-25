@@ -10,8 +10,8 @@ class FloatingElement {
     this.width = config.width ?? 120;
     this.height = config.height ?? 'auto';
     this.baseScale = config.scale ?? 1;
-    this.baseRotateX = config.rotateX ?? 6;
-    this.baseRotateY = config.rotateY ?? -8;
+    this.baseRotateX = config.rotateX ?? 0;
+    this.baseRotateY = config.rotateY ?? 0;
     this.baseRotateZ = config.baseRotateZ ?? config.rotateZ ?? 0;
     this.basePerspective = config.perspective ?? 900;
 
@@ -46,9 +46,11 @@ class FloatingElement {
     this.fadeOutEnd = config.fadeOutEnd ?? 0.5;
     this.pullStrength = config.pullStrength ?? 1;
     this.minFlightScale = config.minFlightScale ?? 0.1;
+    this.scrollLerp = config.scrollLerp ?? 0.14;
 
     // Runtime state
     this.scrollProgress = 0;
+    this.renderedScrollProgress = 0;
     this.pointerX = null;
     this.pointerY = null;
     this.pointerScrollY = 0;
@@ -119,6 +121,7 @@ class FloatingElement {
 
   hasActiveMotion() {
     return (
+      Math.abs(this.renderedScrollProgress - this.scrollProgress) > 0.0005 ||
       Math.abs(this.velX) > 0.01 ||
       Math.abs(this.velY) > 0.01 ||
       Math.abs(this.velTiltX) > 0.01 ||
@@ -132,10 +135,12 @@ class FloatingElement {
   update(now, bounds) {
     if (!bounds.width || !bounds.height) return;
 
+    this.renderedScrollProgress += (this.scrollProgress - this.renderedScrollProgress) * this.scrollLerp;
+    const p = this.renderedScrollProgress;
+
     // 1. Subtle, slow idle drift
     const idleOffsetY = Math.sin(now * this.floatSpeed + this.phase) * this.floatAmplitude;
-    const idleOffsetX =
-      Math.cos(now * this.floatSpeed * 0.65 + this.phase) * (this.floatAmplitude * 0.55);
+    const idleOffsetX = Math.cos(now * this.floatSpeed * 0.65 + this.phase) * (this.floatAmplitude * 0.55);
     const idleRotZ = Math.sin(now * this.floatSpeed * 0.8 + this.phase) * this.idleRotAmplitude;
 
     // 2. Base center before scroll pull
@@ -149,7 +154,7 @@ class FloatingElement {
     if (this.flyToCenter) {
       const targetCenterX = bounds.width * 0.5;
       const targetCenterY = bounds.height * 0.5;
-      const pull = this.scrollProgress * this.pullStrength;
+      const pull = p * this.pullStrength;
       restX = baseCenterX + (targetCenterX - baseCenterX) * pull;
       restY = baseCenterY + (targetCenterY - baseCenterY) * pull;
     }
@@ -223,18 +228,14 @@ class FloatingElement {
 
     const activeOpacity =
       this.baseOpacity + (this.hoverOpacity - this.baseOpacity) * this.currentFocus;
-    const fadeRatio = this.scrollFade
-      ? Math.min(1, this.scrollProgress / Math.max(0.001, this.fadeOutEnd))
-      : 0;
+    const fadeRatio = this.scrollFade ? Math.min(1, p / Math.max(0.001, this.fadeOutEnd)) : 0;
     const opacity = activeOpacity * (1 - fadeRatio);
 
     const saturate = this.idleSaturate + (1 - this.idleSaturate) * this.currentFocus;
     const brightness = this.idleBrightness + (1 - this.idleBrightness) * this.currentFocus;
     const blur = this.idleBlur * (1 - this.currentFocus);
 
-    const shrinkFactor = this.scrollShrink
-      ? 1 - this.scrollProgress * (1 - this.minFlightScale)
-      : 1;
+    const shrinkFactor = this.scrollShrink ? 1 - p * (1 - this.minFlightScale) : 1;
     const finalScale = this.baseScale * shrinkFactor;
 
     this.el.style.opacity = opacity.toFixed(3);

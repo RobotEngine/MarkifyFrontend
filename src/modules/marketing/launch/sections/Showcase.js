@@ -44,8 +44,6 @@ import {
 
 import { VariableFontWeightWave } from "../../effects/VariableFontWeightWave";
 
-import { Frame as SurroundElements } from "../showcase/SurroundElements";
-
 import blurBackdrop from "@assets/backgrounds/cursorgradient.svg?no-inline";
 import dotsblackBackdrop from "@assets/backgrounds/dotsblack.svg?no-inline";
 import dotswhiteBackdrop from "@assets/backgrounds/dotswhite.svg?no-inline";
@@ -172,7 +170,7 @@ export class Frame {
     });
 
     // Setup surround elements:
-    this.setFrame(SurroundElements, this.overviewSurroundElements);
+    this.setFrame(import("../showcase/SurroundElements"), this.overviewSurroundElements);
 
     // Handle Scroll Event:
     this.parent.pipeline.subscribe("showcaseScroll", "scroll", () => { this.onBoundsChange(); });

@@ -117,14 +117,14 @@ export class Frame {
     });
     manager.createElement({
       x: 8,
-      y: 62,
+      y: 64,
       width: 180,
       rotateZ: 5,
       svg: yellowsticky
     });
     manager.createElement({
       x: 8,
-      y: 84,
+      y: 88,
       width: 180,
       rotateZ: -5,
       svg: redsticky
@@ -132,21 +132,21 @@ export class Frame {
     
     manager.createElement({
       x: 92,
-      y: 32,
+      y: 36,
       width: 110,
       rotateZ: -12,
       svg: circle
     });
     manager.createElement({
       x: 86,
-      y: 46,
+      y: 48,
       width: 110,
       rotateZ: 6,
       svg: square
     });
     manager.createElement({
       x: 92,
-      y: 58,
+      y: 60,
       width: 110,
       rotateZ: -16,
       svg: triangle
@@ -154,7 +154,7 @@ export class Frame {
     
     manager.createElement({
       x: 88,
-      y: 82,
+      y: 84,
       width: 260,
       rotateZ: 6,
       svg: widget

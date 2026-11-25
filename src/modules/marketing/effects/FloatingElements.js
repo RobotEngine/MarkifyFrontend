@@ -8,7 +8,7 @@ class FloatingElement {
 
     // Size & base orientation
     this.width = config.width ?? 120;
-    this.height = config.height ?? 'auto';
+    this.height = config.height ?? "auto";
     this.baseScale = config.scale ?? 1;
     this.baseRotateX = config.rotateX ?? 0;
     this.baseRotateY = config.rotateY ?? 0;
@@ -23,18 +23,18 @@ class FloatingElement {
     this.idleBlur = config.idleBlur ?? 2;
 
     // Barely-noticeable default float motion
-    this.floatAmplitude = config.floatAmplitude ?? 2.2;
-    this.floatSpeed = config.floatSpeed ?? 0.00075;
+    this.floatAmplitude = config.floatAmplitude ?? 2.5;
+    this.floatSpeed = config.floatSpeed ?? 0.0008;
     this.idleRotAmplitude = config.idleRotAmplitude ?? 0.8;
     this.phase = config.phase ?? Math.random() * Math.PI * 2;
 
     // Gentle cursor glide & tilt (no aggressive shoving)
     this.proximityRadius = config.proximityRadius ?? 400;
-    this.swayStrength = config.swayStrength ?? 12;
-    this.maxTiltDelta = config.maxTiltDelta ?? 9;
-    this.maxSpinDelta = config.maxSpinDelta ?? 3;
-    this.stiffness = config.stiffness ?? 0.045;
-    this.damping = config.damping ?? 0.86;
+    this.swayStrength = config.swayStrength ?? 16;
+    this.maxTiltDelta = config.maxTiltDelta ?? 10;
+    this.maxSpinDelta = config.maxSpinDelta ?? 5;
+    this.stiffness = config.stiffness ?? 0.06;
+    this.damping = config.damping ?? 0.8;
 
     // How much scrolling since last pointermove attenuates proximity effect (px of scroll to zero out)
     this.scrollProximityDecayPx = config.scrollProximityDecayPx ?? 140;
@@ -71,27 +71,27 @@ class FloatingElement {
     this.currentPerspective = this.basePerspective;
     this.currentFocus = 0;
 
-    this.el = this.#buildElement(config.svg ?? '');
+    this.el = this.#buildElement(config.svg ?? "");
     this.container.appendChild(this.el);
   }
 
   #buildElement(svgMarkup) {
-    const wrapper = document.createElement('div');
-    wrapper.style.position = 'absolute';
-    wrapper.style.left = '0';
-    wrapper.style.top = '0';
-    wrapper.style.width = typeof this.width === 'number' ? `${this.width}px` : this.width;
-    if (this.height !== 'auto') {
-      wrapper.style.height = typeof this.height === 'number' ? `${this.height}px` : this.height;
+    let wrapper = document.createElement("div");
+    wrapper.style.position = "absolute";
+    wrapper.style.left = "0";
+    wrapper.style.top = "0";
+    wrapper.style.width = typeof this.width === "number" ? `${this.width}px` : this.width;
+    if (this.height !== "auto") {
+      wrapper.style.height = typeof this.height === "number" ? `${this.height}px` : this.height;
     }
-    wrapper.style.pointerEvents = 'none';
-    wrapper.style.willChange = 'transform, opacity, filter';
+    wrapper.style.pointerEvents = "none";
+    wrapper.style.willChange = "transform, opacity, filter";
     wrapper.innerHTML = svgMarkup;
 
-    const svg = wrapper.querySelector('svg');
+    let svg = wrapper.querySelector("svg");
     if (svg) {
-      svg.style.width = '100%';
-      svg.style.height = '100%';
+      svg.style.width = "100%";
+      svg.style.height = "100%";
     }
 
     return wrapper;
@@ -114,8 +114,8 @@ class FloatingElement {
   }
 
   #stepSpring(current, velocity, target) {
-    const force = (target - current) * this.stiffness;
-    const nextVel = (velocity + force) * this.damping;
+    let force = (target - current) * this.stiffness;
+    let nextVel = (velocity + force) * this.damping;
     return { value: current + nextVel, velocity: nextVel };
   }
 
@@ -136,25 +136,25 @@ class FloatingElement {
     if (!bounds.width || !bounds.height) return;
 
     this.renderedScrollProgress += (this.scrollProgress - this.renderedScrollProgress) * this.scrollLerp;
-    const p = this.renderedScrollProgress;
+    let p = this.renderedScrollProgress;
 
     // 1. Subtle, slow idle drift
-    const idleOffsetY = Math.sin(now * this.floatSpeed + this.phase) * this.floatAmplitude;
-    const idleOffsetX = Math.cos(now * this.floatSpeed * 0.65 + this.phase) * (this.floatAmplitude * 0.55);
-    const idleRotZ = Math.sin(now * this.floatSpeed * 0.8 + this.phase) * this.idleRotAmplitude;
+    let idleOffsetY = Math.sin(now * this.floatSpeed + this.phase) * this.floatAmplitude;
+    let idleOffsetX = Math.cos(now * this.floatSpeed * 0.65 + this.phase) * (this.floatAmplitude * 0.55);
+    let idleRotZ = Math.sin(now * this.floatSpeed * 0.8 + this.phase) * this.idleRotAmplitude;
 
     // 2. Base center before scroll pull
-    const baseCenterX = (this.baseX / 100) * bounds.width + idleOffsetX;
-    const baseCenterY = (this.baseY / 100) * bounds.height + idleOffsetY;
+    let baseCenterX = (this.baseX / 100) * bounds.width + idleOffsetX;
+    let baseCenterY = (this.baseY / 100) * bounds.height + idleOffsetY;
 
     // 3. Optional scroll pull toward container center
     let restX = baseCenterX;
     let restY = baseCenterY;
 
     if (this.flyToCenter) {
-      const targetCenterX = bounds.width * 0.5;
-      const targetCenterY = bounds.height * 0.5;
-      const pull = p * this.pullStrength;
+      let targetCenterX = bounds.width * 0.5;
+      let targetCenterY = bounds.height * 0.5;
+      let pull = p * this.pullStrength;
       restX = baseCenterX + (targetCenterX - baseCenterX) * pull;
       restY = baseCenterY + (targetCenterY - baseCenterY) * pull;
     }
@@ -169,26 +169,25 @@ class FloatingElement {
     let targetFocus = 0;
 
     if (this.pointerX !== null && this.pointerY !== null) {
-      const deltaScrollY = Math.abs(this.currentScrollY - this.pointerScrollY);
-      const scrollRetention =
+      let deltaScrollY = Math.abs(this.currentScrollY - this.pointerScrollY);
+      let scrollRetention =
         this.scrollProximityDecayPx > 0
           ? Math.max(0, 1 - deltaScrollY / this.scrollProximityDecayPx)
           : 1;
 
       if (scrollRetention > 0) {
-        const screenCenterX = bounds.left + restX;
-        const screenCenterY = bounds.top + restY;
-        const dx = this.pointerX - screenCenterX;
-        const dy = this.pointerY - screenCenterY;
-        const dist = Math.hypot(dx, dy);
+        let screenCenterX = bounds.left + restX;
+        let screenCenterY = bounds.top + restY;
+        let dx = this.pointerX - screenCenterX;
+        let dy = this.pointerY - screenCenterY;
+        let dist = Math.hypot(dx, dy);
 
         if (dist < this.proximityRadius) {
-          const rawCloseness = 1 - dist / this.proximityRadius;
-          const closeness =
-            rawCloseness * rawCloseness * (3 - 2 * rawCloseness) * scrollRetention;
+          let rawCloseness = 1 - dist / this.proximityRadius;
+          let closeness = rawCloseness * rawCloseness * (3 - 2 * rawCloseness) * scrollRetention;
 
-          const normX = dx / this.proximityRadius;
-          const normY = dy / this.proximityRadius;
+          let normX = dx / this.proximityRadius;
+          let normY = dy / this.proximityRadius;
 
           targetOffsetX = normX * this.swayStrength * closeness;
           targetOffsetY = normY * this.swayStrength * closeness;
@@ -203,16 +202,16 @@ class FloatingElement {
       }
     }
 
-    const posX = this.#stepSpring(this.offsetX, this.velX, targetOffsetX);
-    const posY = this.#stepSpring(this.offsetY, this.velY, targetOffsetY);
+    let posX = this.#stepSpring(this.offsetX, this.velX, targetOffsetX);
+    let posY = this.#stepSpring(this.offsetY, this.velY, targetOffsetY);
     this.offsetX = posX.value;
     this.velX = posX.velocity;
     this.offsetY = posY.value;
     this.velY = posY.velocity;
 
-    const rotX = this.#stepSpring(this.tiltX, this.velTiltX, targetTiltX);
-    const rotY = this.#stepSpring(this.tiltY, this.velTiltY, targetTiltY);
-    const rotZ = this.#stepSpring(this.tiltZ, this.velTiltZ, targetTiltZ);
+    let rotX = this.#stepSpring(this.tiltX, this.velTiltX, targetTiltX);
+    let rotY = this.#stepSpring(this.tiltY, this.velTiltY, targetTiltY);
+    let rotZ = this.#stepSpring(this.tiltZ, this.velTiltZ, targetTiltZ);
     this.tiltX = rotX.value;
     this.velTiltX = rotX.velocity;
     this.tiltY = rotY.value;
@@ -223,32 +222,31 @@ class FloatingElement {
     this.currentPerspective += (targetPerspective - this.currentPerspective) * 0.12;
     this.currentFocus += (targetFocus - this.currentFocus) * 0.1;
 
-    const finalX = restX + this.offsetX;
-    const finalY = restY + this.offsetY;
+    let finalX = restX + this.offsetX;
+    let finalY = restY + this.offsetY;
 
-    const activeOpacity =
-      this.baseOpacity + (this.hoverOpacity - this.baseOpacity) * this.currentFocus;
-    const fadeRatio = this.scrollFade ? Math.min(1, p / Math.max(0.001, this.fadeOutEnd)) : 0;
-    const opacity = activeOpacity * (1 - fadeRatio);
+    let activeOpacity = this.baseOpacity + (this.hoverOpacity - this.baseOpacity) * this.currentFocus;
+    let fadeRatio = this.scrollFade ? Math.min(1, p / Math.max(0.001, this.fadeOutEnd)) : 0;
+    let opacity = activeOpacity * (1 - fadeRatio);
 
-    const saturate = this.idleSaturate + (1 - this.idleSaturate) * this.currentFocus;
-    const brightness = this.idleBrightness + (1 - this.idleBrightness) * this.currentFocus;
-    const blur = this.idleBlur * (1 - this.currentFocus);
+    let saturate = this.idleSaturate + (1 - this.idleSaturate) * this.currentFocus;
+    let brightness = this.idleBrightness + (1 - this.idleBrightness) * this.currentFocus;
+    let blur = this.idleBlur * (1 - this.currentFocus);
 
-    const shrinkFactor = this.scrollShrink ? 1 - p * (1 - this.minFlightScale) : 1;
-    const finalScale = this.baseScale * shrinkFactor;
+    let shrinkFactor = this.scrollShrink ? 1 - p * (1 - this.minFlightScale) : 1;
+    let finalScale = this.baseScale * shrinkFactor;
 
     this.el.style.opacity = opacity.toFixed(3);
     this.el.style.filter = `saturate(${saturate.toFixed(2)}) brightness(${brightness.toFixed(2)}) blur(${blur.toFixed(2)}px)`;
     this.el.style.transform = [
       `translate3d(${finalX.toFixed(1)}px, ${finalY.toFixed(1)}px, 0)`,
-      'translate(-50%, -50%)',
+      "translate(-50%, -50%)",
       `perspective(${Math.round(this.currentPerspective)}px)`,
       `scale(${finalScale.toFixed(3)})`,
       `rotateX(${(this.baseRotateX + this.tiltX).toFixed(2)}deg)`,
       `rotateY(${(this.baseRotateY + this.tiltY).toFixed(2)}deg)`,
       `rotateZ(${(this.baseRotateZ + idleRotZ + this.tiltZ).toFixed(2)}deg)`,
-    ].join(' ');
+    ].join(" ");
   }
 
   destroy() {
@@ -261,14 +259,14 @@ export class FloatingElements {
     this.id = id;
     this.pipeline = pipeline;
     this.container =
-      typeof options.container === 'string'
+      typeof options.container === "string"
         ? document.querySelector(options.container)
         : options.container;
 
     // Small-viewport visibility (width AND height) & fade transition settings
     this.hideOnSmallScreens = options.hideOnSmallScreens ?? true;
     this.hideBelowWidth = options.hideBelowWidth ?? options.minBreakpoint ?? 1000;
-    this.hideBelowHeight = options.hideBelowHeight ?? options.minHeight ?? 700;
+    this.hideBelowHeight = options.hideBelowHeight ?? options.minHeight ?? 640;
     this.visibilityFadeDuration = options.visibilityFadeDuration ?? 250; // ms
 
     // scrollDistance as a multiplier of window.innerHeight (e.g., 0.5 = 50vh, 1 = 100vh)
@@ -297,11 +295,11 @@ export class FloatingElements {
   }
 
   #initContainer() {
-    const computed = getComputedStyle(this.container);
-    if (computed.position === 'static') {
-      this.container.style.position = 'relative';
+    let computed = getComputedStyle(this.container);
+    if (computed.position === "static") {
+      this.container.style.position = "relative";
     }
-    this.container.style.pointerEvents = 'none';
+    this.container.style.pointerEvents = "none";
     this.container.style.transition = `opacity ${this.visibilityFadeDuration}ms ease, visibility ${this.visibilityFadeDuration}ms ease`;
   }
 
@@ -310,28 +308,28 @@ export class FloatingElements {
   }
 
   #subscribeEvents() {
-    if (!this.pipeline || typeof this.pipeline.subscribe !== 'function') return;
+    if (!this.pipeline || typeof this.pipeline.subscribe !== "function") return;
 
-    this.pipeline.subscribe(this.id, 'pointermove', ({ event }) => {
+    this.pipeline.subscribe(this.id, "pointermove", ({ event }) => {
       if (!this.isVisible || !this.isInViewport) return;
-      const x = event?.clientX;
-      const y = event?.clientY;
-      if (typeof x !== 'number' || typeof y !== 'number') return;
+      let x = event?.clientX;
+      let y = event?.clientY;
+      if (typeof x !== "number" || typeof y !== "number") return;
 
-      const scrollY = this.#getScrollY();
-      for (const item of this.items) {
+      let scrollY = this.#getScrollY();
+      for (let item of this.items) {
         item.setPointer(x, y, scrollY);
       }
       this.wake();
     });
 
-    this.pipeline.subscribe(this.id, 'bounds_change', () => {
+    this.pipeline.subscribe(this.id, "bounds_change", () => {
       this.#measure();
       this.#updateScrollProgress();
       this.wake();
     });
 
-    this.pipeline.subscribe(this.id, 'resize', () => {
+    this.pipeline.subscribe(this.id, "resize", () => {
       this.#measure();
       this.#updateVisibility(false);
       this.#updateScrollProgress();
@@ -341,10 +339,10 @@ export class FloatingElements {
 
   #measure() {
     if (!this.container) return;
-    const rect = this.container.getBoundingClientRect();
-    const vh = window.innerHeight || 0;
-    const vw = window.innerWidth || 0;
-    const pad = this.offscreenMargin;
+    let rect = this.container.getBoundingClientRect();
+    let vh = window.innerHeight || 0;
+    let vw = window.innerWidth || 0;
+    let pad = this.offscreenMargin;
 
     this.bounds = {
       left: rect.left,
@@ -369,14 +367,14 @@ export class FloatingElements {
     }
 
     if (instant) {
-      this.container.style.transition = 'none';
-      this.container.style.opacity = shouldShow ? '1' : '0';
-      this.container.style.visibility = shouldShow ? 'visible' : 'hidden';
+      this.container.style.transition = "none";
+      this.container.style.opacity = shouldShow ? "1" : "0";
+      this.container.style.visibility = shouldShow ? "visible" : "hidden";
       void this.container.offsetWidth;
       this.container.style.transition = `opacity ${this.visibilityFadeDuration}ms ease, visibility ${this.visibilityFadeDuration}ms ease`;
     } else {
-      this.container.style.opacity = shouldShow ? '1' : '0';
-      this.container.style.visibility = shouldShow ? 'visible' : 'hidden';
+      this.container.style.opacity = shouldShow ? "1" : "0";
+      this.container.style.visibility = shouldShow ? "visible" : "hidden";
     }
 
     if (!shouldShow) {
@@ -392,11 +390,11 @@ export class FloatingElements {
   #updateVisibility(instant = false) {
     if (!this.container) return;
 
-    const tooNarrow = window.innerWidth < this.hideBelowWidth;
-    const tooShort = window.innerHeight < this.hideBelowHeight;
-    const shouldShow = !this.hideOnSmallScreens || (!tooNarrow && !tooShort);
+    let tooNarrow = window.innerWidth < this.hideBelowWidth;
+    let tooShort = window.innerHeight < this.hideBelowHeight;
+    let shouldShow = !this.hideOnSmallScreens || (!tooNarrow && !tooShort);
 
-    const changed = shouldShow !== this.isVisible;
+    let changed = shouldShow !== this.isVisible;
     this.isVisible = shouldShow;
 
     if (changed || instant) {
@@ -422,24 +420,24 @@ export class FloatingElements {
 
   setFlyToCenter(enabled) {
     this.flyToCenter = Boolean(enabled);
-    for (const item of this.items) {
+    for (let item of this.items) {
       item.flyToCenter = this.flyToCenter;
     }
     this.wake();
   }
 
   #getScrollDistancePx() {
-    const vh = window.innerHeight || 1;
+    let vh = window.innerHeight || 1;
     return Math.max(1, this.scrollDistanceVh * vh);
   }
 
   #updateScrollProgress() {
     if (!this.isVisible) return;
-    const scrollY = this.#getScrollY();
-    const distancePx = this.#getScrollDistancePx();
-    const progress = scrollY / distancePx;
+    let scrollY = this.#getScrollY();
+    let distancePx = this.#getScrollDistancePx();
+    let progress = scrollY / distancePx;
 
-    for (const item of this.items) {
+    for (let item of this.items) {
       item.setScrollProgress(progress, scrollY);
     }
   }
@@ -447,14 +445,14 @@ export class FloatingElements {
   createElement(config = {}) {
     if (!this.container) return null;
 
-    const itemConfig = {
+    let itemConfig = {
       flyToCenter: this.flyToCenter,
       scrollFade: this.scrollFade,
       scrollShrink: this.scrollShrink,
       ...config,
     };
 
-    const item = new FloatingElement(this.container, itemConfig);
+    let item = new FloatingElement(this.container, itemConfig);
     this.items.push(item);
 
     this.#measure();
@@ -500,7 +498,7 @@ export class FloatingElements {
     }
 
     let anyMoving = false;
-    for (const item of this.items) {
+    for (let item of this.items) {
       item.update(now, this.bounds);
       if (item.hasActiveMotion()) {
         anyMoving = true;
@@ -515,7 +513,7 @@ export class FloatingElements {
   };
 
   clear() {
-    for (const item of this.items) {
+    for (let item of this.items) {
       item.destroy();
     }
     this.items = [];

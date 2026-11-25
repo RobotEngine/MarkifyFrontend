@@ -44,6 +44,8 @@ import {
 
 import { VariableFontWeightWave } from "../../effects/VariableFontWeightWave";
 
+import { Frame as SurroundElements } from "../showcase/SurroundElements";
+
 import blurBackdrop from "@assets/backgrounds/cursorgradient.svg?no-inline";
 import dotsblackBackdrop from "@assets/backgrounds/dotsblack.svg?no-inline";
 import dotswhiteBackdrop from "@assets/backgrounds/dotswhite.svg?no-inline";
@@ -54,6 +56,7 @@ export class Frame {
     <div class="sticky">
       <img class="overviewBackdrop" src="${blurBackdrop}" />
       <div class="overviewCenterBackground"></div>
+      <div class="overviewSurroundElements"></div>
     </div>
     <div class="scroll">
       <div class="scrollSection overviewContent">
@@ -89,6 +92,7 @@ export class Frame {
     ".overviewBackdrop": `position: absolute; width: 100%; height: 100%; left: 0; top: 0; object-fit: cover; opacity: .4; z-index: 1`,
     ".overviewCenterBackground": `position: absolute; max-width: var(--maxContentWidth); left: 0; top: 0; transform: translate3d(calc(var(--x, 0) - 50%), calc(var(--y, 0) - 50%), 0); background: radial-gradient(var(--pageColor) 40%, transparent 60%); z-index: 2`,
     ".overviewCenterBackground:after": `content: ""; position: absolute; width: 100%; height: 100%; left: 0; top: 0; background-image: var(--dotsBackground); background-size: 24px 24px; background-position: center center; -webkit-mask-image: radial-gradient(black 20%, transparent 50%); mask-image: radial-gradient(black 30%, transparent 60%); opacity: .04; transform: translate3d(0, var(--dotBackgroundYOffset, 0), 0)`,
+    ".overviewSurroundElements": `position: absolute; width: var(--maxContentWidth); height: 100%; left: 50%; top: 50%; transform: translate(-50%, -50%); z-index: 3`,
 
     ".scroll": `position: relative; width: 100%; height: fit-content`,
     ".scrollSection": `position: relative; box-sizing: border-box; display: flex; flex-direction: column; width: 100%; height: fit-content; min-height: 100vh; min-height: 100dvh; padding-top: var(--scrollOffset); justify-content: center; align-items: center`,
@@ -117,7 +121,6 @@ export class Frame {
 
     // Handle center background:
     let { x: centerContentX, y: centerContentY, width: centerContentWidth, height: centerContentHeight } = this.overviewCenterContent.getBoundingClientRect();
-    console.log(centerContentWidth);
     this.overviewCenterBackground.style.setProperty("--x", (centerContentX + (centerContentWidth / 2)) + "px");
     this.overviewCenterBackground.style.setProperty("--y", (centerContentY + (centerContentHeight  /2)) + "px");
     this.overviewCenterBackground.style.setProperty("--dotBackgroundYOffset", (scrollY % this.DOT_BACKGROUND_TILE_SIZE) + "px");
@@ -154,6 +157,7 @@ export class Frame {
   js(frame) {
     this.sticky = frame.querySelector(".sticky");
     this.overviewCenterBackground = this.sticky.querySelector(".overviewCenterBackground");
+    this.overviewSurroundElements = this.sticky.querySelector(".overviewSurroundElements");
 
     this.scroll = frame.querySelector(".scroll");
     this.overviewContent = this.scroll.querySelector(".overviewContent");
@@ -161,11 +165,14 @@ export class Frame {
     this.headerSloganBottom = this.overviewCenterContent.querySelector(".headerSloganBottom");
 
     // Setup Variable Text:
-    let waveManager = new VariableFontWeightWave(this.parent.pipeline);
+    let waveManager = new VariableFontWeightWave("overviewHeaderText", this.parent.pipeline);
     waveManager.add(this.headerSloganBottom, "Everyone's Desk", {
       maxWeight: 800,
       waveOnStart: true
     });
+
+    // Setup surround elements:
+    this.setFrame(SurroundElements, this.overviewSurroundElements);
 
     // Handle Scroll Event:
     this.parent.pipeline.subscribe("showcaseScroll", "scroll", () => { this.onBoundsChange(); });

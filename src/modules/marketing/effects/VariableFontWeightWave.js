@@ -337,7 +337,7 @@ export class VariableFontWeightWave {
    * @param {Object} pipeline - Pipeline exposing subscribe(eventName, handler)
    * @param {Object} [events] - Map of pipeline event names if different from defaults
    */
-  constructor(pipeline) {
+  constructor(id, pipeline) {
     if (pipeline == null || typeof pipeline.subscribe != "function") {
       throw new Error("A pipeline with a subscribe() method is required.");
     }
@@ -346,16 +346,16 @@ export class VariableFontWeightWave {
 
     this.items = new Set();
 
-    this.pipeline.subscribe(null, "pointermove", ({ event }) => {
+    this.pipeline.subscribe(id, "pointermove", ({ event }) => {
       this.pointerMove(event.pageX, event.pageY);
     });
-    this.pipeline.subscribe(null, "pointerleave", () => {
+    this.pipeline.subscribe(id, "pointerleave", () => {
       this.pointerLeave();
     });
-    this.pipeline.subscribe(null, "resize", () => {
+    this.pipeline.subscribe(id, "resize", () => {
       this.resize();
     });
-    this.pipeline.subscribe(null, "scroll", () => {
+    this.pipeline.subscribe(id, "scroll", () => {
       this.scroll();
     });
 

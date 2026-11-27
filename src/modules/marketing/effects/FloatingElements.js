@@ -40,9 +40,9 @@ class FloatingElement {
     this.scrollProximityDecayPx = config.scrollProximityDecayPx ?? 140;
 
     // Scroll flight, shrink & fade
-    this.flyToCenter = config.flyToCenter ?? true;
-    this.scrollFade = config.scrollFade ?? true;
-    this.scrollShrink = config.scrollShrink ?? true;
+    this.flyToCenter = config.flyToCenter ?? false;
+    this.scrollFade = config.scrollFade ?? false;
+    this.scrollShrink = config.scrollShrink ?? false;
     this.fadeOutEnd = config.fadeOutEnd ?? 0.5;
     this.pullStrength = config.pullStrength ?? 1;
     this.minFlightScale = config.minFlightScale ?? 0.1;
@@ -151,7 +151,7 @@ class FloatingElement {
     let restX = baseCenterX;
     let restY = baseCenterY;
 
-    if (this.flyToCenter) {
+    if (this.flyToCenter == true) {
       let targetCenterX = bounds.width * 0.5;
       let targetCenterY = bounds.height * 0.5;
       let pull = p * this.pullStrength;
@@ -271,9 +271,9 @@ export class FloatingElements {
 
     // scrollDistance as a multiplier of window.innerHeight (e.g., 0.5 = 50vh, 1 = 100vh)
     this.scrollDistanceVh = options.scrollDistanceVh ?? options.scrollDistance ?? 1;
-    this.flyToCenter = options.flyToCenter ?? true;
-    this.scrollFade = options.scrollFade ?? true;
-    this.scrollShrink = options.scrollShrink ?? true;
+    this.flyToCenter = options.flyToCenter ?? false;
+    this.scrollFade = options.scrollFade ?? false;
+    this.scrollShrink = options.scrollShrink ?? false;
     this.offscreenMargin = options.offscreenMargin ?? 120;
 
     this.items = [];

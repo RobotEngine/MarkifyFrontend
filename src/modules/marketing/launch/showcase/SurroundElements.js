@@ -69,21 +69,24 @@ export class Frame {
     frame.style.height = "100%";
 
     let manager = new FloatingElements("overviewFloatingElements", this.parent.parent.pipeline, {
-      container: frame
+      container: frame,
+      flyToCenter: true,
+      scrollFade: true,
+      scrollShrink: true
     });
 
     manager.createElement({
       x: 8,
-      y: 16,
+      y: 14,
       width: 130,
       rotateZ: -8,
       svg: force
     });
     manager.createElement({
       x: 28,
-      y: 16,
+      y: 14,
       width: 200,
-      rotateZ: 2,
+      rotateZ: -4,
       svg: photosynthesis
     });
     manager.createElement({
@@ -95,14 +98,14 @@ export class Frame {
     });
     manager.createElement({
       x: 70,
-      y: 16,
+      y: 14,
       width: 180,
-      rotateZ: 6,
+      rotateZ: 4,
       svg: pythagoreantheorem
     });
     manager.createElement({
       x: 90,
-      y: 16,
+      y: 14,
       width: 200,
       rotateZ: 8,
       svg: hydrogenFormula
